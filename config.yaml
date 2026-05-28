@@ -25,7 +25,7 @@ llm:
   base_url_embedding: http://localhost:5002/v1
   temperature: 0
 openai:
-  api_key: 
+  api_key: 'sk-local'
 weaviate:
   api_key: 'dummy'
   distance: 0.25
@@ -34,3 +34,7 @@ weaviate:
   index_name: TEST_000C5A8A35C55183A4718192E328E68B44D5457AA99E37F39B2B1AA16644E8FD
   retrieve_num_limit: 5
   url: 'dummy'
+qdrant:
+  url: 'http://localhost:6333'
+  collection_name: TEST_000C5A8A35C55183A4718192E328E68B44D5457AA99E37F39B2B1AA16644E8FD
+  retrieve_num_limit: 5

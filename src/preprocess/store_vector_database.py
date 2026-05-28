@@ -3,9 +3,9 @@ import sys
 import os
 import time
 import openai
-import weaviate
+from qdrant_client import QdrantClient
 from llama_index.core import VectorStoreIndex, StorageContext
-from llama_index.vector_stores.weaviate import WeaviateVectorStore
+from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.core.schema import TextNode
 
     
@@ -35,29 +35,18 @@ def process_java_summaries(
 
     max_retries = 5
     retry_count = 0
+    client = QdrantClient(url=weaviate_url)
 
-    while retry_count < max_retries:
-        try:
-            client = weaviate.connect_to_wcs(
-                cluster_url=weaviate_url,
-                auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key),
-            )
-            break  # Success
-        except Exception as e:
-            retry_count += 1
-            print(f"[Retry {retry_count}/{max_retries}] Connection to Weaviate failed: {e}. Retrying in 3 seconds...")
-            time.sleep(3)
-    else:
-        raise RuntimeError(f"Failed to connect to Weaviate after {max_retries} attempts. Please check your configuration.")
-
-
-
-
-
-
-
-
-
+    # while retry_count < max_retries:
+    #     try:
+    #         client = qdrant_client(url=config["qdrant"]["url"])
+    #         break  # Success
+    #     except Exception as e:
+    #         retry_count += 1
+    #         print(f"[Retry {retry_count}/{max_retries}] Connection to Weaviate failed: {e}. Retrying in 3 seconds...")
+    #         time.sleep(3)
+    # else:
+    #     raise RuntimeError(f"Failed to connect to Weaviate after {max_retries} attempts. Please check your configuration.")
 
     nodes = []
     logger.info("Starting to process summary files.")
@@ -107,7 +96,7 @@ def process_java_summaries(
                 nodes.append(node)
     
     # 存储到 Weaviate 数据库
-    vector_store = WeaviateVectorStore(weaviate_client=client, index_name=index_name)
+    vector_store = QdrantVectorStore(client=client, collection_name=index_name)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
     logger.info("Creating vector index and storing on disk.")
     index = VectorStoreIndex(nodes, storage_context=storage_context)

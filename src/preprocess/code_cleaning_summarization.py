@@ -1,7 +1,7 @@
-import openai
+import openai  # pyright: ignore[reportMissingImports]
 import os
 import json
-from tqdm import tqdm
+from tqdm import tqdm  # pyright: ignore[reportMissingModuleSource]
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from src.config import load_config,set_env_variables
@@ -30,7 +30,7 @@ def java_code_cleaning(java_code: str) -> str:
     prompt = prompts["java_code_cleaning"] + "This is the Java code : \n\n" + java_code
 
     try:
-        client = openai.OpenAI()
+        client = openai.OpenAI(base_url=config["llm"]["base_url"], api_key="sk-local")
 
         response = client.chat.completions.create(
             temperature=0,
@@ -139,7 +139,7 @@ def generate_code_summary(java_code: str) -> str:
     prompt = prompts["generate_code_summary"] + "This is the Java code : \n\n" + java_code
 
 
-    client = OpenAI()
+    client = OpenAI(base_url=config["llm"]["base_url"], api_key="sk-local")
     try:
         # send request to OpenAI
         response = client.chat.completions.create(

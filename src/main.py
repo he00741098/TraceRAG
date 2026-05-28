@@ -3,7 +3,7 @@ import os
 import shutil
 import json
 import argparse
-import yaml
+import yaml  # pyright: ignore[reportMissingModuleSource]
 from src.config import load_config,set_env_variables
 
 from src.preprocess.pipeline import preprocess_pipeline
@@ -25,7 +25,8 @@ def update_config_index_name(new_index_name, config_path=CONFIG_PATH):
         config = yaml.safe_load(f)
 
     # 更新 index_name
-    config['weaviate']['index_name'] = new_index_name
+    # Replacing Weaviate with qdrant. TODO: add config options to select between vector databases
+    config['qdrant']['collection_name'] = new_index_name
 
     with open(config_path, 'w', encoding='utf-8') as f:
         yaml.safe_dump(config, f, allow_unicode=True)
