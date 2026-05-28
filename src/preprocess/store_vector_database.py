@@ -25,7 +25,7 @@ def process_java_summaries(
 
     # 设置 OpenAI API Key
     os.environ["OPENAI_API_KEY"] = openai_api_key
-    openai.api_key = openai_api_key
+    # openai.api_key = openai_api_key # Deprecated apparently
 
     # 连接 Weaviate 向量数据库
     # client = weaviate.connect_to_wcs(

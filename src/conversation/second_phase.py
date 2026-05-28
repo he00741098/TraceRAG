@@ -52,7 +52,7 @@ client = QdrantClient(url=config["qdrant"]["url"])
         
 # Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
-@retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(weaviate.exceptions.WeaviateQueryError))
+@retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(Exception))
 def retrieve(query: str, method_name: str, class_name: str):
     """Retrieve information related to a query.
     The query will be a question about an Android app's Java code.
@@ -63,7 +63,7 @@ def retrieve(query: str, method_name: str, class_name: str):
 
     try:
         # 生成嵌入
-        embeddings_query = OpenAIEmbeddings(model=config["llm"]["embedding_model"], openai_api_base=config["llm"]["base_url_embedding"], open_ai_key=config["openai"]["api_key"])
+        embeddings_query = OpenAIEmbeddings(model=config["llm"]["embedding_model"], base_url=config["llm"]["base_url_embedding"], api_key=config["openai"]["api_key"])
         embedding_vector = embeddings_query.embed_query(query)
         # Java_Vec_DB = client.collections.get(config["weaviate"]["index_name"])
 
@@ -72,22 +72,24 @@ def retrieve(query: str, method_name: str, class_name: str):
             filter_condition = QFilter(must=[FieldCondition(key="methods", match=MatchText(text=method_name)), FieldCondition(key="class", match=MatchText(text=class_name))])
 
         # 查询向量数据库
-        retrieved_docs = client.search(
+        retrieved_docs = client.query_points(
             collection_name = config["qdrant"]["collection_name"],
-            query_vector=embedding_vector,
+            query=embedding_vector,
             query_filter = filter_condition,
-            limit = config["qdrant"]["retrieve_num_limit"]
-        )
+            limit = config["qdrant"]["retrieve_num_limit"],
+            with_payload=True
+        ).points
 
         # 格式化结果
         serialized = "\n\n".join(
             # f"File Path:{obj.properties['file_path']}\nClass Name:{obj.properties['class']}\nContent: {obj.properties['original_code']}"
             f"Package Path:{obj.payload.get('file_path')}\nClass Name:{obj.payload.get('class')}\nContent: {obj.payload.get('original_code')}"
             for obj in retrieved_docs
-            if 'original_code' in obj.payload
+            if obj.payload and 'original_code' in obj.payload
         )
+        docs = [point.model_dump() for point in retrieved_docs]
 
-        return serialized, retrieved_docs
+        return serialized, docs
     except Exception as e:
         raise RuntimeError(f"Query failed after multiple retries: {str(e)}")
 

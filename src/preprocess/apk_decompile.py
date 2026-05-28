@@ -4,7 +4,7 @@ import os
 import subprocess
 import yaml
 
-JADX_PATH = config["jadx"]["jadx_bat"]
+JADX_PATH = config["env"]["jadx_bat"]
 
 def decompile_apk(apk_path):
     
