@@ -52,11 +52,12 @@ import json
 from langsmith import traceable
 from tenacity import retry, stop_after_attempt, wait_fixed
 import tenacity
+from typing import Optional
 #Step 1 Decide whether or not trigger retrieve tool
 def query_or_respond(state: MessagesState):
     """Generate tool call for retrieval"""
 
-    llm_with_tools = llm.bind_tools([retrieve])
+    llm_with_tools = llm.bind_tools([retrieve], tool_choice="any")
     response = llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
@@ -65,7 +66,7 @@ from langchain_core.tools import tool
 # Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
 @retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(Exception))
-def retrieve(query: str, method_name: str, class_name: str):
+def retrieve(query: str, method_name: Optional[str]=None, class_name: Optional[str]=None):
     """Retrieve information related to a query.
     The query will be a question about an Android app's Java code.
     `method_metadata` refers to the name of a Java method explicitly present in the seen code and related to the query.

@@ -15,6 +15,7 @@ import os
 import time
 import tenacity
 from tenacity import retry, stop_after_attempt, wait_fixed
+from typing import Optional
 
 from src.config import load_config,set_env_variables
 config = load_config()
@@ -53,7 +54,7 @@ client = QdrantClient(url=config["qdrant"]["url"])
 # Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
 @retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(Exception))
-def retrieve(query: str, method_name: str, class_name: str):
+def retrieve(query: str, method_name: Optional[str]=None, class_name: Optional[str]=None):
     """Retrieve information related to a query.
     The query will be a question about an Android app's Java code.
     `method_metadata` refers to the name of a Java method explicitly present in the seen code and related to the query.
