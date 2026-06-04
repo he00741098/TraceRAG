@@ -4,8 +4,8 @@ from src.config import load_config,set_env_variables
 config = load_config()
 
 from langchain_openai import ChatOpenAI
-llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"])
-llm_o3_mini = ChatOpenAI(model=config["llm"]["model_o3_mini"])
+llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
+llm_o3_mini = ChatOpenAI(model=config["llm"]["model_o3_mini"], base_url = config["llm"]["base_url"], api_key=config["openai"]["api_key"])
 from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
