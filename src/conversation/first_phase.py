@@ -6,42 +6,45 @@ from src.config import load_config,set_env_variables
 config = load_config()
 
 from langchain_openai import ChatOpenAI
-llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"])
+llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
 
 from langchain_openai import OpenAIEmbeddings
 
 
-import weaviate
-from llama_index.vector_stores.weaviate import WeaviateVectorStore
+from qdrant_client import QdrantClient
+from qdrant_client.models import Filter as QFilter, FieldCondition, MatchText
+# from llama_index.vector_stores.weaviate import WeaviateVectorStore
 from llama_index.core import VectorStoreIndex
 from llama_index.core.response.pprint_utils import pprint_source_node
 # cloud
 
-max_retries = 5
-retry_count = 0
+# max_retries = 5
+# retry_count = 0
+#
+# while retry_count < max_retries:
+#     try:
+#         client = weaviate.connect_to_wcs(
+#             cluster_url=config["weaviate"]["url"],
+#             auth_credentials=weaviate.auth.AuthApiKey(config["weaviate"]["api_key"]),
+#         )
+#         vector_store = WeaviateVectorStore(
+#             weaviate_client=client,
+#             index_name=config["weaviate"]["index_name"]
+#         )
+#         break  # Success
+#     except Exception as e:
+#         retry_count += 1
+#         print(f"[Retry {retry_count}/{max_retries}] Connection to Weaviate failed: {e}. Retrying in 3 seconds...")
+#         time.sleep(3)
+# else:
+#     raise RuntimeError(f"Failed to connect to Weaviate after {max_retries} attempts. Please check your configuration.")
 
-while retry_count < max_retries:
-    try:
-        client = weaviate.connect_to_wcs(
-            cluster_url=config["weaviate"]["url"],
-            auth_credentials=weaviate.auth.AuthApiKey(config["weaviate"]["api_key"]),
-        )
-        vector_store = WeaviateVectorStore(
-            weaviate_client=client,
-            index_name=config["weaviate"]["index_name"]
-        )
-        break  # Success
-    except Exception as e:
-        retry_count += 1
-        print(f"[Retry {retry_count}/{max_retries}] Connection to Weaviate failed: {e}. Retrying in 3 seconds...")
-        time.sleep(3)
-else:
-    raise RuntimeError(f"Failed to connect to Weaviate after {max_retries} attempts. Please check your configuration.")
+client = QdrantClient(url=config["qdrant"]["url"])
+
 
 from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
-from weaviate.classes.query import Filter, GeoCoordinate, MetadataQuery, QueryReference
 import re
 from langgraph.graph import MessagesState, StateGraph
 from langchain_core.messages import RemoveMessage
@@ -61,7 +64,7 @@ from langchain_core.tools import tool
 
 # Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
-@retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(weaviate.exceptions.WeaviateQueryError))
+@retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(Exception))
 def retrieve(query: str, method_name: str, class_name: str):
     """Retrieve information related to a query.
     The query will be a question about an Android app's Java code.
@@ -71,34 +74,34 @@ def retrieve(query: str, method_name: str, class_name: str):
     """
     try:
         # 生成嵌入
-        embeddings_query = OpenAIEmbeddings(model="text-embedding-ada-002")
+        embeddings_query = OpenAIEmbeddings(model=config["llm"]["embedding_model"], base_url=config["llm"]["base_url_embedding"], api_key=config["openai"]["api_key"])
         embedding_vector = embeddings_query.embed_query(query)
-        Java_Vec_DB = client.collections.get(config["weaviate"]["index_name"])
+        # Java_Vec_DB = client.collections.get(config["weaviate"]["index_name"])
 
+        filter_condition = None
         if method_name and class_name:
-            filter_condition= Filter.by_property("methods").equal(f"{method_name}*")  &  Filter.by_property("class").equal(f"{class_name}*")
-            
-        else:
-            filter_condition = None  # 不使用过滤条件
+            filter_condition = QFilter(must=[FieldCondition(key="methods", match=MatchText(text=method_name)), FieldCondition(key="class", match=MatchText(text=class_name))])
 
         # 查询向量数据库
-        retrieved_docs = Java_Vec_DB.query.near_vector(
-            near_vector=embedding_vector,
-            filters= filter_condition,
-            limit=5,
-            # distance=0.25
-        )
+        retrieved_docs = client.query_points(
+            collection_name = config["qdrant"]["collection_name"],
+            query=embedding_vector,
+            query_filter = filter_condition,
+            limit = config["qdrant"]["retrieve_num_limit"],
+            with_payload=True
+        ).points
 
         # 格式化结果
         serialized = "\n\n".join(
             # f"File Path:{obj.properties['file_path']}\nClass Name:{obj.properties['class']}\nContent: {obj.properties['original_code']}"
-            f"Package Path:{obj.properties['file_path']}\nClass Name:{obj.properties['class']}\nContent: {obj.properties['original_code']}"
-            for obj in retrieved_docs.objects
-            if 'original_code' in obj.properties
+            f"Package Path:{obj.payload.get('file_path')}\nClass Name:{obj.payload.get('class')}\nContent: {obj.payload.get('original_code')}"
+            for obj in retrieved_docs
+            if obj.payload and 'original_code' in obj.payload
         )
+        docs = [point.model_dump() for point in retrieved_docs]
 
-        return serialized, retrieved_docs
-    except weaviate.exceptions.WeaviateQueryError as e:
+        return serialized, docs
+    except Exception as e:
         raise RuntimeError(f"Query failed after multiple retries: {str(e)}")
 
 # Step 2: Execute the retrieval.

@@ -9,7 +9,6 @@ llm_o3_mini = ChatOpenAI(model=config["llm"]["model_o3_mini"])
 from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
-from weaviate.classes.query import Filter, GeoCoordinate, MetadataQuery, QueryReference
 import re
 from langgraph.graph import MessagesState, StateGraph
 from langchain_core.messages import RemoveMessage

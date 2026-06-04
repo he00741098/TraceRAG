@@ -4,7 +4,7 @@ import os
 import subprocess
 import yaml
 
-JADX_PATH = config["jadx"]["jadx_bat"]
+JADX_PATH = config["env"]["jadx_bat"]
 
 def decompile_apk(apk_path):
     
@@ -13,5 +13,5 @@ def decompile_apk(apk_path):
     """调用 `jadx` 反编译 APK 文件"""
     cmd = f'"{JADX_PATH}" -d "{output_path}" "{apk_path}"'
     
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=False)
     print(f"APK 反编译完成，Java 代码存储在 {output_path}")
