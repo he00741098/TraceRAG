@@ -3,10 +3,11 @@ import sys
 import os
 import time
 import openai
-from qdrant_client import QdrantClient
-from llama_index.core import VectorStoreIndex, StorageContext
+from qdrant_client import QdrantClient, models
+from llama_index.core import VectorStoreIndex, StorageContext, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.core.schema import TextNode
+from llama_index.embeddings.openai import OpenAIEmbedding
 
     
 def process_java_summaries(
@@ -25,7 +26,7 @@ def process_java_summaries(
 
     # 设置 OpenAI API Key
     os.environ["OPENAI_API_KEY"] = openai_api_key
-    # openai.api_key = openai_api_key # Deprecated apparently
+    openai.api_key = openai_api_key # Deprecated apparently
 
     # 连接 Weaviate 向量数据库
     # client = weaviate.connect_to_wcs(
@@ -95,6 +96,20 @@ def process_java_summaries(
                 )
                 nodes.append(node)
     
+    Settings.embed_model = OpenAIEmbedding(api_base="http://localhost:5002/v1", api_key="sk-local", model="text-embedding-ada-002")
+    test_embed = Settings.embed_model.get_text_embedding("test initialization")
+    dim_size = len(test_embed)
+    if not client.collection_exists(collection_name=index_name):
+        logger.info(f"Collection '{index_name}' not found. Creating it manually...")
+        client.create_collection(
+            collection_name=index_name,
+            vectors_config=models.VectorParams(
+                size=dim_size, 
+                distance=models.Distance.COSINE
+            )
+        )
+
+
     # 存储到 Weaviate 数据库
     vector_store = QdrantVectorStore(client=client, collection_name=index_name)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
