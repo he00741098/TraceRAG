@@ -29,21 +29,21 @@ def preprocess_pipeline(apk_path,index_name):
     input_file_split_cleaned_summarized = f"{java_directory}_Split_Cleaned_Summarized"
 
     # Decompile apk to Java
-    ##apk_decompile.decompile_apk(apk_path)
+    apk_decompile.decompile_apk(apk_path)
     print(f"Decomplie Success !!")
-    ##apk_info_extract.apk_info_extract(apk_path)
+    apk_info_extract.apk_info_extract(apk_path)
 
     # Split Java codes
-    ##java_code_split.split_java_files(java_directory)
+    java_code_split.split_java_files(java_directory)
 
     #Code cleaning 
-    ##code_cleaning_summarization.clean_java_files(input_file_split,input_file_split_cleaned)
+    code_cleaning_summarization.clean_java_files(input_file_split,input_file_split_cleaned)
     #Code Summarization
-    ##code_cleaning_summarization.summarize_java_files(input_file_split_cleaned,input_file_split_cleaned_summarized)
+    code_cleaning_summarization.summarize_java_files(input_file_split_cleaned,input_file_split_cleaned_summarized)
 
     print(f"Code summaries have been saved to: {input_file_split_cleaned_summarized}")
 
     # 3️⃣ 存入向量数据库
     # store_vector_database.process_java_summaries(input_file_split_cleaned,input_file_split_cleaned_summarized,weaviate_url,weaviate_api_key,weaviate_index_name,openai_api_key)
-    ##store_vector_database.process_java_summaries(input_file_split_cleaned,input_file_split_cleaned_summarized,weaviate_url,weaviate_api_key,index_name,openai_api_key)
+    store_vector_database.process_java_summaries(input_file_split_cleaned,input_file_split_cleaned_summarized,weaviate_url,weaviate_api_key,index_name,openai_api_key)
     print(f"代码存入向量数据库完成")

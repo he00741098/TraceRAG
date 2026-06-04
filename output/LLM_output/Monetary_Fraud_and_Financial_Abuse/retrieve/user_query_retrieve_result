@@ -1,0 +1,55 @@
+Package Path:defpackagelangEnum.hashCode
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final class ObjectClass {
+    public final int hashCode() {
+        return System.identityHashCode(this);
+    }
+}
+```
+
+Package Path:defpackagelangEnum.hashCode
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final class ObjectClass {
+    public final int hashCode() {
+        return System.identityHashCode(this);
+    }
+}
+```
+
+Package Path:defpackagelangIterable.iterator
+Class Name:javalangIterable
+Content: package defpackage;
+
+interface Iterator {
+    boolean hasNext();
+    Object next();
+}
+
+Package Path:defpackagelangEnum.hashCode
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final class ObjectClass {
+    @Override
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
+}
+```
+
+Package Path:defpackagelangEnum.equals
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final boolean equals(Object obj) {
+    return this == obj;
+}
+```

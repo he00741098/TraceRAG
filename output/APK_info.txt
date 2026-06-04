@@ -1,0 +1,5 @@
+Package Name: com.example.crackme
+Version Code: 1
+Version Name: 1.0
+
+SHA256: 3edd068e9f07d99bdcfc8243495ec5d896985f984fa5812fbe18a7ec2690d067
