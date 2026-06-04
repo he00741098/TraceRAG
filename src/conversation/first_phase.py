@@ -74,7 +74,7 @@ def retrieve(query: str, method_name: str, class_name: str):
     """
     try:
         # 生成嵌入
-        embeddings_query = OpenAIEmbeddings(model=config["llm"]["embedding_model"], base_url=config["llm"]["base_url_embedding"], api_key=config["openai"]["api_key"])
+        embeddings_query = OpenAIEmbeddings(model=config["llm"]["embedding_model"], base_url=config["llm"]["base_url_embedding"], api_key=config["openai"]["api_key"], check_embedding_ctx_length=False)
         embedding_vector = embeddings_query.embed_query(query)
         # Java_Vec_DB = client.collections.get(config["weaviate"]["index_name"])
 
