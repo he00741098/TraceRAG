@@ -1,0 +1,62 @@
+Package Path:defpackagelangEnum.hashCode
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final class ObjectClass {
+    @Override
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
+}
+```
+
+Package Path:defpackagelangEnum.hashCode
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final class ObjectClass {
+    @Override
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
+}
+```
+
+Package Path:defpackagelangEnum.hashCode
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final class ObjectClass {
+    public final int hashCode() {
+        return System.identityHashCode(this);
+    }
+}
+```
+
+Package Path:defpackagelangEnum.hashCode
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final class ObjectClass {
+    public final int hashCode() {
+        return System.identityHashCode(this);
+    }
+}
+```
+
+Package Path:defpackagelangEnum.hashCode
+Class Name:javalangEnum
+Content: ```java
+package defpackage;
+
+public final class ObjectClass {
+    @Override
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
+}
+```
