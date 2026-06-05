@@ -1,5 +1,5 @@
-Package Name: com.example.crackme
-Version Code: 1
-Version Name: 1.0
+Package Name: com.shaahw.a8rcticiozning
+Version Code: 8188
+Version Name: 7.7.6x02
 
-SHA256: 3edd068e9f07d99bdcfc8243495ec5d896985f984fa5812fbe18a7ec2690d067
+SHA256: 018f8548c055a31d98201874ebf21591e6d85cb9eee66e8c35716a9289d01f48

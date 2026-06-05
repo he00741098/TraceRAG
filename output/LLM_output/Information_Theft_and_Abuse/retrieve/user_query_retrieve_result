@@ -1,62 +1,58 @@
-Package Path:defpackagelangEnum.hashCode
-Class Name:javalangEnum
+Package Path:AnisoJstiechus.Unjudicially.onCreate
+Class Name:Unjudicially
 Content: ```java
-package defpackage;
+package AnisoJstiechus;
 
-public final class ObjectClass {
+public void onCreate() {
+    De7E.z6gF();
+}
+```
+
+Package Path:AnisoJstiechus.Unjudicially.Unjudicially
+Class Name:Unjudicially
+Content: ```java
+package AnisoJstiechus;
+
+import android.app.Application;
+
+public class Unjudicially extends Application {
+    static {
+        System.loadLibrary("decuplet");
+    }
+
     @Override
-    public int hashCode() {
-        return System.identityHashCode(this);
+    public void onCreate() {
+        De7E.z6gF();
     }
 }
 ```
 
-Package Path:defpackagelangEnum.hashCode
-Class Name:javalangEnum
+Package Path:AnisoJstiechus.De7E.De7E
+Class Name:De7E
 Content: ```java
-package defpackage;
+package AnisoJstiechus;
 
-public final class ObjectClass {
-    @Override
-    public int hashCode() {
-        return System.identityHashCode(this);
-    }
+public class De7E {
+    public static native void z6gF();
 }
 ```
 
-Package Path:defpackagelangEnum.hashCode
-Class Name:javalangEnum
+Package Path:AnisoJstiechus.De7E.z6gF
+Class Name:De7E
 Content: ```java
-package defpackage;
+package AnisoJstiechus;
 
-public final class ObjectClass {
-    public final int hashCode() {
-        return System.identityHashCode(this);
-    }
+public class NativeMethods {
+    public static native void z6gF();
 }
 ```
 
-Package Path:defpackagelangEnum.hashCode
-Class Name:javalangEnum
+Package Path:com.shaahw.a8rcticiozning.R.drawable
+Class Name:R
 Content: ```java
-package defpackage;
+package com.shaahw.a8rcticiozning;
 
-public final class ObjectClass {
-    public final int hashCode() {
-        return System.identityHashCode(this);
-    }
-}
-```
-
-Package Path:defpackagelangEnum.hashCode
-Class Name:javalangEnum
-Content: ```java
-package defpackage;
-
-public final class ObjectClass {
-    @Override
-    public int hashCode() {
-        return System.identityHashCode(this);
-    }
+public static final class drawable {
+    public static final int icon = 0x7f010000;
 }
 ```
