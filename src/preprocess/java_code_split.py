@@ -81,15 +81,16 @@ def extract_class_details_with_context_and_save(java_code, input_path, output_ro
                         var_declaration.append(code_lines[i])
                         if ";" in code_lines[i]:
                             break
-                    var_code = '\n'.join(var_declaration)
+                    # var_code = '\n'.join(var_declaration)
                     for declarator in node.declarators:
-                        var_name = declarator.name
+                        # var_name = declarator.name
                         variables_count += 1
-
-                        file_name = f"{var_name}.java"
-                        file_path = os.path.join(source_folder, file_name)
-                        with open(file_path, 'w', encoding='utf-8') as file:
-                            file.write(package_declaration + var_code)
+                        
+                        # The system appears to be writing a new file for every variable, which seems excessive
+                        # file_name = f"{var_name}.java"
+                        # file_path = os.path.join(source_folder, file_name)
+                        # with open(file_path, 'w', encoding='utf-8') as file:
+                        #     file.write(package_declaration + var_code)
 
                 except AttributeError:
                     print("⚠️ 变量声明缺少位置信息，跳过")

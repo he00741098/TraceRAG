@@ -24,7 +24,7 @@ from langchain_openai import ChatOpenAI
 
 
 llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
-#TODO: potentially use a different model for the o3_mini replacement if necessary
+#TODO: potentially use a different model for the o3_mini replacement if necessary. Note: We are currently using a single model to do all work except for embeddings. If we need to use o3 mini again, comment out this line, and uncomment the following one.
 llm_o3_mini = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
 #llm_o3_mini = ChatOpenAI(model=config["llm"]["model_o3_mini"])
 
