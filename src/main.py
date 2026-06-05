@@ -81,56 +81,131 @@ if __name__ == "__main__":
             print(f"Processing: {question_name}")
             try:
 
-                ###### First stage, retrieve the code using pre designed question#########
-                ########################################################################
-                execute_query(retrieve_question)  # execute query
-                split_and_store_java_code()     # process the retrieve result, seperatedly save retrieved code snippets
-                ########################################################################
-
-
-                output_dir = config["conversation_directories"]["user_query_analyze_path"]
-                os.makedirs(output_dir, exist_ok=True)
 
                 code_snippet_path = config["conversation_directories"]["user_query_retrieval_filtered_split_path"]
+                if os.path.exists(code_snippet_path):
+                    shutil.rmtree(code_snippet_path)
+                os.makedirs(code_snippet_path, exist_ok=True)
+                execute_query(retrieve_question)  # execute query
+                split_and_store_java_code()     # process the retrieve result, seperatedly save retrieved code snippets
+                output_dir = config["conversation_directories"]["user_query_analyze_path"]
+                os.makedirs(output_dir, exist_ok=True)
                 # Check if the path exists
                 if not os.path.exists(code_snippet_path):
                     print(f"[Error] The directory '{code_snippet_path}' does not exist.")
                 else:
-                    print(f"[Info] Starting to process .txt files in: {code_snippet_path}")
+                    print(f"[Info] Starting to process .txt files in: {code_snippet_path} using Chunked Batching")
 
-                    file_contents = []  # append every code snippet's result together to generate question report 用于收集合并内容
+                    # 1. Get all valid text files
+                    all_files = [f for f in sorted(os.listdir(code_snippet_path)) if f.endswith(".txt")]
+                    
+                    if not all_files:
+                        print(f"[Skip] No valid text snippets found for {question_name}.")
+                    else:
+                        file_contents = []
+                        batch_size = 5 # TODO: Find proper batch size based on context limits
+                        # Process files in batches
+                        for i in range(0, len(all_files), batch_size):
+                            batch_files = all_files[i:i + batch_size]
+                            combined_snippets = ""
+                            
+                            for filename in batch_files:
+                                file_path = os.path.join(code_snippet_path, filename)
+                                try:
+                                    with open(file_path, 'r', encoding='utf-8') as f:
+                                        combined_snippets += f"\n\n--- Start of {filename} ---\n"
+                                        combined_snippets += f.read()
+                                        combined_snippets += f"\n--- End of {filename} ---\n"
+                                except Exception as e:
+                                    print(f"[Warning] Failed to read file: {filename}. Error: {e}")
+                            if combined_snippets.strip():
+                                analyze_question = (
+                                    "Here is a batch of Android app java code snippets about " +
+                                    question_name +
+                                    ". Please analyze them together to identify any potential malicious behavior."
+                                )
+                                chunk_num = (i // batch_size) + 1
+                                total_chunks = (len(all_files) + batch_size - 1) // batch_size
+                                print(f"[Processing] Running batch conversation for {question_name} (Chunk {chunk_num}/{total_chunks})")
+                                
+                                result = model_conversation(analyze_question, combined_snippets)
+                                # Append the chunk result to contents list
+                                file_contents.append(f"Batched conversation history (Chunk {chunk_num})\n{str(result)}")
+                                # Save intermediate chunk results locally
+                                chunk_output_file = os.path.join(output_dir, f'batched_analysis_result_chunk_{chunk_num}.txt')
+                                with open(chunk_output_file, 'w', encoding='utf-8') as out_f:
+                                    out_f.write(str(result))
+
+                        # Combine all chunk results
+                        combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
+                        with open(combined_file_path, 'w', encoding='utf-8') as combined_f:
+                            combined_f.write("\n\n".join(file_contents))
+
+                        print(f"\n[Done] All {total_chunks} batches processed for {question_name}.")
+                        # Generate final question report summarizing all chunks
+                        try:
+                            final_result = quesiton_report_generation(file_contents)
+                            final_report_path = os.path.join(output_dir, 'question_report.txt')
+                            with open(final_report_path, 'w', encoding='utf-8') as f:
+                                f.write(final_result)
+                            print(f"[Final Report Saved] {final_report_path}")
+                            convert_txt_to_md_and_html(final_report_path)
+                        except Exception as e:
+                            print(f"[Error] Failed to run quesiton_report_generation. Error: {e}")
+
+                ###### First stage, retrieve the code using pre designed question#########
+                ########################################################################
+                # execute_query(retrieve_question)  # execute query
+                # split_and_store_java_code()     # process the retrieve result, seperatedly save retrieved code snippets
+                ########################################################################
+
+
+                # output_dir = config["conversation_directories"]["user_query_analyze_path"]
+                # os.makedirs(output_dir, exist_ok=True)
+
+                # code_snippet_path = config["conversation_directories"]["user_query_retrieval_filtered_split_path"]
+                # Check if the path exists
+                # if not os.path.exists(code_snippet_path):
+                    # print(f"[Error] The directory '{code_snippet_path}' does not exist.")
+                # else:
+                    # print(f"[Info] Starting to process .txt files in: {code_snippet_path}")
+
+                    # file_contents = []  # append every code snippet's result together to generate question report 用于收集合并内容
 
                     # Loop through all .txt files in the directory
-                    for idx, filename in enumerate(sorted(os.listdir(code_snippet_path)), start=1):
-                        if filename.endswith(".txt"):
-                            file_path = os.path.join(code_snippet_path, filename)
-                            try:
-                                with open(file_path, 'r', encoding='utf-8') as f:
-                                    code_snippet = f.read()
-                                analyze_question = (
-                                    "Here is an Android app's java code about " +
-                                        question_name +
-                                        ". Please help me to identify the potential exist malicious behavior."
-                                )
-                                print(f"[Processing] Running model on: {filename}")
+                    # for idx, filename in enumerate(sorted(os.listdir(code_snippet_path)), start=1):
+                    #     if filename.endswith(".txt"):
+                    #         file_path = os.path.join(code_snippet_path, filename)
+                    #         try:
+                    #             with open(file_path, 'r', encoding='utf-8') as f:
+                    #                 code_snippet = f.read()
+                    #             analyze_question = (
+                    #                 "Here is an Android app's java code about " +
+                    #                     question_name +
+                    #                     ". Please help me to identify the potential exist malicious behavior."
+                    #             )
+                    #             print(f"[Processing] Running model on: {filename}")
+                    #
+                    #             ###############################################################
+                    #             #########Second stage, using LLM to analyze retrieved code####
+                    #             ###############################################################
+                    #             result = model_conversation(analyze_question, code_snippet)
+                    #             ###############################################################
+                    #
+                    #             # Save result to output file (same name as input, different folder)
+                    #             output_file = os.path.join(output_dir, filename)  # same name as .txt
+                    #             with open(output_file, 'w', encoding='utf-8') as out_f:
+                    #                 out_f.write(str(result))  # Ensure it's string or serialize properly
+                    #
+                    #             # append the code report together, and pass it to LLM to generate quesiton report.
+                    #             file_contents.append(f"conversation history {idx}\n{str(result)}")
+                    #
+                    #
+                    #         except Exception as e:
+                    #             print(f"[Warning] Failed to process file: {filename}. Error: {e}")
 
-                                ###############################################################
-                                #########Second stage, using LLM to analyze retrieved code####
-                                ###############################################################
-                                result = model_conversation(analyze_question, code_snippet)
-                                ###############################################################
-
-                                # Save result to output file (same name as input, different folder)
-                                output_file = os.path.join(output_dir, filename)  # same name as .txt
-                                with open(output_file, 'w', encoding='utf-8') as out_f:
-                                    out_f.write(str(result))  # Ensure it's string or serialize properly
-
-                                # append the code report together, and pass it to LLM to generate quesiton report.
-                                file_contents.append(f"conversation history {idx}\n{str(result)}")
 
 
-                            except Exception as e:
-                                print(f"[Warning] Failed to process file: {filename}. Error: {e}")
 
 
                     combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
