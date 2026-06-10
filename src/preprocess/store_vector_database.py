@@ -96,7 +96,16 @@ def process_java_summaries(
                 )
                 nodes.append(node)
     
-    Settings.embed_model = OpenAIEmbedding(api_base="http://localhost:5002/v1", api_key="sk-local", model="text-embedding-ada-002")
+    from src.config import load_config
+    _cfg = load_config()
+    # Use configured embedding endpoint and model from config.yaml
+    embed_base_url = _cfg.get("llm", {}).get("base_url_embedding", "http://localhost:5002/v1")
+    embed_model = _cfg.get("llm", {}).get("embedding_model", "text-embedding-ada-002")
+    Settings.embed_model = OpenAIEmbedding(
+        api_base=embed_base_url,
+        api_key="sk-local",
+        model=embed_model
+    )
     test_embed = Settings.embed_model.get_text_embedding("test initialization")
     dim_size = len(test_embed)
     if not client.collection_exists(collection_name=index_name):
