@@ -411,12 +411,16 @@ def model_conversation(input_message,code_snippet):
     current_time = "Conversation " + datetime.now().strftime("%Y%m%d_%H%M%S")
     config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
     
+    messages = []
     for step in graph1.stream(
         {"messages": [{"role": "user", "content": input_message}]},
         stream_mode="values",
         config=config,
     ):
         step["messages"][-1].pretty_print()
-        last_message = step["messages"][-1].content
+        msg = step["messages"][-1]
+        role = getattr(msg, "type", "unknown")
+        content = getattr(msg, "content", str(msg))
+        messages.append(f"[{role.upper()}]\n{content}")
 
-    return last_message
+    return "\n\n---\n\n".join(messages)
