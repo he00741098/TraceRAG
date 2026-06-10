@@ -67,7 +67,6 @@ if __name__ == "__main__":
 
 
 
-
     #read json to retrieve prompt 
     try:
         with open("src/Prompt_and_Question/question_3_category.json", "r", encoding="utf-8") as f:
@@ -81,15 +80,18 @@ if __name__ == "__main__":
             print(f"Processing: {question_name}")
             try:
 
-
                 code_snippet_path = config["conversation_directories"]["user_query_retrieval_filtered_split_path"]
                 if os.path.exists(code_snippet_path):
                     shutil.rmtree(code_snippet_path)
                 os.makedirs(code_snippet_path, exist_ok=True)
                 execute_query(retrieve_question)  # execute query
-                split_and_store_java_code()     # process the retrieve result, seperatedly save retrieved code snippets
+                split_and_store_java_code()     # process the retrieve result, seperately save retrieved code snippets
                 output_dir = config["conversation_directories"]["user_query_analyze_path"]
                 os.makedirs(output_dir, exist_ok=True)
+
+                # Initialize file_contents so it's always defined, even when no snippets are found
+                file_contents = []
+
                 # Check if the path exists
                 if not os.path.exists(code_snippet_path):
                     print(f"[Error] The directory '{code_snippet_path}' does not exist.")
@@ -98,17 +100,16 @@ if __name__ == "__main__":
 
                     # 1. Get all valid text files
                     all_files = [f for f in sorted(os.listdir(code_snippet_path)) if f.endswith(".txt")]
-                    
+
                     if not all_files:
                         print(f"[Skip] No valid text snippets found for {question_name}.")
                     else:
-                        file_contents = []
-                        batch_size = 5 # TODO: Find proper batch size based on context limits
+                        batch_size = 5  # TODO: Find proper batch size based on context limits
                         # Process files in batches
                         for i in range(0, len(all_files), batch_size):
                             batch_files = all_files[i:i + batch_size]
                             combined_snippets = ""
-                            
+
                             for filename in batch_files:
                                 file_path = os.path.join(code_snippet_path, filename)
                                 try:
@@ -127,7 +128,7 @@ if __name__ == "__main__":
                                 chunk_num = (i // batch_size) + 1
                                 total_chunks = (len(all_files) + batch_size - 1) // batch_size
                                 print(f"[Processing] Running batch conversation for {question_name} (Chunk {chunk_num}/{total_chunks})")
-                                
+
                                 result = model_conversation(analyze_question, combined_snippets)
                                 # Append the chunk result to contents list
                                 file_contents.append(f"Batched conversation history (Chunk {chunk_num})\n{str(result)}")
@@ -142,129 +143,57 @@ if __name__ == "__main__":
                             combined_f.write("\n\n".join(file_contents))
 
                         print(f"\n[Done] All {total_chunks} batches processed for {question_name}.")
-                        # Generate final question report summarizing all chunks
-                        try:
-                            final_result = quesiton_report_generation(file_contents)
-                            final_report_path = os.path.join(output_dir, 'question_report.txt')
-                            with open(final_report_path, 'w', encoding='utf-8') as f:
-                                f.write(final_result)
-                            print(f"[Final Report Saved] {final_report_path}")
-                            convert_txt_to_md_and_html(final_report_path)
-                        except Exception as e:
-                            print(f"[Error] Failed to run quesiton_report_generation. Error: {e}")
 
-                ###### First stage, retrieve the code using pre designed question#########
-                ########################################################################
-                # execute_query(retrieve_question)  # execute query
-                # split_and_store_java_code()     # process the retrieve result, seperatedly save retrieved code snippets
-                ########################################################################
+                ###### End of snippet processing — generate the question report from whatever we collected ######
 
+                # Save combined report (even if empty)
+                combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
+                with open(combined_file_path, 'w', encoding='utf-8') as combined_f:
+                    combined_f.write("\n\n".join(file_contents))
 
-                # output_dir = config["conversation_directories"]["user_query_analyze_path"]
-                # os.makedirs(output_dir, exist_ok=True)
+                print("\n\n[Done] All files have been processed and combined report saved.")
 
-                # code_snippet_path = config["conversation_directories"]["user_query_retrieval_filtered_split_path"]
-                # Check if the path exists
-                # if not os.path.exists(code_snippet_path):
-                    # print(f"[Error] The directory '{code_snippet_path}' does not exist.")
-                # else:
-                    # print(f"[Info] Starting to process .txt files in: {code_snippet_path}")
-
-                    # file_contents = []  # append every code snippet's result together to generate question report 用于收集合并内容
-
-                    # Loop through all .txt files in the directory
-                    # for idx, filename in enumerate(sorted(os.listdir(code_snippet_path)), start=1):
-                    #     if filename.endswith(".txt"):
-                    #         file_path = os.path.join(code_snippet_path, filename)
-                    #         try:
-                    #             with open(file_path, 'r', encoding='utf-8') as f:
-                    #                 code_snippet = f.read()
-                    #             analyze_question = (
-                    #                 "Here is an Android app's java code about " +
-                    #                     question_name +
-                    #                     ". Please help me to identify the potential exist malicious behavior."
-                    #             )
-                    #             print(f"[Processing] Running model on: {filename}")
-                    #
-                    #             ###############################################################
-                    #             #########Second stage, using LLM to analyze retrieved code####
-                    #             ###############################################################
-                    #             result = model_conversation(analyze_question, code_snippet)
-                    #             ###############################################################
-                    #
-                    #             # Save result to output file (same name as input, different folder)
-                    #             output_file = os.path.join(output_dir, filename)  # same name as .txt
-                    #             with open(output_file, 'w', encoding='utf-8') as out_f:
-                    #                 out_f.write(str(result))  # Ensure it's string or serialize properly
-                    #
-                    #             # append the code report together, and pass it to LLM to generate quesiton report.
-                    #             file_contents.append(f"conversation history {idx}\n{str(result)}")
-                    #
-                    #
-                    #         except Exception as e:
-                    #             print(f"[Warning] Failed to process file: {filename}. Error: {e}")
-
-
-
-
-
-                    combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
-                    with open(combined_file_path, 'w', encoding='utf-8') as combined_f:
-                        combined_f.write("\n\n".join(file_contents))
-
-                    print("\n\n[Done] All files have been processed and combined report saved.")
-
-
+                # Generate question report only if there was actual content
+                if file_contents:
                     try:
                         final_result = quesiton_report_generation(file_contents)
 
-                        # save result as  question_report.txt
+                        # save result as question_report.txt
                         final_report_path = os.path.join(output_dir, 'question_report.txt')
                         with open(final_report_path, 'w', encoding='utf-8') as f:
                             f.write(final_result)
 
                         print(f"[Final Report Saved] {final_report_path}")
-
-
                         convert_txt_to_md_and_html(final_report_path)
-
                     except Exception as e:
                         print(f"[Error] Failed to run quesiton_report_generation. Error: {e}")
 
+                ##########################################
+                ##### organise the analyze result ########
+                ##########################################
+                try:
+                    llm_output_base = config["conversation_directories"]["LLM_output"]
+                    question_output_dir = os.path.join(llm_output_base, question_name)
+                    os.makedirs(question_output_dir, exist_ok=True)
 
+                    # 要转移的文件夹
+                    folders_to_move = ['analyze', 'retrieve']
 
+                    for folder_name in folders_to_move:
+                        src_folder = os.path.join(llm_output_base, folder_name)
+                        dst_folder = os.path.join(question_output_dir, folder_name)
 
+                        if os.path.exists(src_folder):
+                            # 如果目标已存在，则先删除再复制（避免文件冲突）
+                            if os.path.exists(dst_folder):
+                                shutil.rmtree(dst_folder)
+                            shutil.move(src_folder, dst_folder)
+                            print(f"[Moved] {folder_name} → {question_output_dir}")
+                        else:
+                            print(f"[Skipped] {folder_name} not found in {llm_output_base}")
 
-
-
-
-
-                    ##########################################
-                    ##### organise the analyze result ########
-                    ##########################################
-                    try:
-                        llm_output_base = config["conversation_directories"]["LLM_output"]
-                        question_output_dir = os.path.join(llm_output_base, question_name)
-                        os.makedirs(question_output_dir, exist_ok=True)
-
-                        # 要转移的文件夹
-                        folders_to_move = ['analyze', 'retrieve']
-
-                        for folder_name in folders_to_move:
-                            src_folder = os.path.join(llm_output_base, folder_name)
-                            dst_folder = os.path.join(question_output_dir, folder_name)
-
-                            if os.path.exists(src_folder):
-                                # 如果目标已存在，则先删除再复制（避免文件冲突）
-                                if os.path.exists(dst_folder):
-                                    shutil.rmtree(dst_folder)
-                                shutil.move(src_folder, dst_folder)
-                                print(f"[Moved] {folder_name} → {question_output_dir}")
-                            else:
-                                print(f"[Skipped] {folder_name} not found in {llm_output_base}")
-
-                    except Exception as e:
-                        print(f"[Error] Failed to move folders for {question_name}: {e}")
+                except Exception as e:
+                    print(f"[Error] Failed to move folders for {question_name}: {e}")
 
 
             except Exception as e:
@@ -300,30 +229,3 @@ if __name__ == "__main__":
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(apk_analyze_result)
     convert_txt_to_md_and_html(output_path)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
