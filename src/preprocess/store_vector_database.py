@@ -94,8 +94,13 @@ def process_java_summaries(
                 class_name = os.path.basename(os.path.dirname(full_java_file_path))
 
                 # 创建 TextNode，并存储 metadata
+                # Embed both the LLM summary AND a truncated copy of the raw code.
+                # The summary gives semantic understanding; the raw code provides
+                # exact API keywords (TelephonyManager.getDeviceId, etc.) that
+                # are critical for vector search to match category queries.
+                embedded_text = summary_content + "\n\n" + original_code[:800]
                 node = TextNode(
-                    text=summary_content,  # 存入摘要内容
+                    text=embedded_text,  # 存入摘要 + raw code keywords
                     metadata={
                         "original_code": original_code,  # 存入 Java 代码
                         "methods": method_name,  # 存入方法名

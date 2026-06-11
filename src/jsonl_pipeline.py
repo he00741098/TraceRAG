@@ -137,100 +137,103 @@ def run_conversation_pipeline(config):
         return
 
     for question_name, retrieve_q in questions.items():
-        for retrieve_question in retrieve_q.get("questions", []):
-            print(f"\n[Processing] {question_name}")
+        print(f"\n[Processing] {question_name}")
+        # Collect ALL snippets from ALL sub-questions before running Phase 2
+        all_category_snippets = set()  # deduplicate using set of file contents
+        sub_questions = retrieve_q.get("questions", [])
+
+        for qi, retrieve_question in enumerate(sub_questions):
+            print(f"  [Phase 1] Sub-question {qi+1}/{len(sub_questions)}")
+            code_snippet_path = config["conversation_directories"]["user_query_retrieval_filtered_split_path"]
+
+            # Clear previous sub-question's split results
+            if os.path.exists(code_snippet_path):
+                shutil.rmtree(code_snippet_path)
+            os.makedirs(code_snippet_path, exist_ok=True)
+
+            # Phase 1: Retrieve + split for this sub-question
+            execute_query(retrieve_question)
+            split_and_store_java_code()
+
+            # Collect snippets from this sub-question
+            if os.path.exists(code_snippet_path):
+                for fname in sorted(os.listdir(code_snippet_path)):
+                    if fname.endswith(".txt"):
+                        with open(os.path.join(code_snippet_path, fname), 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            if content.strip() and "no related code found" not in content.lower():
+                                all_category_snippets.add(content)
+
+        # Run Phase 2 once per category with ALL accumulated snippets
+        output_dir = config["conversation_directories"]["user_query_analyze_path"]
+        os.makedirs(output_dir, exist_ok=True)
+        file_contents = []
+
+        if not all_category_snippets:
+            print(f"  [Skip] No snippets accumulated for {question_name} across {len(sub_questions)} sub-questions.")
+        else:
+            print(f"  [Phase 2] Running analysis on {len(all_category_snippets)} unique snippets from {len(sub_questions)} sub-questions")
+            batch_size = 5
+            snippet_list = sorted(all_category_snippets)
+            total_chunks = (len(snippet_list) + batch_size - 1) // batch_size
+
+            for i in range(0, len(snippet_list), batch_size):
+                batch = snippet_list[i:i + batch_size]
+                combined_snippets = ""
+                for j, code in enumerate(batch):
+                    combined_snippets += f"\n\n--- Start of snippet {i+j+1} ---\n"
+                    combined_snippets += code
+                    combined_snippets += f"\n--- End of snippet {i+j+1} ---\n"
+
+                if combined_snippets.strip():
+                    analyze_question = (
+                        "Here is a batch of Android app java code snippets about "
+                        + question_name
+                        + ". Please analyze them together to identify any potential malicious behavior."
+                    )
+                    chunk_num = (i // batch_size) + 1
+                    print(f"  [Phase 2] Batch {chunk_num}/{total_chunks}")
+
+                    result = model_conversation(analyze_question, combined_snippets)
+                    file_contents.append(
+                        f"Batched conversation history (Chunk {chunk_num})\n{str(result)}"
+                    )
+                    chunk_output_file = os.path.join(output_dir, f'batched_analysis_result_chunk_{chunk_num}.txt')
+                    with open(chunk_output_file, 'w', encoding='utf-8') as out_f:
+                        out_f.write(str(result))
+
+            # Combined report
+            combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
+            with open(combined_file_path, 'w', encoding='utf-8') as combined_f:
+                combined_f.write("\n\n".join(file_contents))
+            print(f"  [Done] {total_chunks} batches processed for {question_name}.")
+
+        # Generate question report
+        if file_contents:
             try:
-                code_snippet_path = config["conversation_directories"]["user_query_retrieval_filtered_split_path"]
-                if os.path.exists(code_snippet_path):
-                    shutil.rmtree(code_snippet_path)
-                os.makedirs(code_snippet_path, exist_ok=True)
-
-                # Phase 1: Retrieve code from Qdrant
-                execute_query(retrieve_question)
-                split_and_store_java_code()
-
-                output_dir = config["conversation_directories"]["user_query_analyze_path"]
-                os.makedirs(output_dir, exist_ok=True)
-
-                file_contents = []
-
-                if not os.path.exists(code_snippet_path):
-                    print(f"  [Error] Path '{code_snippet_path}' does not exist.")
-                else:
-                    all_files = [f for f in sorted(os.listdir(code_snippet_path)) if f.endswith(".txt")]
-                    if not all_files:
-                        print(f"  [Skip] No snippets found for {question_name}.")
-                        total_chunks = 0
-                    else:
-                        batch_size = 5
-                        for i in range(0, len(all_files), batch_size):
-                            batch_files = all_files[i:i + batch_size]
-                            combined_snippets = ""
-
-                            for filename in batch_files:
-                                file_path = os.path.join(code_snippet_path, filename)
-                                try:
-                                    with open(file_path, 'r', encoding='utf-8') as f:
-                                        combined_snippets += f"\n\n--- Start of {filename} ---\n"
-                                        combined_snippets += f.read()
-                                        combined_snippets += f"\n--- End of {filename} ---\n"
-                                except Exception as e:
-                                    print(f"  [Warn] Failed to read {filename}: {e}")
-
-                            if combined_snippets.strip():
-                                analyze_question = (
-                                    "Here is a batch of Android app java code snippets about "
-                                    + question_name
-                                    + ". Please analyze them together to identify any potential malicious behavior."
-                                )
-                                chunk_num = (i // batch_size) + 1
-                                total_chunks = (len(all_files) + batch_size - 1) // batch_size
-                                print(f"  [Phase 2] Batch {chunk_num}/{total_chunks}")
-
-                                result = model_conversation(analyze_question, combined_snippets)
-                                file_contents.append(
-                                    f"Batched conversation history (Chunk {chunk_num})\n{str(result)}"
-                                )
-
-                                chunk_output_file = os.path.join(output_dir, f'batched_analysis_result_chunk_{chunk_num}.txt')
-                                with open(chunk_output_file, 'w', encoding='utf-8') as out_f:
-                                    out_f.write(str(result))
-
-                        # Combined report
-                        combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
-                        with open(combined_file_path, 'w', encoding='utf-8') as combined_f:
-                            combined_f.write("\n\n".join(file_contents))
-                        print(f"  [Done] {total_chunks} batches processed for {question_name}.")
-
-                # Generate question report
-                if file_contents:
-                    try:
-                        final_result = quesiton_report_generation(file_contents)
-                        final_report_path = os.path.join(output_dir, 'question_report.txt')
-                        with open(final_report_path, 'w', encoding='utf-8') as f:
-                            f.write(final_result)
-                        print(f"  [Report Saved] {final_report_path}")
-                        convert_txt_to_md_and_html(final_report_path)
-                    except Exception as e:
-                        print(f"  [Error] report generation: {e}")
-
-                # Move folders
-                try:
-                    llm_output_base = config["conversation_directories"]["LLM_output"]
-                    question_output_dir = os.path.join(llm_output_base, question_name)
-                    os.makedirs(question_output_dir, exist_ok=True)
-                    for folder_name in ['analyze', 'retrieve']:
-                        src = os.path.join(llm_output_base, folder_name)
-                        dst = os.path.join(question_output_dir, folder_name)
-                        if os.path.exists(src):
-                            if os.path.exists(dst):
-                                shutil.rmtree(dst)
-                            shutil.move(src, dst)
-                except Exception as e:
-                    print(f"  [Error] moving folders: {e}")
-
+                final_result = quesiton_report_generation(file_contents)
+                final_report_path = os.path.join(output_dir, 'question_report.txt')
+                with open(final_report_path, 'w', encoding='utf-8') as f:
+                    f.write(final_result)
+                print(f"  [Report Saved] {final_report_path}")
+                convert_txt_to_md_and_html(final_report_path)
             except Exception as e:
-                print(f"  [Error] processing {question_name}: {e}")
+                print(f"  [Error] report generation: {e}")
+
+        # Move folders
+        try:
+            llm_output_base = config["conversation_directories"]["LLM_output"]
+            question_output_dir = os.path.join(llm_output_base, question_name)
+            os.makedirs(question_output_dir, exist_ok=True)
+            for folder_name in ['analyze', 'retrieve']:
+                src = os.path.join(llm_output_base, folder_name)
+                dst = os.path.join(question_output_dir, folder_name)
+                if os.path.exists(src):
+                    if os.path.exists(dst):
+                        shutil.rmtree(dst)
+                    shutil.move(src, dst)
+        except Exception as e:
+            print(f"  [Error] moving folders: {e}")
 
     # Final APK report
     def collect_question_reports(base_dir):
