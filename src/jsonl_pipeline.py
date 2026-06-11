@@ -60,15 +60,21 @@ def update_config_index_name(new_index_name, config_path=CONFIG_PATH):
         yaml.safe_dump(config, f, allow_unicode=True)
 
 
-def ingest_jsonl(jsonl_path, split_dir):
+def ingest_jsonl(jsonl_path, split_dir, resume=False):
     """
     Read one JSONL file and write each entry's code to the _Split directory.
 
-    Each JSONL line has {"rel_path": "sources/...", "code": "..."}.
-    The rel_path (without 'sources/' prefix) becomes the subpath under split_dir.
-    The file extension is set to .java so the cleaning step can find it.
+    Each JSONL line has {"rel_path": "...", "code": "..."}.
+    Two path formats are supported:
+      - "sources/com/package/Class/method"           (benign files)
+      - "SHA256/sources/com/package/Class/method"    (malicious files)
+    The output path is always split_dir/<class_path>/<member>.java
+    (without any SHA prefix and without 'sources/' prefix).
+
+    If resume=True, skip entries whose output file already exists.
     """
     entries_written = 0
+    entries_skipped = 0
     with open(jsonl_path, 'r', encoding='utf-8') as f:
         for line in f:
             line = line.strip()
@@ -83,18 +89,29 @@ def ingest_jsonl(jsonl_path, split_dir):
             rel_path = entry.get("rel_path", "")
             code = entry.get("code", "")
 
-            # Strip 'sources/' prefix if present
-            if rel_path.startswith("sources/"):
+            # Strip SHA256 prefix and/or 'sources/' prefix to normalise
+            # the path to just <class_path>/<member_name>
+            sources_idx = rel_path.find("/sources/")
+            if sources_idx != -1:
+                rel_path = rel_path[sources_idx + len("/sources/"):]
+            elif rel_path.startswith("sources/"):
                 rel_path = rel_path[len("sources/"):]
 
             # Build output path: split_dir/<rel_path>.java
             out_path = os.path.join(split_dir, rel_path) + ".java"
+
+            if resume and os.path.exists(out_path):
+                entries_skipped += 1
+                continue
+
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
 
             with open(out_path, 'w', encoding='utf-8') as out_f:
                 out_f.write(code)
             entries_written += 1
 
+    if entries_skipped:
+        print(f"  (resume: skipped {entries_skipped} existing files)")
     return entries_written
 
 
@@ -247,10 +264,12 @@ def main():
     parser = argparse.ArgumentParser(description="Run TraceRAG analysis from pre-split JSONL source code.")
     parser.add_argument("jsonl_path", type=str, help="Path to a .jsonl file or directory of .jsonl files.")
     parser.add_argument("index_name", type=str, help="Index name for the Qdrant vector database.")
+    parser.add_argument("--resume", action="store_true", help="Resume from the last completed phase.")
     args = parser.parse_args()
 
     jsonl_path = args.jsonl_path
     index_name = args.index_name
+    resume = args.resume
 
     # Update config with the new index name
     update_config_index_name(index_name)
@@ -261,10 +280,11 @@ def main():
     cleaned_dir = f"{java_dir}_Split_Cleaned"                        # output/reversedAPK/sources_Split_Cleaned
     summarized_dir = f"{java_dir}_Split_Cleaned_Summarized"          # output/reversedAPK/sources_Split_Cleaned_Summarized
 
-    # Clean out any previous run
-    for d in [split_dir, cleaned_dir, summarized_dir]:
-        if os.path.exists(d):
-            shutil.rmtree(d)
+    # Clean out any previous run (unless resuming)
+    if not resume:
+        for d in [split_dir, cleaned_dir, summarized_dir]:
+            if os.path.exists(d):
+                shutil.rmtree(d)
 
     # ── Step 1: Ingest JSONL entries into _Split directory ──────────
     jsonl_files = []
@@ -279,33 +299,50 @@ def main():
         sys.exit(1)
 
     print(f"\n{'='*60}")
-    print(f"Ingesting {len(jsonl_files)} JSONL file(s) into: {split_dir}")
-    print(f"{'='*60}")
 
-    total_entries = 0
-    for jf in jsonl_files:
-        sha256 = Path(jf).stem.upper()
-        entries = ingest_jsonl(jf, split_dir)
-        total_entries += entries
-        print(f"  {Path(jf).name}: {entries} entries ingested")
+    # Determine which phases need to run
+    ingest_needed = not os.path.exists(split_dir) or any(not os.listdir(split_dir) for _ in [1])
+    if resume and not ingest_needed:
+        ingest_needed = False
 
-        # Create APK_INFO.txt (last file's info is used)
-        apk_info_path = config["directories"]["apk_info_dir"]
-        create_minimal_apk_info(sha256, apk_info_path)
+    # ── Step 1: Ingest ──
+    if not resume or ingest_needed or True:  # Always try ingest (it skips existing files in resume mode)
+        print(f"Ingesting {len(jsonl_files)} JSONL file(s) into: {split_dir}")
+        print(f"{'='*60}")
 
-    print(f"\nTotal: {total_entries} code entries from {len(jsonl_files)} file(s)")
-    print(f"Output directory: {split_dir}")
+        total_entries = 0
+        os.makedirs(split_dir, exist_ok=True)
+        for jf in jsonl_files:
+            sha256 = Path(jf).stem.upper()
+            entries = ingest_jsonl(jf, split_dir, resume=resume)
+            total_entries += entries
+            print(f"  {Path(jf).name}: {entries} entries ingested")
+
+            # Create APK_INFO.txt
+            apk_info_path = config["directories"]["apk_info_dir"]
+            create_minimal_apk_info(sha256, apk_info_path)
+
+        print(f"\nTotal: {total_entries} code entries from {len(jsonl_files)} file(s)")
+        print(f"Output directory: {split_dir}")
 
     # ── Step 2: Code cleaning via LLM ──────────
-    print(f"\n{'='*60}")
-    print("Phase: Code Cleaning (removing obfuscation / dead code)")
-    print(f"{'='*60}")
-    clean_java_files(split_dir, cleaned_dir, max_workers=2)
+    cleaning_done = os.path.exists(cleaned_dir) and any(os.scandir(cleaned_dir))
+    if resume and cleaning_done:
+        print(f"\n[Resume] Cleaning phase already complete. Skipping.")
+    else:
+        print(f"\n{'='*60}")
+        print("Phase: Code Cleaning (removing obfuscation / dead code)")
+        print(f"{'='*60}")
+        if os.path.exists(cleaned_dir):
+            shutil.rmtree(cleaned_dir)
+        clean_java_files(split_dir, cleaned_dir, max_workers=2)
 
     # ── Step 3: Code summarization via LLM ──────────
+    # In resume mode, summarization skips files that already have output
     print(f"\n{'='*60}")
     print("Phase: Code Summarization")
     print(f"{'='*60}")
+    os.makedirs(summarized_dir, exist_ok=True)
     summarize_java_files(cleaned_dir, summarized_dir)
 
     # ── Step 4: Store in Qdrant ──────────

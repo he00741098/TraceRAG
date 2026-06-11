@@ -179,10 +179,15 @@ def process_single_file_1(java_file_path, input_dir, output_dir):
 
         # Calculate relative path and output file path
         relative_path = os.path.relpath(java_file_path, input_dir)
-        
+
         output_file_path = os.path.join(output_dir, os.path.splitext(relative_path)[0] + ".txt")
 
         output_dir_path = os.path.dirname(output_file_path)
+        # Handle case where a file exists at the intended directory path
+        # (can happen when two entries differ only by a trailing path segment,
+        #  e.g. "p.java" creates file "p", then "p/something.java" needs dir "p/")
+        if os.path.isfile(output_dir_path):
+            os.remove(output_dir_path)
         if not os.path.exists(output_dir_path):
             os.makedirs(output_dir_path)
 
@@ -195,15 +200,31 @@ def process_single_file_1(java_file_path, input_dir, output_dir):
 def summarize_java_files(input_dir: str, output_dir: str):
     """
     Process all .java files in the input directory in parallel and generate summaries for them.
+    Skips files whose output already exists (for resume support).
     """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     java_files = []
+    skipped = 0
     for root, _, files in os.walk(input_dir):
         for file in files:
             if file.endswith('.java'):
-                java_files.append(os.path.join(root, file))
+                full_path = os.path.join(root, file)
+                # Check if output already exists
+                relative_path = os.path.relpath(full_path, input_dir)
+                output_file = os.path.join(output_dir, os.path.splitext(relative_path)[0] + ".txt")
+                if os.path.exists(output_file):
+                    skipped += 1
+                else:
+                    java_files.append(full_path)
+
+    if skipped:
+        print(f"  (resume: skipping {skipped} already-summarized files, processing {len(java_files)} remaining)")
+
+    if not java_files:
+        print("  All files already summarized. Nothing to do.")
+        return
 
     # Use ThreadPoolExecutor to parallelize the process
     with ThreadPoolExecutor(max_workers=4) as executor:  # Adjust the number of workers based on your system
