@@ -1,0 +1,100 @@
+APP Info  
+VT URL: https://www.virustotal.com/gui/file/7909720EAB0D9082BFDF3E1A3E8EF7B35304856CD2E7FC20A1BAF6B121C1D1AB/details  
+SHA256: 7909720EAB0D9082BFDF3E1A3E8EF7B35304856CD2E7FC20A1BAF6B121C1D1AB
+
+===================================================================
+
+Overall Summary  
+The analysis reveals two major groups of malicious behaviors within the application. The first involves unauthorized extraction and transmission of sensitive data (including device identifiers and location data) as well as an automatic background APK download. The second group is focused on the simulation of UI click events—likely intended to generate fraudulent ad interactions. In contrast, no malicious behaviors were detected related to screen recording, payment manipulation, or privilege abuse.
+
+===================================================================
+
+1. Information Theft and Abuse
+
+1.1 Sensitive Data Collection and Transmission
+
+• Code Path: com.colorme.game.zuiwuliaodeyouxi.MyJson.postPhoneID  
+  - Behavior: Retrieves the device identifier using TelephonyManager.getDeviceId() and transmits the value as an HTTP header (“DEVICEID”) to a remote server (URL defined in GamePath.formHashAddr).  
+  - Call Chain:  
+    1. Retrieves TelephonyManager via getSystemService.  
+    2. Extracts device identifier using TelephonyManager.getDeviceId().  
+    3. Establishes an HttpURLConnection that incorporates the device ID in the HTTP header.
+
+• Code Path: com.baidu.Main.f  
+  - Behavior: Accesses the device’s unique identifier by obtaining TelephonyManager through getSystemService("phone") and then calling getDeviceId(), resulting in extraction of sensitive device data.  
+  - Call Chain:  
+    1. Invokes getSystemService("phone") to obtain TelephonyManager.  
+    2. Calls TelephonyManager.getDeviceId() to extract the identifier.
+
+• Code Path: cn.domob.android.ads.DomobAdManager.o  
+  - Behavior: Retrieves the device identifier by calling getSystemService("phone") and TelephonyManager.getDeviceId(), collecting sensitive data without proper user consent.  
+  - Call Chain:  
+    1. Accesses TelephonyManager through context.getSystemService("phone").  
+    2. Executes TelephonyManager.getDeviceId() to collect the identifier.
+
+• Code Path: com.guohead.sdk.LocationProvider.getLocation  
+  - Behavior: Extracts the device’s location by checking necessary permissions and then retrieving location data via LocationManager from “gps” or “network” providers, thereby potentially tracking user whereabouts.  
+  - Call Chain:  
+    1. Validates location permissions (ACCESS_FINE_LOCATION/ACCESS_COARSE_LOCATION).  
+    2. Uses LocationManager to fetch the last known location.
+
+• Code Paths: cn.domob.android.ads.DomobAdManager.q (location) and cn.domob.android.ads.DomobAdManager.n (device identifier)  
+  - Behavior:  
+    - Method q: Checks for location permissions and requests location updates via LocationManager.  
+    - Method n: Retrieves the device’s android_id from Settings.Secure.getString via the ContentResolver.  
+  - Call Chain:  
+    For q:  
+      1. Validates location permissions.  
+      2. Acquires LocationManager service.  
+      3. Initiates location updates.  
+    For n:  
+      1. Accesses ContentResolver from the Context.  
+      2. Retrieves the android_id using Settings.Secure.getString.
+
+1.2 Unauthorized Background APK Download
+
+• Code Path: com.colorme.game.zuiwuliaodeyouxi.FTAADlg.onClick  
+  - Behavior: Upon a click event, it immediately displays a Toast and starts a background thread which initiates an automatic download of an APK without further user consent.  
+  - Call Chain:  
+    1. onClick event is triggered, displaying feedback via Toast.  
+    2. A background thread is spawned that invokes the download process.
+
+• Code Paths: com.colorme.game.zuiwuliaodeyouxi.DownLoadManager.downLoad and com.colorme.game.zuiwuliaodeyouxi.DownLoadManager.down_file  
+  - Behavior:  
+    - downLoad constructs the APK download URL dynamically by concatenating GamePath.webAdd with getServerVersion().  
+    - A background thread is then launched to execute down_file, which establishes an HTTP connection to the constructed URL, downloads the APK file, and writes it to external storage.  
+  - Call Chain:  
+    1. downLoad is invoked from the background thread (triggered in onClick).  
+    2. Constructs the URL for “CrazyBox.apk” using GamePath.webAdd and getServerVersion().  
+    3. Spawns another background thread to run down_file.  
+    4. down_file connects to the URL, downloads the file, and writes it to external storage; sendMsg is used to communicate progress.
+
+===================================================================
+
+2. Monetary Fraud and Financial Abuse
+
+2.1 Simulated UI Clicks for Fraudulent Ad Interactions
+
+• Code Path: com.madhouse.android.ads.dddd.m26_  
+  - Behavior: Programmatically simulates user click events by calling this.__.onClick(this) and manages delayed handoff via message removal and scheduling. This automated UI interaction is indicative of an attempt to simulate ad clicks or similar user actions without any direct user input.  
+  - Call Chain:  
+    1. m26_ is executed which calls this.__.onClick(this) to trigger a simulated click event.  
+    2. Subsequently, it calls this._____.___.removeMessages(8533591) to clear specific messages.  
+    3. Finally, it sends an empty message delayed by 5000 milliseconds (sendEmptyMessageDelayed(8533591, 5000L)) to control the timing of subsequent simulated interactions.
+
+===================================================================
+
+3. Privilege Abuse and System Exploitation
+
+No malicious behavior was identified regarding elevated privilege requests, persistence mechanisms, root-level activities, or the use of native libraries for privilege escalation. The code does not contain call chains or methods that attempt to abuse device permissions or maintain unauthorized persistence.
+
+===================================================================
+
+Conclusion  
+The analysis confirms the presence of the following malicious behaviors:
+
+• In the Information Theft and Abuse category, sensitive data (device identifiers and location information) is extracted through multiple code paths (e.g., com.colorme.game.zuiwuliaodeyouxi.MyJson.postPhoneID, com.baidu.Main.f, cn.domob.android.ads.DomobAdManager.o, com.guohead.sdk.LocationProvider.getLocation, and methods q/n in DomobAdManager) and transmitted or utilized without explicit user consent. Additionally, the behavior observed in com.colorme.game.zuiwuliaodeyouxi.FTAADlg.onClick, along with the associated DownLoadManager.downLoad and down_file methods, exhibits unauthorized background downloading of an APK.
+
+• Within the Monetary Fraud and Financial Abuse category, the method com.madhouse.android.ads.dddd.m26_ is designed to simulate UI click events, thereby automating interactions (likely fraudulent ad clicks) without direct user involvement.
+
+Other analyzed areas, such as screen recording functionality, payment process manipulation, and privilege escalation, did not reveal any malicious behaviors. Each of the identified malicious behaviors is supported by clear code paths and call chains, illustrating the unauthorized collection of sensitive data and covert actions intended to mislead users and bypass consent.

@@ -1,0 +1,179 @@
+APP Info  
+VT URL: https://www.virustotal.com/gui/file/C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457/details  
+SHA256: C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457
+
+# Overall Summary
+
+The analyzed Android application exhibits multiple malicious behaviors concentrated on systematic data harvesting and covert background network communications. Several code paths are responsible for aggressively collecting sensitive user information (device identifiers, location data, network details) while other components capture screen content—particularly from emulator environments. Additionally, the application employs obfuscated URL construction (using Base64 encoding) to conceal external endpoints used in background operations. Conversely, investigations into monetary fraud operations and privilege abuse have not uncovered any direct exploitation or tampering with telephony, in-app purchase processes, or system security mechanisms.
+
+The following sections detail the specific malicious behaviors identified, with fully qualified code paths and clear call chain evidence where applicable.
+
+# 1. Information Theft and Abuse
+
+## 1.1 Sensitive Data Harvesting
+- **Code Path:**  
+  C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.com.hpwps.AppTools.C (method c())  
+- **Behavior:**  
+  The method c() collects various sensitive identifiers:
+  - Subscriber identifier via TelephonyManager.getSubscriberId()  
+  - Device identifier via TelephonyManager.getDeviceId()  
+  - WiFi MAC address via WifiManager.getConnectionInfo() with permission verifications  
+  - Additional device properties from Build and system locale  
+- **Call Chain:**  
+  c() sequentially invokes system service calls to gather subscriber, device, and MAC address data, aggregating this information for user profiling.
+
+## 1.2 Retrieval of IMSI and Unique Device Identifiers
+- **Code Path (IMSI):**  
+  SDKUtils.getImsi  
+- **Behavior:**  
+  getImsi acquires the device IMSI through:
+  - Retrieving TelephonyManager via getSystemService  
+  - Invoking getSubscriberId()  
+- **Call Chain:**  
+  Ensures TelephonyManager is not null before capturing the IMSI.
+
+- **Code Path (UDID):**  
+  C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.cn.waps.SDKUtils.getUdid  
+- **Behavior:**  
+  getUdid employs a multi-step fallback mechanism:
+  - Uses a stored static UDID if available  
+  - Falls back to TelephonyManager.getDeviceId()  
+  - Finally retrieves and formats the MAC address if needed  
+- **Call Chain:**  
+  Checks for a pre-set identifier, then ensures persistent tracking through hardware identifiers.
+
+## 1.3 Location Data Collection Control and Aggregation
+- **Code Path (Location Access):**  
+  C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.com.mobclick.android.l.j (method j())  
+- **Behavior:**  
+  When the configuration flag (MobclickAgent.mUseLocationService) is enabled, the method invokes a helper class to fetch location coordinates.
+- **Call Chain:**  
+  Checks a predefined flag, then calls new e(context).a() to retrieve location details.
+
+- **Code Path (Configuration):**  
+  C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.com.mobclick.android.UmengConstants  
+- **Behavior:**  
+  Pre-sets location data collection enablement via a static flag (LOCATION_OPEN = true).
+
+## 1.4 Comprehensive Data Aggregation
+- **Code Path:**  
+  C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.com.mobclick.android.l.l.l.e  
+- **Behavior:**  
+  Aggregates sensitive user data including unique device identifiers, carrier information, location (when enabled), display metrics, and other system parameters, compiling them into a structured JSON object.
+- **Call Chain:**  
+  Initiates with a call to retrieve a device identifier, then conditionally calls location methods and appends further system information.
+
+## 1.5 Screen Capturing in Emulator Environment
+- **Code Paths:**  
+  - com.androidemu.harveshengui2.EmulatorActivity.onScreenshot  
+  - com.androidemu.harveshengui2.EmulatorActivity.getScreenshot  
+  - com.androidemu.Emulator.getScreenshot (native method)
+- **Behavior:**  
+  The application captures the emulator’s screen by:
+  - Pausing the emulator and creating a ByteBuffer for pixel data  
+  - Invoking the native getScreenshot to fill the buffer  
+  - Creating a Bitmap from the pixel data and saving it as a PNG file in external storage  
+  - Triggering a media scan to update the gallery
+- **Call Chain:**  
+  onScreenshot initiates the process, calls getScreenshot to retrieve screen data, and relies on the native method to accurately capture pixel content.
+
+## 1.6 Obfuscated URL and Endpoint Concealment via Base64
+- **Code Paths:**  
+  - cn.waps.ObfuscatedClass.java (method k())  
+  - cn.waps.Obfuscated.java (method s())  
+  - cn.waps.Cleaned.java (static variable f10a)
+- **Behavior:**  
+  The app conceals communication endpoints by:
+  - Passing Base64-encoded strings (e.g., "YWNjb3VudC9nYW1lb2ZmZXJsaXN0Pw==") to decoding routines  
+  - Revealing endpoints such as "account/gameofferlist?" and "account/award?"  
+  - Obscuring advertisement server addresses (e.g., decoding "YWRzLndhcHguY24=" results in "ads.waps.cn")
+- **Call Chain:**  
+  Methods k() and s() use a deobfuscation call (ck.c) to reveal the cleartext endpoint, demonstrating deliberate concealment of network targets.
+
+# 2. Monetary Fraud and Financial Abuse
+
+## 2.1 Background Network Communication for Installation-Related Operations
+- **Code Paths:**  
+  - C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.cn.waps.w.doInBackground  
+  - C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.com.hpwps.h.doInBackground
+- **Behavior:**  
+  Both methods construct URLs using hardcoded emails (e.g., "kingxiaoguang@gmail.com"), obfuscated parameters, and hashed values to perform background network operations. These operations initiate connections to external endpoints (e.g., containing "receiver/install?") and, based on the responses, trigger further internal tasks.
+- **Call Chain:**  
+  The call chain involves assembling URL components, executing network requests via AppTools.u.a, and conditionally invoking further methods (e.g., this.f135a.b) based on the response content.
+
+## 2.2 Ad-Offer Interaction and Automated Ad Clicks
+- **Code Paths:**  
+  - C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.com.androidemu.harveshengui2.EmulatorActivation.onClick  
+  - C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.cn.waps.AppConnect.showOffers  
+  - cn.waps.bj.onClick
+- **Behavior:**  
+  In these methods, user actions trigger the display of offers and register ad clicks:
+  - The onClick handler calls AppConnect.showOffers to display available offers  
+  - In a separate component, a user tap triggers an automatic call to AppConnect.getInstance(...).clickAd, registering an ad click via extracted ad identifiers
+- **Call Chain:**  
+  The calls begin with a direct user tap, progressing through instance retrieval and method calls (clickAd), ensuring that interactions remain tied to user-initiated events.
+
+## 2.3 In-App Purchase Integrity
+- **Code Path:**  
+  InAppPurchaseManager.processPurchase(String)
+- **Behavior:**  
+  Analysis of the in-app purchase processing function did not reveal any operations that alter or interfere with payment procedures.
+- **Call Chain:**  
+  The absence of implementation details for processing in-app purchases confirms that no tampering behavior is present.
+
+# 3. Privilege Abuse and System Exploitation
+
+## 3.1 Elevated Privilege Requests and Persistence Mechanisms
+- **Code Path:**  
+  N/A (No relevant code found)
+- **Behavior:**  
+  No evidence is found for attempts to request elevated privileges (such as Device Administrator or Accessibility rights) or to establish persistence beyond normal application behavior.
+- **Call Chain:**  
+  The lack of any specific code paths in this regard indicates benign behavior in this area.
+
+## 3.2 Dynamic Code Loading and Reflection
+- **Code Paths:**  
+  - C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.com.androidemu.Emulator.loadEngine (native method)  
+  - com.hpwps.App (methods h(Context) and g(Context))
+- **Behavior:**  
+  The application uses dynamic code loading:
+  - The native method loadEngine is invoked with parameters that determine the dynamic component to load, though no evidence of remote command execution is observed  
+  - Reflection via Class.forName is attempted in methods h(Context) and g(Context), but with an empty string return, resulting in no actual dynamic loading
+- **Call Chain:**  
+  Both mechanisms are present but remain inactive or benign as they do not result in unauthorized code execution.
+
+## 3.3 Root-Level Activity and System Command Execution
+- **Code Path:**  
+  ShellExecutor.executeCommand (implementation details were not provided)
+- **Behavior:**  
+  There is no evidence of root-level operations, such as executing system commands or interacting with system partitions.
+- **Call Chain:**  
+  The absence of implementation details confirms that no malicious system-level commands are being executed.
+
+## 3.4 Native Library Usage and Security Exploits
+- **Code Paths:**  
+  References to System.loadLibrary and JNI usage were examined across the codebase.
+- **Behavior:**  
+  No instances indicating attempts at bypassing system security or exploiting native library usage were observed.  
+- **Call Chain:**  
+  Analysis of call chains involving native library references shows no indication of malicious code injection or exploit patterns.
+
+# Conclusion
+
+The comprehensive analysis of the application’s code reveals the following insights:
+
+• Sensitive data is aggressively harvested via multiple paths:  
+ – C01E80AD004F6EAF10E902376243DB767B8211ED30A35160A4EA4728BEB15457.sources.com.hpwps.AppTools.C (c())  
+ – SDKUtils.getImsi and SDKUtils.getUdid  
+ – MobclickAgent.l.j (location data collection) and MobclickAgent.l.l.l.e (data aggregation)
+
+• The application captures screen content in emulator environments through a combination of Java and native methods (EmulatorActivity.onScreenshot/getScreenshot and com.androidemu.Emulator.getScreenshot).
+
+• Communication endpoints are obfuscated using Base64 encoding (as seen in cn.waps.ObfuscatedClass.java, Obfuscated.java, and Cleaned.java), effectively concealing URLs used for data exchange.
+
+• Despite constructing network communications with obfuscated parameters (including hardcoded emails) in background tasks (via doInBackground methods), no evidence of unauthorized messaging, ad fraud, or in-app purchase tampering was observed.
+
+• Techniques such as dynamic code loading, reflection, and native method calls are present but remain inactive or benign, and there is no indication of any privilege escalation or root-level exploitation.
+
+Each identified code path supports the conclusion that while the application is engineered to discreetly harvest user data and conduct background network operations, it does not engage in further financial abuse or privilege exploitation.
+

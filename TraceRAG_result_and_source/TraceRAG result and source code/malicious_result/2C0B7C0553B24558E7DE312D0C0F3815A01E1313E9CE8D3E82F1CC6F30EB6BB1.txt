@@ -1,0 +1,105 @@
+APP Info  
+VT URL: https://www.virustotal.com/gui/file/2C0B7C0553B24558E7DE312D0C0F3815A01E1313E9CE8D3E82F1CC6F30EB6BB1/details  
+SHA256: 2C0B7C0553B24558E7DE312D0C0F3815A01E1313E9CE8D3E82F1CC6F30EB6BB1
+
+# Overall Summary
+
+Multiple malicious behaviors have been identified throughout the application. Several code paths are dedicated to the clandestine collection and preparation of sensitive device identifiers for exfiltration or tracking. In addition, the application demonstrates hidden background network connectivity and uses runtime deobfuscation techniques to conceal sensitive strings and configuration details. Separately, a portion of the code stealthily intercepts invisible user interface elements to trigger ad interactions without explicit user consent. Finally, dynamic code loading via reflection is employed, which may be used to download or execute remote code on demand. The following sections detail the technical evidence for these behaviors with clear call chains and code paths.
+
+# Behavior Analysis Sections
+
+1. Information Theft and Abuse
+
+   a. Code Path: com.IujIEKIN.e.a  
+      - Malicious Behavior: This method collects multiple sensitive identifiers including IMEI (TelephonyManager.getDeviceId()), IMSI (TelephonyManager.getSubscriberId()), SIM serial number (TelephonyManager.getSimSerialNumber()), phone number (TelephonyManager.getLine1Number()) and CPU information (read from /proc/cpuinfo). It also gathers additional device properties via an auxiliary call and stores the data in SharedPreferences for subsequent processing.  
+      - Call Chain:  
+         1. Method a(Context) is invoked.  
+         2. SharedPreferences is checked; if data is absent, the routine continues.  
+         3. TelephonyManager methods retrieve device identifiers.  
+         4. /proc/cpuinfo is read for CPU details.  
+         5. Auxiliary method d.a gathers further system information.  
+         6. Data is stored locally for further use.  
+      - Conclusion: The deliberate and systematic gathering and local persistence of detailed device identifiers suggests a design aimed at profiling or tracking users.
+
+   b. Code Path: 2C0B7C0553B24558E7DE312D0C0F3815A01E1313E9CE8D3E82F1CC6F30EB6BB1.sources.com.IujIEKIN.BEWjbSRVu  
+      - Malicious Behavior: The method (g) constructs a collection of sensitive parameters (“imei”, “imsi”, “cpuid”, “guid”, and “tel”) via BasicNameValuePair objects. An obfuscated call via App.f is used to generate additional parameters, indicating that data is intentionally transformed before potential exfiltration.  
+      - Call Chain:  
+         1. Method g is executed, initiating the collection of key–value pairs.  
+         2. Sensitive identifiers are assigned to parameters for further operations.  
+         3. An obfuscated App.f method processes the “uid” parameter.  
+      - Conclusion: This routine clearly demonstrates a malicious intent to gather and prepare device identifiers for tracking or profiling.
+
+   c. Code Path: com.gpoqagggdg.Main.Init  
+      - Malicious Behavior: The method retrieves the device’s unique “android_id” via Settings.Secure.getString and performs an external storage state check to potentially determine subsequent data operations.  
+      - Call Chain:  
+         1. The Init method is called.  
+         2. Settings.Secure.getString fetches the “android_id”.  
+         3. An external storage check determines the environment for further processing.  
+      - Conclusion: The direct fetching of a unique device identifier reinforces the app’s capability to profile devices.
+
+   d. Code Path: defpackage.CleanedClass.v  
+      - Malicious Behavior: The v() method initiates background network connections by iterating over a collection of external tracking URLs and spawning a new thread for each connection without user interaction.  
+      - Call Chain:  
+         1. v() is invoked synchronously.  
+         2. An Activity instance is obtained and verified as non-null.  
+         3. The method iterates over a collection (field t) of tracking URLs.  
+         4. For each URL, a new Thread is created that executes an instance of the w class, initiating a network connection using application context.  
+      - Conclusion: The autonomous background connectivity to external URLs without explicit user consent is indicative of covert data exfiltration or tracking intentions.
+
+   e. Code Path: com.IujIEKIN.BEWjbSRVu and  
+      2C0B7C0553B24558E7DE312D0C0F3815A01E1313E9CE8D3E82F1CC6F30EB6BB1.sources.com.IujIEKIN.BEWjbSRVu  
+      - Malicious Behavior: Both variants of the BEWjbSRVu class employ runtime deobfuscation (via calls to e.a()) on static string literals. These fields (for example, “c”, “g”, and “h”) are initialized with deobfuscated values that remain concealed until runtime, potentially masking sensitive endpoints or configuration details crucial to malicious operations.  
+      - Call Chain:  
+         1. During class loading, static fields are initialized by invoking e.a() with obfuscated string values.  
+         2. The runtime deobfuscation reveals their actual values only during execution.  
+      - Conclusion: The deliberate obfuscation and runtime deobfuscation of string constants is designed to conceal sensitive information and is consistent with tactics used to hide malicious configurations.
+
+   f. Note on Non-Malicious Snippet: One provided snippet (report Q2) for this category did not exhibit any operations related to screen capture or similar malicious behavior. No malicious call chains were identified in that instance.
+
+2. Monetary Fraud and Financial Abuse
+
+   a. Code Path: net.daum.mobilead.MobileAdView.initView  
+      - Malicious Behavior: The initView method initializes ad view components (text, banner, and HTML views) and sets them to INVISIBLE while still assigning active click listeners. This enables the interception of touch events on invisible zones, triggering actions like opening URLs or initiating dial actions without the user’s clear awareness.  
+      - Call Chain:  
+         1. initView is executed to initialize ad components.  
+         2. UI components are explicitly set to INVISIBLE.  
+         3. OnClickListeners are attached, leading to execution of startClickAction upon interaction.  
+         4. startClickAction processes a predefined mClickURL and initiates further external actions.  
+      - Conclusion: The stealthy interception of user interactions via invisible ad views provides strong evidence of malicious behavior intended to trigger unauthorized financial interactions.
+
+   b. Note on Non-Malicious Snippets:  
+      - The InstallReceiver (com.google.ads.InstallReceiver.onReceive) snippet focuses solely on installation tracking and does not exhibit behaviors that could lead to unauthorized charge incurring.  
+      - The in-app purchase and payment process code showed no evidence of malicious modifications or tampering.
+
+3. Privilege Abuse and System Exploitation
+
+   a. Code Path: com.IujIEKIN.d  
+      - Malicious Behavior: The method a(String) utilizes reflection and runtime deobfuscation to dynamically load a class using Class.forName. It retrieves and invokes the “get” method on the dynamically loaded class with a provided string parameter. This sequence enables the execution of code not statically bundled with the application and may facilitate remote command execution or dynamic malicious activity at runtime.  
+      - Call Chain:  
+         1. a(String) is invoked with an input parameter.  
+         2. e.a() deobfuscates the class name.  
+         3. Class.forName loads the dynamically specified class at runtime.  
+         4. The “get” method is retrieved via reflection and then invoked with the input parameter.  
+      - Conclusion: The observed dynamic code loading via reflection coupled with runtime deobfuscation is a highly suspicious technique that may be used to execute concealed remote commands.
+
+   b. Code Path: com.IujIEKIN.f.run  
+      - Behavior Details: This method is responsible for constructing a URL from obfuscated components, retrieving JSON data from a remote server, and performing a status check. Although this involves obfuscation, no dynamic code execution is evident.  
+      - Call Chain:  
+         1. URL construction from obfuscated values.  
+         2. Remote JSON data retrieval via a HTTP call.  
+         3. Parsing of JSON and evaluation of a “status” field.  
+      - Conclusion: The behavior is limited to remote data retrieval and parsing, with no additional evidence of unauthorized dynamic operations.
+
+   c. Note on Non-Malicious Snippets: Other evaluated portions in this category did not show any operations requesting elevated privileges or engaging in root-level or native library manipulations.
+
+# Conclusion
+
+The analysis of the application code reveals the following malicious mechanisms:
+
+• In Information Theft and Abuse, detailed device identifiers are systematically collected via com.IujIEKIN.e.a, 2C0B7C0553B24558E7DE312D0C0F3815A01E1313E9CE8D3E82F1CC6F30EB6BB1.sources.com.IujIEKIN.BEWjbSRVu, and com.gpoqagggdg.Main.Init. Additionally, defpackage.CleanedClass.v initiates covert background network connections, and both BEWjbSRVu variants employ runtime deobfuscation (via e.a()) to mask sensitive strings. These call chains (e.g., TelephonyManager usage, runtime deobfuscation during static initialization, and threaded network operations) provide strong evidence of malicious intent designed to enable tracking or profiling.
+
+• In Monetary Fraud and Financial Abuse, net.daum.mobilead.MobileAdView.initView reveals a deceptive method that sets ad views to INVISIBLE while retaining active click handlers (calling startClickAction), thereby surreptitiously triggering external actions and potentially driving unauthorized ad interactions.
+
+• In Privilege Abuse and System Exploitation, the dynamic code loading through reflection in com.IujIEKIN.d (using runtime deobfuscation and reflective invocation of a “get” method) is particularly noteworthy. This behavior, contrasted with benign remote JSON retrieval in com.IujIEKIN.f.run, highlights a mechanism for on-demand code execution that can conceal further malicious operations.
+
+These findings, with explicit reference to code paths such as com.IujIEKIN.e.a, defpackage.CleanedClass.v, net.daum.mobilead.MobileAdView.initView, and com.IujIEKIN.d, firmly support the conclusion that the application incorporates multiple covert and malicious mechanisms to exfiltrate sensitive information, mislead user interactions, and dynamically load potentially harmful code.

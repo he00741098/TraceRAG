@@ -1,0 +1,114 @@
+APP Info  
+VT URL: https://www.virustotal.com/gui/file/EFDD749F5551D1B693DD5811CB2BC40C488934927C591BDCB211BCB4170A230C/details  
+SHA256: EFDD749F5551D1B693DD5811CB2BC40C488934927C591BDCB211BCB4170A230C  
+
+-------------------------------------------
+
+Overall Summary  
+The analyzed APK demonstrates malicious behaviors in two primary areas. In the Information Theft and Abuse category, the code aggressively harvests sensitive device and telephony data to construct a persistent device fingerprint, while also performing background file downloads without user consent. In the Privilege Abuse and System Exploitation category, one code path clearly attempts to dynamically install an APK via an Intent, potentially loading arbitrary code without clear user authorization. Conversely, no malicious behaviors were observed in the Monetary Fraud and Financial Abuse category, with relevant code paths either absent or benign.  
+
+-------------------------------------------
+
+1. Information Theft and Abuse  
+
+   1.1 Sensitive Device Fingerprinting – com.fivefeiwo.coverscreen.ai  
+   - Malicious Behavior:  
+     • The method a(Context context) first calls TelephonyManager.getDeviceId() to obtain the device ID. If found invalid (via an external check aq.a(str)), it falls back to acquiring the MAC address using WifiManager.getConnectionInfo().getMacAddress() (via method b(Context context)).  
+     • Additional methods in this class further collect device attributes such as Build.MANUFACTURER, Build.MODEL, Build.VERSION.SDK, Build.VERSION.RELEASE, and display metrics.  
+   - Evidence and Call Chain:  
+     • com.fivefeiwo.coverscreen.ai.a(Context context) → TelephonyManager.getDeviceId() → validity check → com.fivefeiwo.coverscreen.ai.b(Context context) → WifiManager.getConnectionInfo().getMacAddress()  
+     • Subsequent attribute collection consolidates a persistent fingerprint for tracking purposes.
+
+   1.2 Telephony and Cellular Data Collection – com.feiwoone.banner.f.a  
+   - Malicious Behavior:  
+     • In the constructor a(Context context), the code obtains TelephonyManager via getSystemService and extracts network operator information by calling TelephonyManager.getNetworkOperator().  
+     • It parses the returned string to identify the Mobile Country Code (MCC) and Mobile Network Code (MNC).  
+     • The same constructor also calls TelephonyManager.getCellLocation() to fetch a GsmCellLocation object and then extracts the cell ID (CID) and location area code (LAC).  
+   - Evidence and Call Chain:  
+     • com.feiwoone.banner.f.a.<init>(Context context) → TelephonyManager.getNetworkOperator() (parsing MCC and MNC)  
+     • com.feiwoone.banner.f.a.<init>(Context context) → TelephonyManager.getCellLocation() → GsmCellLocation.getCid() and GsmCellLocation.getLac()  
+     • The complete call chain demonstrates deliberate collection of telephony and cell location data.
+
+   1.3 Background Data Download Without Consent – com.download.LoadImgThread.DownloadFileAsync  
+   - Malicious Behavior:  
+     • In the doInBackground method of DownloadFileAsync, the code constructs a URL from the input parameters and initiates a background download using an AsyncTask.  
+     • It opens a URLConnection, downloads file content from an external URL, and saves it locally without user interaction or explicit consent.  
+   - Evidence and Call Chain:  
+     • com.download.LoadImgThread.DownloadFileAsync.doInBackground(String... params) → new URL(params[0]) → URLConnection open and reading input stream → writing the file locally  
+     • This unprompted background download process is indicative of unauthorized data operations.
+
+   1.4 Negative Findings  
+   - Screen recording/screenshot capture and any obfuscation or encryption to hide communication endpoints were explicitly analyzed and determined to have no associated malicious behavior.
+
+-------------------------------------------
+
+2. Monetary Fraud and Financial Abuse  
+
+   2.1 Unauthorized Messaging and Calling  
+   - Analysis:  
+     • The code was reviewed for any invocation of SMS or call functions (e.g., SmsManager.sendTextMessage) that would indicate unauthorized messaging or calling.  
+     • No such code paths or method calls were found.  
+   - Evidence:  
+     • Absence of any call chain related to SmsManager.sendTextMessage or similar operations.  
+
+   2.2 Misleading Advertisement and Subscription Triggers  
+   - Analysis:  
+     • In com.jinbi.YoumiAd.onClick, the onClick method solely opens a URL using an Intent and does not employ click-deception tactics.  
+     • Similarly, EFDD749F5551D1B693DD5811CB2BC40C488934927C591BDCB211BCB4170A230C.sources.com.ui.localAdView.setView calls an InitAdview2 method, whose implementation did not reveal malicious intent.  
+   - Evidence:  
+     • com.jinbi.YoumiAd.onClick.onClick → Intent.ACTION_VIEW → mActivity.startActivity  
+     • Local ad view setup with no further misleading logic identified.  
+
+   2.3 In-App Purchase and Payment Process  
+   - Analysis:  
+     • The reviewed snippets contained no indicators of tampering with in-app purchase or payment processes.  
+   - Evidence:  
+     • No call chains or method invocations suggesting intervention in payment flows were detected.
+
+-------------------------------------------
+
+3. Privilege Abuse and System Exploitation  
+
+   3.1 Dynamic Code Loading via APK Installation – com.fivefeiwo.coverscreen.RunnableC0014n.run  
+   - Malicious Behavior:  
+     • The run method creates an Intent with Intent.ACTION_VIEW configured to load an APK file (with MIME type "application/vnd.android.package-archive") from a local file (specified by this.a).  
+     • It adds the FLAG_ACTIVITY_NEW_TASK to permit execution outside an activity context and then calls an external handler (ae.a(...).a(...)) to trigger the installation prompt.  
+   - Evidence and Call Chain:  
+     • com.fivefeiwo.coverscreen.RunnableC0014n.run → Intent creation with ACTION_VIEW  
+     • Addition of FLAG_ACTIVITY_NEW_TASK → Intent.setDataAndType(Uri.fromFile(new File(this.a)), "application/vnd.android.package-archive") → Execution trigger via ae.a(...).a(...)  
+     • This clearly outlines an approach to load and install additional code dynamically.
+
+   3.2 HTTP POST Communications – com.fivefeiwo.coverscreen.ab.run  
+   - Analysis:  
+     • The run method establishes an HTTP POST connection with transformed data via R.a.  
+     • No evidence was found that this mechanism involves remote command execution or dynamic code loading.  
+   - Evidence:  
+     • com.fivefeiwo.coverscreen.ab.run → HTTP POST setup with custom headers and data transformation via R.a, with no further malicious callback observed.
+
+   3.3 Absence of Elevated Privilege Abuse and Root-Level Activity  
+   - Analysis:  
+     • No code was detected that requests elevated privileges (Accessibility or Device Administrator) or exhibits typical root-level operations (e.g., Runtime.exec, ProcessBuilder usage).  
+   - Evidence:  
+     • The code does not include call chains aiming to elevate privileges or compromise system security.
+
+   3.4 Native Library Usage  
+   - Analysis:  
+     • No suspicious usage of native libraries (e.g., methods like useNativeLibrary in SecurityManager) was observed.  
+   - Evidence:  
+     • No call chain or fully qualified class path indicates exploitation through native libraries.
+
+-------------------------------------------
+
+Conclusion  
+The detailed analysis reveals that:
+
+• In the Information Theft and Abuse category, the malicious behaviors are clearly evidenced through:
+  - com.fivefeiwo.coverscreen.ai, which aggregates sensitive device identifiers (Device ID, MAC address, manufacturer, OS details) to create a robust device fingerprint.
+  - com.feiwoone.banner.f.a, which collects telephony and cellular location data (MCC, MNC, CID, LAC).
+  - com.download.LoadImgThread.DownloadFileAsync, which covertly downloads external files in the background without user consent.
+
+• In the Monetary Fraud and Financial Abuse category, the review confirms no malicious code related to unauthorized messaging, deceptive advertisement prompting, or interference in payment processes.
+
+• In the Privilege Abuse and System Exploitation category, the code in com.fivefeiwo.coverscreen.RunnableC0014n.run demonstrates a clear mechanism for dynamic code loading via an APK installation Intent, indicating potential for loading arbitrary code. Other areas within this category (e.g., HTTP POST communications, root-level activity, and native library usage) do not exhibit malicious behavior.
+
+The aforementioned fully qualified code paths (com.fivefeiwo.coverscreen.ai, com.feiwoone.banner.f.a, com.download.LoadImgThread.DownloadFileAsync, and com.fivefeiwo.coverscreen.RunnableC0014n.run) provide strong evidence of the application’s strategy for unauthorized data collection and dynamic code installation.

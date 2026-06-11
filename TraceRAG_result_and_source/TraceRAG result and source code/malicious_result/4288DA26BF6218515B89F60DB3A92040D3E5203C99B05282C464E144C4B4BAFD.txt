@@ -1,0 +1,90 @@
+APP Info  
+VT URL: https://www.virustotal.com/gui/file/4288DA26BF6218515B89F60DB3A92040D3E5203C99B05282C464E144C4B4BAFD/details  
+SHA256: 4288DA26BF6218515B89F60DB3A92040D3E5203C99B05282C464E144C4B4BAFD  
+
+# Overall Summary  
+The examined application exhibits multiple malicious behaviors across different functionalities. In the Information Theft and Abuse domain, the app covertly intercepts and processes SMS messages by employing reflective calls and obfuscation techniques, and it also performs background downloads from external URLs using asynchronous calls. In the Monetary Fraud and Financial Abuse category, the malware leverages dynamic Dex loading and reflection to bypass pay confirmation dialogs and tamper with in-app payment parameters, which can lead to unauthorized financial actions without user consent. Additionally, under Privilege Abuse and System Exploitation, the app utilizes dynamic code loading through custom class loaders and reflection to execute external code, concealing its true intent and potentially delivering harmful operations. The following sections detail the malicious behavior with clear references to the code paths that serve as evidence.  
+
+# 1. Information Theft and Abuse  
+
+## Malicious SMS Interception and Processing  
+- **Code Path:** com.cyn0s.AIGMiBEj.C0reBr0adcastRece1ver (onReceive method)  
+  - The onReceive method listens for SMS-related broadcast intents, including SMS_RECEIVED and SENT_SMS_ACTION.  
+  - For SMS_RECEIVED, the code extracts SMS PDUs from the “pdus” extras and uses reflection (via Class.forName, getMethod, and invoke) to call methods such as createFromPdu, getDisplayMessageBody, and getOriginatingAddress. It then dynamically invokes a BlockSMS method on a loaded class, potentially preventing SMS delivery.  
+  - For SENT_SMS_ACTION (or actions “a” and “c”), SMS details (e.g., smsnumber, smscontent, extdata) are extracted and processed using reflection to invoke SMSResult.  
+  - **Call Chain:**  
+    1. Broadcast triggered → onReceive in com.cyn0s.AIGMiBEj.C0reBr0adcastRece1ver  
+    2. Extraction of SMS data (either from extras or PDUs)  
+    3. Reflective invocation of BlockSMS and SMSResult via dynamic class loading  
+
+## Covert Background Downloads  
+- **Code Path:** com.android.ldj.ydSendLog.LogSender (method: public static boolean a(com.android.ldj.a.c cVar))  
+  - The method establishes an HTTP connection to "http://115.159.152.136:8090/sendLog/newgetUrl.php?a=1004&b=1" and processes a JSON response.  
+  - It checks for specific keys (e.g., “baseUrl” and “nju”) and updates a static configuration variable, potentially altering application behavior based on remote instructions.  
+  - **Call Chain:**  
+    1. Invocation of LogSender.a initiates the HTTP connection  
+    2. Evaluation of JSON response fields  
+    3. Update of static configurations and subsequent method calls based on received data  
+
+## String Obfuscation via Runtime Deobfuscation  
+- **Code Path:** com.erik.soif.afhbuw.pv.pv.pv.c  
+  - Initialization of static fields x and y is performed by calling a deobfuscation method from com.erik.soif.afhbuw.dk.pv.c.a, which processes scrambled string parameters at runtime.  
+  - The resulting cleartext values are stored in an array (b) for later use, most likely to conceal sensitive endpoints or resources.  
+  - **Call Chain:**  
+    1. Invocation of com.erik.soif.afhbuw.dk.pv.c.a to deobfuscate scrambled strings  
+    2. Storage of deobfuscated values in static variables (x, y) and array b for future operations  
+
+# 2. Monetary Fraud and Financial Abuse  
+
+## SMS-based Financial Abuse Through Dynamic Interception  
+- **Code Path:** com.cyn0s.AIGMiBEj.C0reBr0adcastRece1ver (onReceive method)  
+  - Similar to the behavior noted in Information Theft, the onReceive method intercepts SMS broadcast intents.  
+  - It uses reflection to dynamically invoke methods such as StartSDK, SMSResult, and BlockSMS, handling SDK initialization and SMS processing.  
+  - This manipulation of SMS data potentially enables actions like unauthorized message sending that may incur charges.  
+  - **Call Chain:**  
+    1. onReceive triggered by SMS intents → reflection-driven invocation (StartSDK, SMSResult, BlockSMS)  
+    2. Extraction and processing of SMS parameters in a manner that obscures its intent  
+
+## Bypassing Payment Confirmation via Dynamic Dex Loading  
+- **Code Path:** com.cyn0s.AIGMiBEj.AIGMiBEj (isShowPayConfirm method)  
+  - The method employs dynamic Dex loading (_classLoader.loadClass) and reflective invocation to determine if the pay confirmation UI should be shown.  
+  - Based on the returned boolean value, the application may deliberately bypass the display of critical pay confirmation dialogs, thus misleading users.  
+  - **Call Chain:**  
+    1. isShowPayConfirm utilizes dynamic Dex loading to load an external class  
+    2. Reflective invocation of an external isShowPayConfirm method  
+    3. Decision-making based on the returned boolean value that affects pay confirmation display  
+
+## Tampering with In-App Payment Parameters  
+- **Code Path:** 4288DA26BF6218515B89F60DB3A92040D3E5203C99B05282C464E144C4B4BAFD.sources.org.cocos2dx.cpp.ThirdSdkDelegate.notifyBilling2Pay  
+  - Within notifyBilling2Pay, the payment parameter (pp) is explicitly modified – specifically, when pp equals 99, it is reassigned to 2.  
+  - This intentional change misdirects the control flow, affecting subsequent calls to AppActivity.exitPage or AppActivity.payPage, thereby compromising the integrity of the payment process.  
+  - **Call Chain:**  
+    1. Invocation of ThirdSdkDelegate.notifyBilling2Pay with parameter pp  
+    2. Conditional check and reassignment (if pp == 99, then pp = 2)  
+    3. Altered execution flow leading to either exitPage or payPage, evidencing tampering  
+
+# 3. Privilege Abuse and System Exploitation  
+
+## Dynamic Code Loading Through Custom Class Loader  
+- **Code Path:** com.cyn0s.AIGMiBEj.Optimized.get3rd  
+  - The get3rd method calls an internal loadDex() before using a custom class loader (_classLoader) to dynamically load an external class (indicated by the variable SDKCoreClassInDex).  
+  - Reflection is then used to invoke the get3rd method on the loaded class, enabling the execution of external code not originally packaged with the APK.  
+  - **Call Chain:**  
+    1. Invocation of Optimized.get3rd → call to loadDex()  
+    2. _classLoader.loadClass(SDKCoreClassInDex) invoked  
+    3. Reflective call to get3rd on the dynamically loaded class  
+
+Additionally, similar dynamic loading behavior is observed in:  
+- **Code Path:** com.cyn0s.AIGMiBEj.Cleaned.init3rd – which uses loadDex() and reflection to invoke init3rd on an external class.  
+- **Code Path:** com.cyn0s.AIGMiBEj.Loader.loadDex – which initializes the custom class loader through a call to a.a(), facilitating subsequent dynamic code execution.  
+
+# Conclusion  
+The analysis of the application reveals several malicious behaviors with concrete evidence based on the code paths:  
+
+• In Information Theft and Abuse, the interception and processing of SMS messages via reflective calls (com.cyn0s.AIGMiBEj.C0reBr0adcastRece1ver.onReceive) and the concealed background downloads (com.android.ldj.ydSendLog.LogSender.a) raise strong concerns over unauthorized SMS manipulation. Moreover, the runtime deobfuscation of sensitive strings (com.erik.soif.afhbuw.pv.pv.pv.c) further indicates deliberate obfuscation techniques.  
+
+• Under Monetary Fraud and Financial Abuse, malicious manipulation is evident in the dynamic interception of SMS messages for potential fraudulent activities (com.cyn0s.AIGMiBEj.C0reBr0adcastRece1ver.onReceive), the bypassing of pay confirmations through dynamic Dex loading and reflection (com.cyn0s.AIGMiBEj.AIGMiBEj.isShowPayConfirm), and the tampering with in-app payment parameters (ThirdSdkDelegate.notifyBilling2Pay).  
+
+• In the Privilege Abuse and System Exploitation domain, the use of a custom class loader and dynamic Dex loading via methods in com.cyn0s.AIGMiBEj.Optimized.get3rd, com.cyn0s.AIGMiBEj.Cleaned.init3rd, and com.cyn0s.AIGMiBEj.Loader.loadDex clearly demonstrates an anti-analysis strategy designed to conceal external code execution.  
+
+These call chains and code paths collectively indicate a concerted effort by the application to hide its malicious operations, from intercepting SMS messages to manipulating financial transactions and loading obfuscated external code at runtime.

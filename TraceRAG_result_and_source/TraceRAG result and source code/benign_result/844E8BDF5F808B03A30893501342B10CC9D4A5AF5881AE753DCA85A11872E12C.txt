@@ -1,0 +1,123 @@
+APP Info
+────────────────
+VT URL: https://www.virustotal.com/gui/file/844E8BDF5F808B03A30893501342B10CC9D4A5AF5881AE753DCA85A11872E12C/details  
+SHA256: 844E8BDF5F808B03A30893501342B10CC9D4A5AF5881AE753DCA85A11872E12C
+
+Overall Summary
+────────────────
+The analyzed code snippets reveal three primary areas of concern:  
+1. Information theft and abuse through covert operations including unauthorized screenshot capture and autonomous background downloads.  
+2. No malicious behavior was detected in the monetary fraud and financial abuse category, where the code consistently requires user interaction and follows typical ad or purchase handling flows.  
+3. Suspicious behavior is evident in the privilege abuse and system exploitation category through dynamic native library loading with anti-analysis checks, suggesting an attempt to obfuscate native code execution and possibly bypass standard security mechanisms.
+
+────────────────
+1. Information Theft and Abuse
+────────────────
+• Code Path: com.jirbo.adcolony.m.a  
+  – Behavior: The method located at com.jirbo.adcolony.m.a covertly captures screenshots of the current user interface. The process includes enabling the root view’s drawing cache, creating a Bitmap, compressing it into a JPEG, and saving it to external storage (/Pictures/AdColony_Screenshots/) followed by a media scan to update the gallery.  
+  – Call Chain Evidence:  
+  1. Enabling the drawing cache initiates the capture.  
+  2. A Bitmap is created from the drawing cache.  
+  3. The Bitmap is compressed and saved.  
+  4. A media scanner call registers the image.  
+  – Conclusion: This call chain demonstrates a covert screenshot capture mechanism that collects UI images without explicit user consent, representing a potentially malicious behavior aimed at surreptitiously capturing sensitive visual data.
+
+• Code Path: com.immersion.hapticmediasdk.controllers.HapticDownloadThread  
+  – Behavior: This class autonomously initiates background downloads from external URLs. It sets thread priority, opens a network connection, and invokes writeToFile() to save downloaded data, all without explicit user consent.  
+  – Call Chain Evidence:  
+  1. HapticDownloadThread.run() sets thread priority and initiates a network connection using a configured URL.  
+  2. The writeToFile() method handles data transfer from an input stream to a file.  
+  – Conclusion: The process embodies unauthorized background data retrieval through a clear call chain of connection setup and file write operations.
+
+• Code Path: com.unity3d.player.WWW.runSafe  
+  – Behavior: This method performs background network operations that involve establishing URL connections, handling HTTP redirections, and processing data streams automatically, all in the background.  
+  – Call Chain Evidence:  
+  1. Creation of a URL using a specific field.  
+  2. Network connection establishment and redirection handling (e.g., HTTP 301/302).  
+  3. Handling data transmission and reception in a loop.  
+  – Conclusion: The autonomous network handling and redirection processing indicate a surreptitious background download behavior.
+
+• Code Path: com.jirbo.adcolony.ADCDownload  
+  – Behavior: The ADCDownload class schedules its own execution to perform background downloads by accepting an external URL. Although the actual run() method is not decompiled, the initialization and scheduling (via b() and z.a(this)) strongly indicate an intention for covert background data acquisition.  
+  – Call Chain Evidence:  
+  1. ADCDownload constructor initializes with an external URL.  
+  2. Method b() queues the download task, inferring a background execution environment.  
+  – Conclusion: The setup and scheduling indicate deliberate design for autonomous background download actions.
+
+────────────────
+2. Monetary Fraud and Financial Abuse
+────────────────
+• Code Path: com.jirbo.adcolony.Optimized.e(HashMap)  
+  – Behavior: This method constructs and launches an SMS intent using user-provided data. The process mandates explicit user interaction because it opens the messaging application.  
+  – Call Chain Evidence:  
+  1. Construction of an SMS intent with recipient and body data.  
+  2. Invocation of startActivity to hand over control to the messaging app.  
+  – Conclusion: The clear requirement for manual user intervention precludes any covert messaging activity.
+
+• Code Path: com.jirbo.adcolony.ad.shouldOverrideUrlLoading  
+  – Behavior: This function intercepts and interprets URLs within a WebView for ad-related actions. It inspects specific URL schemes and triggers appropriate handling (e.g., rich media ad interactions) without covertly directing users.  
+  – Call Chain Evidence:  
+  1. URL interception at the WebView level.  
+  2. Keyword inspection (e.g., “mraid:” and “youtube”) and corresponding method calls.  
+  – Conclusion: The behavior is consistent with standard ad management practices, and no malicious data redirection is detected.
+
+• Code Path: com.jirbo.adcolony.AdColonyBrowser.shouldOverrideUrlLoading  
+  – Behavior: Manages market-related URL schemes by constructing and launching intents to external market applications, ensuring transparency through user-handled intent flows.  
+  – Call Chain Evidence:  
+  1. Verification of URL schemes (“market://” or “amzn://”).  
+  2. Intent construction and initiation with startActivity.  
+  – Conclusion: User awareness is maintained via explicit intent handling, demonstrating standard ad-related URL management.
+
+• Code Path: 844E8BDF5F808B03A30893501342B10CC9D4A5AF5881AE753DCA85A11872E12C.sources.com.jirbo.adcolony.AdColony.notifyIAPComplete, UnityADC.notifyIAPComplete, AdColonyAd.iapEnabled, and AdColonyAd.iapProductID  
+  – Behavior: The code responsible for handling in-app purchase events logs and passes purchase-related data through straightforward delegation or getter functionalities without unauthorized modifications.  
+  – Call Chain Evidence:  
+  1. notifyIAPComplete receives and encapsulates purchase parameters, then dispatches the data.  
+  2. UnityADC.notifyIAPComplete delegates the call, while iapEnabled and iapProductID simply return stored values.  
+  – Conclusion: The in-app purchase and SMS/ad management functionalities are implemented transparently with requisite user interactions and clear call chains, revealing no covert behaviors.
+
+────────────────
+3. Privilege Abuse and System Exploitation
+────────────────
+• Code Path: com.unity3d.player.PermissionHelper and 844E8BDF5F808B03A30893501342B10CC9D4A5AF5881AE753DCA85A11872E12C.sources.com.unity3d.player.h.h  
+  – Behavior: These classes perform runtime permission checks and use Fragments to request missing dangerous permissions. The processes adhere strictly to Android’s standard permission management practices.  
+  – Call Chain Evidence:  
+  1. Invocation of a(Activity, Runnable) which queries PackageInfo for declared permissions.  
+  2. Iterative checking of permission statuses and dynamic creation of Fragments for permission requests.  
+  – Conclusion: The permission handling code demonstrates transparent behavior with no covert requests for elevated privileges.
+
+• Code Path: com.immersion.content.Loader.loadSharedLibrary  
+  – Behavior: This method attempts to dynamically load a native library "ImmEndpointWarpJ" using System.loadLibrary. In response to loading failures, it checks the system property "java.vm.name" for "Java HotSpot" and, if found, returns a positive result regardless of the library’s load status.  
+  – Call Chain Evidence:  
+  1. Invocation of System.loadLibrary("ImmEndpointWarpJ").  
+  2. Catching UnsatisfiedLinkError and inspecting System.getProperty("java.vm.name").  
+  3. Detection of “Java HotSpot” triggers a positive return, masking native library loading failures.  
+  – Conclusion: This conditional bypass functions as an anti-analysis measure, designed to obscure failure in loading the native library and possibly mask the native code’s true intent.
+
+• Code Path: 844E8BDF5F808B03A30893501342B10CC9D4A5AF5881AE753DCA85A11872E12C.sources.com.jirbo.adcolony.aa.d  
+  – Behavior: The static method d() performs a file existence check for "libImmEndpointWarpJ.so" by constructing a file path relative to an internal directory. This serves as a preparatory step before attempting to load the native library.  
+  – Call Chain Evidence:  
+  1. Construction of a file path for "../lib/libImmEndpointWarpJ.so" using a helper method.  
+  2. Verification of the file’s existence via File.exists().  
+  – Conclusion: This verification reinforces the reliance on the non-standard native library and supports indications of obfuscation and potential anti-analysis tactics.
+
+• Code Path: Root-Level Activity Check (No specific path provided)  
+  – Behavior: No methods indicative of executing system commands (e.g., Runtime.exec() or ProcessBuilder) or modifying system partitions were observed.  
+  – Call Chain Evidence:  
+  1. Examination of the code for elevated or root-level operations did not produce any relevant call chains.  
+  – Conclusion: The analysis confirms an absence of root-level abuse within the examined snippets.
+
+────────────────
+Conclusion
+────────────────
+In summary, the final analysis based on clearly referenced code paths reveals:  
+
+• Information Theft and Abuse:  
+ – Malicious behavior is evidenced by covert screenshot capture (at com.jirbo.adcolony.m.a) and autonomous background download operations (at com.immersion.hapticmediasdk.controllers.HapticDownloadThread, com.unity3d.player.WWW.runSafe, and com.jirbo.adcolony.ADCDownload).
+
+• Monetary Fraud and Financial Abuse:  
+ – Code paths such as com.jirbo.adcolony.Optimized.e(HashMap), com.jirbo.adcolony.ad.shouldOverrideUrlLoading, com.jirbo.adcolony.AdColonyBrowser.shouldOverrideUrlLoading, and in-app purchase handling routines demonstrate transparent, user-interactive functionalities with no covert actions.
+
+• Privilege Abuse and System Exploitation:  
+ – While permission handling via com.unity3d.player.PermissionHelper remains standard, the dynamic native library loading observed in com.immersion.content.Loader.loadSharedLibrary and its associated file existence verification in com.jirbo.adcolony.aa.d indicate suspicious anti-analysis mechanisms that potentially mask non-standard native code operations.
+
+The explicit call chains—from initiating screenshot capture or background network downloads to conditional library loading with environmental checks—support the identification of these covert behaviors.

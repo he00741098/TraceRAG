@@ -1,0 +1,58 @@
+APP Info  
+VT URL: https://www.virustotal.com/gui/file/5E4D6BB0062CB2EF70913823FAA955E746132D3EF188E20560358AE99CF1058D/details  
+SHA256: 5E4D6BB0062CB2EF70913823FAA955E746132D3EF188E20560358AE99CF1058D  
+
+========================================  
+Overall Summary  
+========================================  
+The analysis of the provided code snippets reveals multiple instances of malicious behavior focused on covertly gathering sensitive information and unauthorized APK installation. In the Information Theft and Abuse category, the code collects unique device identifiers (IMEI) and telephony/location data, and it performs background file downloads with permission modifications. In the Monetary Fraud and Financial Abuse category, the code is designed to trigger APK installations without explicit user consent. No malicious behaviors were observed related to privilege escalation or system exploitation.
+
+========================================  
+1. Information Theft and Abuse  
+========================================  
+
+1.1. IMEI Collection via Sdk.getIMEI  
+• Fully Qualified Code Path:  
+  5B646956B35BA92C3650358DD0C4C6673AF21DA6815E2A34021C90B2981F45C7.sources.net.myad.sdk.Sdk.getIMEI  
+• Malicious Behavior Description:  
+  The method retrieves the device’s IMEI by invoking TelephonyManager.getDeviceId. It first calls context.getSystemService("phone") to obtain the TelephonyManager instance and then collects the unique identifier. This call chain clearly supports unauthorized tracking or profiling of the device.  
+
+1.2. Telephony and Location Data Collection in n.run  
+• Fully Qualified Code Path:  
+  5B646956B35BA92C3650358DD0C4C6673AF21DA6815E2A34021C90B2981F45C7.sources.cn.domob.android.ads.n.run  
+• Malicious Behavior Description:  
+  Within the run() method, the code instantiates TelephonyManager via context.getSystemService("phone") to fetch the network operator using getNetworkOperator. If the device is identified as a GSM phone (phone type == 1), it further retrieves cell location details (CID and LAC) via getCellLocation. This deliberate call chain of obtaining telephony and location data indicates a systematic approach for covert profiling or tracking of users.  
+
+1.3. Background Downloading and File Permission Modification in Downloader.run  
+• Fully Qualified Code Path:  
+  5B646956B35BA92C3650358DD0C4C6673AF21DA6815E2A34021C90B2981F45C7.sources.cn.domob.android.a.g.run  
+• Malicious Behavior Description:  
+  The Downloader class initiates background HTTP connections that download file segments using the HTTP "Range" header and writes data via RandomAccessFile. After downloading, it programmatically changes the file permissions to 777 by executing a system command. This chain—from establishing a connection, downloading data, to altering file permissions—facilitates covert file deployment without user interaction, exposing sensitive files to unauthorized access.
+
+========================================  
+2. Monetary Fraud and Financial Abuse  
+========================================  
+
+2.1. Unauthorized APK Handling in Sdk.handleMessage  
+• Fully Qualified Code Path:  
+  5B646956B35BA92C3650358DD0C4C6673AF21DA6815E2A34021C90B2981F45C7.sources.net.myad.sdk.Sdk.handleMessage  
+• Malicious Behavior Description:  
+  Within the handleMessage method, upon detecting a specific message type (message.what == 2), the code retrieves an APK file path by calling getApkPath—which constructs a file path using the external storage directory and a designated folder—and then creates an intent to view the APK. Launching this intent triggers an APK installation, potentially bypassing explicit user consent. The deliberate call chain from message handling to automatic APK installation is indicative of a covert mechanism for unauthorized software deployment.
+
+========================================  
+3. Privilege Abuse and System Exploitation  
+========================================  
+
+• Analysis Outcome:  
+  The examined code segments for privilege requests, persistent installations, and system exploitation did not reveal any malicious behavior. No call chains or methods were identified that attempt to request elevated privileges, execute root-level commands, or bypass system security through native library exploits.
+
+========================================  
+Conclusion  
+========================================  
+The analysis identified clear malicious behaviors in the Information Theft and Abuse and Monetary Fraud and Financial Abuse categories:  
+ • The Sdk.getIMEI method (code path: ...Sdk.getIMEI) directly retrieves the device’s IMEI, permitting potential device tracking.  
+ • The n.run method (code path: ...ads.n.run) collects telephony data and GSM cell location details by invoking TelephonyManager and related methods, facilitating covert profiling.  
+ • The Downloader.run method (code path: ...android.a.g.run) automates background file downloads and modifies file permissions to 777, allowing unauthorized file access.  
+ • The Sdk.handleMessage method (code path: ...Sdk.handleMessage) processes an APK file and triggers its installation without explicit user consent.  
+
+No malicious behavior was observed in the Privilege Abuse and System Exploitation category. The malicious call chains and code paths identified above offer strong evidence of covert data collection and unauthorized application installation.
