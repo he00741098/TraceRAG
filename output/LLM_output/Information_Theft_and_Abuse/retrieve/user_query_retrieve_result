@@ -1,41 +1,6 @@
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
-Class Name:a
-Content: ```java
-package com.unity3d.player;
-
-import java.security.GeneralSecurityException;
-import java.io.UnsupportedEncodingException;
-
-public final class AESObfuscator {
-    private final byte[] key;
-
-    public AESObfuscator(byte[] key) {
-        this.key = key;
-    }
-
-    public String decrypt(String str) {
-        if (str == null) {
-            return null;
-        }
-        try {
-            return com.unity3d.player.b.a.a(this.key.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException | GeneralSecurityException e) {
-            throw new RuntimeException("Invalid environment", e);
-        }
-    }
-}
-```
-
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.h
 Class Name:h
-Content: ```java
-package com.kuguo;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
+Content: package com.kuguo.b;
 
 public class h {
     private String a;
@@ -79,39 +44,310 @@ public class h {
         return this.e ? com.kuguo.c.b.a(format) : format;
     }
 
-    @Override
     public String toString() {
         String d = d();
         return d.equals("") ? this.a : this.a + "?" + d;
     }
 }
-```
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.d
+Class Name:h
+Content: package com.kuguo.b;
+
+    public String d() {
+        if (this.b.isEmpty()) {
+            return "";
+        }
+        ArrayList arrayList = new ArrayList();
+        for (String str : this.b.keySet()) {
+            Object obj = this.b.get(str);
+            if (obj != null) {
+                arrayList.add(new BasicNameValuePair(str, obj.toString()));
+            }
+        }
+        String format = URLEncodedUtils.format(arrayList, "utf-8");
+        return this.e ? com.kuguo.c.b.a(format) : format;
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.m.m
+Class Name:m
+Content: package net.crazymedia.iad.b;
+
+public class m extends h {
+    private String b;
+
+    public m(Context context, String str) {
+        this.a = context;
+        this.b = str;
+    }
+
+    @Override // net.crazymedia.iad.b.h
+    public g a() {
+        ArrayList a = a("");
+        a.add(new BasicNameValuePair("downAppidEncode", this.b));
+        return a(new d().a(f.f(), (List) a));
+    }
+
+    @Override // net.crazymedia.iad.b.h
+    public void a(JSONObject jSONObject, g gVar) {
+        gVar.c = net.crazymedia.iad.c.a.a(jSONObject);
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.f.t
+Class Name:f
+Content: package com.kuguo.a;
+
+    private void t() {
+        if (this.a != null) {
+            this.a.b().a("Accept", "image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, application/xaml+xml, application/vnd.ms-xpsdocument, application/x-ms-xbap, application/x-ms-application, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, */*");
+            this.a.b().a("Accept-Language", "zh-CN");
+            this.a.b().a("Charset", ENV.ENCODING);
+            if (this.g == 1) {
+                long o = o();
+                this.d = (int) o;
+                this.a.b().a("Range", "bytes=" + o + "-");
+            } else {
+                this.a.b().a("Range", "bytes=0-");
+                this.d = 0;
+            }
+            this.a.b().a("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)");
+            this.a.b().a("Connection", "Keep-Alive");
+        }
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
+Class Name:a
+Content: package com.unity3d.player.a;
+
+    public final String a(String str) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            return com.unity3d.player.b.a.a(this.b.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes(ENV.ENCODING)));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Invalid environment", e);
+        } catch (GeneralSecurityException e2) {
+            throw new RuntimeException("Invalid environment", e2);
+        }
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.f.f
+Class Name:f
+Content: package com.kuguo.b;
+
+public class f extends a {
+    private HttpClient b;
+
+    public f(Context context, h hVar) {
+        super(context, hVar);
+    }
+
+    @Override // com.kuguo.b.a
+    public void d() {
+        HttpRequestBase httpRequestBase;
+        int statusCode;
+        com.kuguo.c.a.a("kuzai__log", "------ establish-------------");
+        if (a()) {
+            if (!l()) {
+                a(-4);
+                return;
+            }
+            a((Exception) null);
+            a(-2);
+            this.b = new DefaultHttpClient();
+            float j = j();
+            if (j > 0.0f) {
+                this.b.getParams().setParameter("http.socket.timeout", Integer.valueOf((int) (j * 1000.0f)));
+                this.b.getParams().setParameter("http.connection.timeout", Integer.valueOf((int) (j * 1000.0f)));
+            }
+            g k = k();
+            if (k != null) {
+                this.b.getParams().setParameter("http.route.default-proxy", new HttpHost(k.a(), k.b(), AsyncData.SCHEME_HTTP));
+            }
+            h b = b();
+            if (b.b() == 0) {
+                httpRequestBase = new HttpGet(b.toString());
+            } else {
+                HttpPost httpPost = new HttpPost(b.c());
+                try {
+                    httpPost.setEntity(new StringEntity(b.d()));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                httpRequestBase = httpPost;
+            }
+            Map a = b.a();
+            for (String str : a.keySet()) {
+                httpRequestBase.addHeader(str, a.get(str).toString());
+            }
+            for (int i = 0; i < 3; i++) {
+                try {
+                    com.kuguo.c.a.a("jerry", "---uri === " + httpRequestBase.getURI());
+                    HttpResponse execute = this.b.execute(httpRequestBase);
+                    statusCode = execute.getStatusLine().getStatusCode();
+                    com.kuguo.c.a.a("kuzai__log", "connection status : " + statusCode);
+                    HashMap hashMap = new HashMap();
+                    Header[] allHeaders = execute.getAllHeaders();
+                    com.kuguo.c.a.a("kuzai__log", "--------------response header start------------------");
+                    for (Header header : allHeaders) {
+                        hashMap.put(header.getName(), header.getValue());
+                        com.kuguo.c.a.a("kuzai__log", header.getName() + " --- " + header.getValue());
+                    }
+                    com.kuguo.c.a.a("kuzai__log", "--------------response header end ------------------");
+                    a(hashMap);
+                    a(execute.getEntity().getContent());
+                } catch (Exception e2) {
+                    com.kuguo.c.a.a("网络链接异常");
+                    a(e2);
+                    a(-3);
+                }
+                if (("" + statusCode).startsWith("2")) {
+                    a(200);
+                    return;
+                }
+                com.kuguo.c.a.a("网络访问完成");
+            }
+        }
+    }
+
+    @Override // com.kuguo.b.a
+    public void e() {
+        if (a()) {
+            return;
+        }
+        if (this.b != null) {
+            this.b.getConnectionManager().shutdown();
+        }
+        a((Map) null);
+        a((InputStream) null);
+        a((Exception) null);
+        a(-3);
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.bz.bz
+Class Name:bz
+Content: package com.kuguo.ad;
+
+class bz implements com.kuguo.a.a {
+    final /* synthetic */ bk a;
+    final /* synthetic */ bn b;
+
+    bz(bn bnVar, bk bkVar) {
+        this.b = bnVar;
+        this.a = bkVar;
+    }
+
+    @Override // com.kuguo.a.a
+    public void a(com.kuguo.a.f fVar, int i) {
+        Context context;
+        a.a("download state == " + i);
+        if (i == 4 || i == 5) {
+            this.b.post(new by(this));
+            this.a.l = 0;
+            context = this.b.a.a;
+            a.b(context, this.a);
+            MainReceiver.a();
+        }
+    }
+
+    @Override // com.kuguo.a.a
+    public void a(com.kuguo.a.f fVar, long j) {
+        a.a("download size == " + j);
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.u.e
+Class Name:u
+Content: package net.crazymedia.iad.b;
+
+    private g e() {
+        return new l(this.d).a();
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.cc.a
+Class Name:cc
+Content: package com.kuguo.ad;
+
+    public ce[] a(int i, int i2, String str) {
+        HashMap hashMap = new HashMap();
+        hashMap.put("requestId", "" + i);
+        hashMap.put("appCount", "" + i2);
+        this.c.r = str;
+        if (i == 2) {
+            com.kuguo.c.a.a(i + " has got app Count --> " + i2 + " all app count " + a.D(this.b));
+        } else if (i == 3) {
+            com.kuguo.c.a.a(i + " has got game Count --> " + i2 + " all game count " + a.E(this.b));
+        }
+        com.kuguo.c.a.a(i + " rp --> " + this.c.b().toString());
+        InputStream a2 = a(a(hashMap), this.c.b().toString().getBytes());
+        if (a2 == null) {
+            a.c(a.k(this.b), str);
+            return null;
+        }
+        String a3 = a(a2);
+        if (a3 == null) {
+            a.c(a.k(this.b), str);
+            return null;
+        }
+        com.kuguo.c.a.a("list ad json -->" + a3);
+        com.kuguo.c.a.a("list json length -->" + a3.length());
+        bp bpVar = (bp) d.a(bp.class, a3);
+        if (bpVar == null) {
+            a.c(a.k(this.b), str);
+        } else if (bpVar.a < 0) {
+            Log.d("kuzai__log", "b result code -- " + bpVar.a);
+            a.a(this.b, false);
+            KuguoAdsManager.getInstance().removeKuguoSprite(this.b, 1);
+            KuguoAdsManager.getInstance().removeKuguoSprite(this.b, 0);
+        } else {
+            a.a(this.b, true);
+        }
+        if (bpVar != null) {
+            com.kuguo.c.a.a("list result -->" + bpVar.toString());
+        }
+        bw bwVar = (bw) d.a(bw.class, a3);
+        if (bwVar != null) {
+            com.kuguo.c.a.a("list adHeader -->" + bwVar.toString());
+        }
+        if (bwVar != null) {
+            if (i == 2) {
+                a.c(this.b, bwVar.b);
+            } else if (i == 3) {
+                a.d(this.b, bwVar.b);
+            }
+        }
+        return (ce[]) d.b(ce.class, a3);
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.a.c.onProgressUpdate
+Class Name:c
+Content: package net.crazymedia.iad.a;
+
+    public void onProgressUpdate(Integer... numArr) {
+        Integer num = numArr[0];
+        if (this.i) {
+            return;
+        }
+        s.a(this.d, this.e.a.hashCode(), R.drawable.stat_sys_download, this.e.b, this.e.b, "当前下载：" + num + "%", null);
+    }
 
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.b
 Class Name:a
-Content: ```java
-package com.unity3d.player;
-
-import java.io.UnsupportedEncodingException;
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-
-public class AESObfuscator {
-    private final javax.crypto.Cipher c;
-    private final String encoding = ENV.ENCODING;
-    private static final String HEADER = "com.android.vending.licensing.AESObfuscator-1|";
+Content: package com.unity3d.player.a;
 
     public final String b(String str) {
         if (str == null) {
             return null;
         }
         try {
-            byte[] decryptedBytes = this.c.doFinal(com.unity3d.player.b.a.a(str));
-            String str2 = new String(decryptedBytes, this.encoding);
-            if (!str2.startsWith(HEADER)) {
+            String str2 = new String(this.c.doFinal(com.unity3d.player.b.a.a(str)), ENV.ENCODING);
+            if (str2.indexOf("com.android.vending.licensing.AESObfuscator-1|") != 0) {
                 throw new l("Header not found (invalid data or key):" + str);
             }
-            return str2.substring(HEADER.length());
+            return str2.substring("com.android.vending.licensing.AESObfuscator-1|".length(), str2.length());
         } catch (com.unity3d.player.b.b e) {
             throw new l(e.getMessage() + ":" + str);
         } catch (UnsupportedEncodingException e2) {
@@ -122,57 +358,198 @@ public class AESObfuscator {
             throw new l(e4.getMessage() + ":" + str);
         }
     }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.c
+Class Name:e
+Content: package net.crazymedia.iad.d;
+
+    private static final int[] c = {58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4, 62, 54, 46, 38, 30, 22, 14, 6, 64, 56, 48, 40, 32, 24, 16, 8, 57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3, 61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7};
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.h.d
+Class Name:h
+Content: package com.kuguo.ad;
+
+    private e d;
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.ah.d
+Class Name:ah
+Content: package com.kuguo.ad;
+
+    public void d(int i) {
+        int i2 = 0;
+        if (i == 0) {
+            this.c = a(this.c);
+            while (true) {
+                int i3 = i2;
+                if (i3 >= this.c.size()) {
+                    a(this.e, i);
+                    return;
+                } else {
+                    if (!a((bk) this.c.get(i3), this.e)) {
+                        this.e.add(this.c.get(i3));
+                    }
+                    i2 = i3 + 1;
+                }
+            }
+        } else {
+            this.d = a(this.d);
+            while (true) {
+                int i4 = i2;
+                if (i4 >= this.d.size()) {
+                    a(this.f, i);
+                    return;
+                } else {
+                    if (!a((bk) this.d.get(i4), this.f)) {
+                        this.f.add(this.d.get(i4));
+                    }
+                    i2 = i4 + 1;
+                }
+            }
+        }
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.o.run
+Class Name:o
+Content: package com.kuguo.ad;
+
+    public void run() {
+        Log.d("kuzai__log", "start req list");
+        String e = a.e(a.k(this.a));
+        com.kuguo.c.a.a("json req status -- " + e);
+        ce[] a = cc.a(this.a).a(this.c, this.b, e);
+        if (a == null || a.length <= 0) {
+            com.kuguo.c.a.a("adbody is null");
+            if (this.d != null) {
+                this.d.a(null, this.c);
+                return;
+            }
+            return;
+        }
+        bk[] bkVarArr = new bk[a.length];
+        int length = a.length;
+        for (int i = 0; i < length; i++) {
+            com.kuguo.c.a.a("ad msg is -- " + a[i].toString());
+            com.kuguo.c.a.a("ads type is " + a[i].h);
+            bkVarArr[i] = a.a(a[i]);
+        }
+        if (bkVarArr == null || bkVarArr.length <= 0) {
+            return;
+        }
+        if (this.c == 3) {
+            a.a(this.a, bkVarArr, this.b);
+        } else if (this.c == 2) {
+            a.b(this.a, bkVarArr, this.b);
+        }
+        if (this.d != null) {
+            this.d.a(bkVarArr, this.c);
+        }
+        a.a(this.a, true);
+        KuguoAdsManager.getInstance().showSprite(this.a);
+        com.kuguo.a.c.a(this.a);
+        a(bkVarArr);
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.otheri.http.HttpPostTask.runSyncTask
+Class Name:HttpPostTask
+Content: package com.otheri.http;
+
+    public Input runSyncTask() {
+        init();
+        this.conn.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        byte[] content = (byte[]) null;
+        if (this.baos != null && this.baos.size() > 0) {
+            content = this.baos.toByteArray();
+            this.conn.addRequestProperty("Content-Length", Integer.toString(content.length));
+        } else {
+            this.conn.addRequestProperty("Content-Length", "0");
+        }
+        try {
+            this.conn.connect();
+            if (content != null) {
+                OutputStream os = this.conn.getOutputStream();
+                os.write(content);
+                os.flush();
+                os.close();
+            }
+            int responseCode = this.conn.getResponseCode();
+            if (responseCode < 200 || responseCode > 299) {
+                return null;
+            }
+            return new Input(this.conn.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.b.d
+Class Name:b
+Content: package net.crazymedia.iad.c;
+
+    public void d() {
+        try {
+            FileOutputStream openFileOutput = r.a().b().openFileOutput(e(), 0);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(openFileOutput);
+            objectOutputStream.writeInt(this.b.size());
+            for (int i = 0; i < this.b.size(); i++) {
+                if (this.b.get(i) instanceof Serializable) {
+                    objectOutputStream.writeObject(this.b.get(i));
+                } else {
+                    objectOutputStream.writeObject(null);
+                }
+            }
+            objectOutputStream.flush();
+            objectOutputStream.close();
+            openFileOutput.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.n.n
+Class Name:n
+Content: package net.crazymedia.iad.b;
+
+public class n extends h {
+    private String b;
+
+    public n(Context context, String str) {
+        this.a = context;
+        this.b = str;
+    }
+
+    @Override // net.crazymedia.iad.b.h
+    public g a() {
+        ArrayList a = a("");
+        a.add(new BasicNameValuePair("downAppidEncode", this.b));
+        return a(new d().a(f.g(), (List) a));
+    }
+
+    @Override // net.crazymedia.iad.b.h
+    public void a(JSONObject jSONObject, g gVar) {
+        gVar.c = net.crazymedia.iad.c.e.a(jSONObject);
+    }
 }
-```
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.f.t
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.f.q
 Class Name:f
-Content: ```java
-package com.kuguo.a;
+Content: package com.kuguo.a;
 
-private void t() {
-    if (this.a != null) {
-        this.a.b().a("Accept", "image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, application/xaml+xml, application/vnd.ms-xpsdocument, application/x-ms-xbap, application/x-ms-application, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, */*");
-        this.a.b().a("Accept-Language", "zh-CN");
-        this.a.b().a("Charset", ENV.ENCODING);
+    private void q() {
+        this.a.a(this);
         if (this.g == 1) {
             long o = o();
             this.d = (int) o;
             this.a.b().a("Range", "bytes=" + o + "-");
         } else {
-            this.a.b().a("Range", "bytes=0-");
             this.d = 0;
+            this.a.b().a("Range", "bytes=0-");
         }
-        this.a.b().a("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)");
-        this.a.b().a("Connection", "Keep-Alive");
+        this.h = c.a();
     }
-}
-```
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.a
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.e
 Class Name:e
-Content: ```java
-package com.crazymedia.utils; // Note: Package name inferred from context
+Content: package net.crazymedia.iad.d;
 
-public class StringDecoder {
-    private byte[] a;
-
-    public String a(String str) {
-        try {
-            byte[] b2 = b(str);
-            byte[] bytes = this.a;
-            byte[] decodedBytes = b(bytes, b2, 0);
-            String str2 = new String(decodedBytes);
-            int length = Integer.parseInt(str2.substring(0, 4));
-            return str2.substring(4, length + 4);
-        } catch (Exception e2) {
-            return "";
-        }
-    }
-
-    // Placeholder for the actual logic of the obfuscated methods 'b' 
-    // which are required to make the code functional.
-    private byte[] b(String str) { return null; }
-    private byte[] b(byte[] b1, byte[] b2, int b3) { return null; }
-}
-```
+    private static final int[] e = {57, 49, 41, 33, 25, 17, 9, 1, 58, 50, 42, 34, 26, 18, 10, 2, 59, 51, 43, 35, 27, 19, 11, 3, 60, 52, 44, 36, 63, 55, 47, 39, 31, 23, 15, 7, 62, 54, 46, 38, 30, 22, 14, 6, 61, 53, 45, 37, 29, 21, 13, 5, 28, 20, 12, 4};

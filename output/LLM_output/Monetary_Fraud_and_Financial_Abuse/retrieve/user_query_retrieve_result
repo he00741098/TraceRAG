@@ -1,99 +1,186 @@
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.lmmob.sdk.SDK.imei
-Class Name:SDK
-Content: ```java
-package com.example.app;
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.p.p
+Class Name:p
+Content: package com.unity3d.player;
 
-public class MainActivity {
-    private String imei;
+public final class p extends Dialog implements TextWatcher, View.OnClickListener {
+    private Context a;
+    private UnityPlayer b;
 
-    public void someMethod() {
-        // Logic preserved based on the provided snippet
+    public p(Context context, UnityPlayer unityPlayer, String str, int i, boolean z, boolean z2, boolean z3, String str2) {
+        super(context);
+        this.a = null;
+        this.b = null;
+        this.a = context;
+        this.b = unityPlayer;
+        getWindow().setGravity(80);
+        getWindow().requestFeature(1);
+        getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        setContentView(createSoftInputView());
+        getWindow().clearFlags(2);
+        EditText editText = (EditText) findViewById(1057292289);
+        Button button = (Button) findViewById(1057292290);
+        editText.setImeOptions(6);
+        editText.setText(str);
+        editText.setHint(str2);
+        int i2 = (z3 ? 128 : 0) | (z2 ? 131072 : 0) | (z ? 32768 : 0);
+        if (i >= 0 && i <= 7) {
+            i2 |= new int[]{1, 16385, 12290, 17, 2, 3, 97, 33}[i];
+        }
+        editText.setInputType(i2);
+        editText.addTextChangedListener(this);
+        int inputType = editText.getInputType();
+        editText.setKeyListener(TextKeyListener.getInstance());
+        editText.setRawInputType(inputType);
+        editText.setClickable(true);
+        if (!z2) {
+            editText.selectAll();
+        }
+        button.setOnClickListener(this);
+        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() { // from class: com.unity3d.player.p.1
+            @Override // android.view.View.OnFocusChangeListener
+            public final void onFocusChange(View view, boolean z4) {
+                if (z4) {
+                    p.this.getWindow().setSoftInputMode(5);
+                }
+            }
+        });
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public String a() {
+        EditText editText = (EditText) findViewById(1057292289);
+        if (editText == null) {
+            return null;
+        }
+        return editText.getText().toString().trim();
+    }
+
+    static /* synthetic */ void a(p pVar, String str) {
+        pVar.b.reportSoftInputStr(str, 1);
+    }
+
+    @Override // android.text.TextWatcher
+    public final void afterTextChanged(Editable editable) {
+        this.b.reportSoftInputStr(editable.toString(), 0);
+    }
+
+    @Override // android.text.TextWatcher
+    public final void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+    }
+
+    protected final View createSoftInputView() {
+        RelativeLayout relativeLayout = new RelativeLayout(this.a);
+        relativeLayout.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
+        EditText editText = new EditText(this.a) { // from class: com.unity3d.player.p.2
+            @Override // android.widget.TextView, android.view.View
+            public final boolean onKeyPreIme(int i, KeyEvent keyEvent) {
+                if (i == 4) {
+                    p.a(p.this, p.this.a());
+                }
+                if (i == 84) {
+                    return true;
+                }
+                return super.onKeyPreIme(i, keyEvent);
+            }
+
+            @Override // android.widget.TextView, android.view.View
+            public final void onWindowFocusChanged(boolean z) {
+                super.onWindowFocusChanged(z);
+                if (z) {
+                    ((InputMethodManager) p.this.a.getSystemService("input_method")).showSoftInput(this, 0);
+                }
+            }
+        };
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(-1, -2);
+        layoutParams.addRule(15);
+        layoutParams.addRule(0, 1057292290);
+        editText.setLayoutParams(layoutParams);
+        editText.setId(1057292289);
+        relativeLayout.addView(editText);
+        Button button = new Button(this.a);
+        button.setText(this.a.getResources().getIdentifier("ok", "string", "android"));
+        RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(-2, -2);
+        layoutParams2.addRule(15);
+        layoutParams2.addRule(11);
+        button.setLayoutParams(layoutParams2);
+        button.setId(1057292290);
+        relativeLayout.addView(button);
+        ((EditText) relativeLayout.findViewById(1057292289)).setOnEditorActionListener(new TextView.OnEditorActionListener() { // from class: com.unity3d.player.p.3
+            @Override // android.widget.TextView.OnEditorActionListener
+            public final boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if (i != 6) {
+                    return false;
+                }
+                p.a(p.this, p.this.a());
+                return false;
+            }
+        });
+        return relativeLayout;
+    }
+
+    @Override // android.app.Dialog
+    public final void onBackPressed() {
+        this.b.reportSoftInputStr(a(), 1);
+    }
+
+    @Override // android.view.View.OnClickListener
+    public final void onClick(View view) {
+        this.b.reportSoftInputStr(a(), 1);
+    }
+
+    @Override // android.text.TextWatcher
+    public final void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
     }
 }
-```
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.lmmob.sdk.SDK.getImei
-Class Name:SDK
-Content: ```java
-package com.example.app;
-
-public class SecurityUtils {
-    public static String getImei() {
-        return imei;
-    }
-}
-```
 
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.h.e
 Class Name:h
-Content: ```java
-package com.example;
+Content: package net.crazymedia.iad;
 
-public class SecurityUtils {
     public String e() {
         return "pi8c9iw3kq38zcw22s0lx@Ss3o4m44!2";
     }
-}
-```
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.c.e
-Class Name:c
-Content: ```java
-package com.crazymedia.app;
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.lmmob.sdk.SDK.getImei
+Class Name:SDK
+Content: package com.lmmob.sdk;
 
-public class Example {
-    public int e = 0;
-}
-```
+    public static String getImei() {
+        return imei;
+    }
 
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.l.l
 Class Name:l
-Content: ```java
-package net.crazymedia.iad.b;
-
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import java.util.List;
+Content: package net.crazymedia.iad.b;
 
 public class l extends h {
-    private Context a;
-
     public l(Context context) {
         this.a = context;
     }
 
     private JSONArray a(Context context) {
         JSONArray jSONArray = new JSONArray();
-        try {
-            PackageManager packageManager = context.getPackageManager();
-            List<PackageInfo> packages = packageManager.getInstalledPackages(0);
-            String currentVersion = Build.VERSION.RELEASE;
-
-            for (PackageInfo packageInfo : packages) {
-                String versionName = packageInfo.versionName;
-                if (versionName != null && !versionName.equals(currentVersion)) {
-                    if ((packageInfo.applicationInfo.flags & 1) == 0) {
-                        String packageName = packageInfo.packageName;
-                        if (packageName != null) {
+        for (PackageInfo packageInfo : context.getPackageManager().getInstalledPackages(0)) {
+            if (packageInfo.versionName != null && (packageInfo.versionName == null || !packageInfo.versionName.equals(Build.VERSION.RELEASE))) {
+                if ((packageInfo.applicationInfo.flags & 1) <= 0) {
+                    String str = packageInfo.packageName;
+                    String str2 = packageInfo.versionName;
+                    if (str != null && str2 != null) {
+                        try {
                             JSONObject jSONObject = new JSONObject();
-                            jSONObject.put("appUid", packageName);
-                            jSONObject.put("appVer", versionName);
+                            jSONObject.put("appUid", str);
+                            jSONObject.put("appVer", str2);
                             jSONArray.put(jSONObject);
+                        } catch (Exception e) {
                         }
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return jSONArray;
     }
 
-    @Override
+    @Override // net.crazymedia.iad.b.h
     public g a() {
         try {
             JSONObject b = b(net.crazymedia.iad.f.a(net.crazymedia.iad.d.q.a().b, net.crazymedia.iad.d.r.a().a, net.crazymedia.iad.d.r.a().b));
@@ -105,7 +192,7 @@ public class l extends h {
         }
     }
 
-    @Override
+    @Override // net.crazymedia.iad.b.h
     public void a(JSONObject jSONObject, g gVar) {
         JSONObject optJSONObject = jSONObject.optJSONObject("productInfo");
         if (optJSONObject != null) {
@@ -113,4 +200,598 @@ public class l extends h {
         }
     }
 }
-```
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.UnityPlayer.onKeyPreIme
+Class Name:UnityPlayer
+Content: package com.unity3d.player;
+
+    public boolean onKeyPreIme(int i, KeyEvent keyEvent) {
+        return (this.c && i == 4) ? a(i, keyEvent) : super.onKeyPreIme(i, keyEvent);
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.t.t
+Class Name:t
+Content: package net.crazymedia.iad.d;
+
+public class t implements RedirectHandler {
+    private DefaultHttpClient a = new DefaultHttpClient();
+    private String b;
+    private String c;
+    private Context d;
+
+    public t(Context context) {
+        this.d = context;
+        this.a.setRedirectHandler(this);
+        net.crazymedia.iad.b.b.a(this.a);
+    }
+
+    private void a(Context context, String str, String str2) {
+        try {
+            new AlertDialog.Builder(context).setTitle(str).setMessage(str2).create().show();
+        } catch (Exception e) {
+        }
+    }
+
+    public int a(Context context, String str) {
+        if (this.b == null) {
+            this.b = str;
+        }
+        this.c = str;
+        String[] split = str.split("://", 2);
+        if (split.length < 2) {
+            return -1;
+        }
+        String str2 = split[0];
+        String str3 = split[1];
+        if (AsyncData.SCHEME_HTTP.equals(str2)) {
+            b(context, str);
+            return 0;
+        }
+        if ("mtel".equals(str2)) {
+            g(context, str3);
+            return 3;
+        }
+        if ("msms".equals(str2)) {
+            d(context, str3);
+            return 1;
+        }
+        if ("mms".equals(str2)) {
+            f(context, str3);
+            return 4;
+        }
+        if ("mcpa".equals(str2)) {
+            h(context, str3);
+            return 5;
+        }
+        if ("mssms".equals(str2)) {
+            e(context, str3);
+            return 2;
+        }
+        if (!"mopen".equals(str2)) {
+            return 0;
+        }
+        i(context, str3);
+        return 6;
+    }
+
+    public void b(Context context, String str) {
+        try {
+            this.a.execute(new HttpGet(str));
+        } catch (Exception e) {
+        }
+    }
+
+    public void c(Context context, String str) {
+        Intent a = i.a(context);
+        a.addFlags(268435456);
+        a.setData(Uri.parse(str));
+        context.startActivity(a);
+    }
+
+    public void d(Context context, String str) {
+        String[] split = str.split(":", 2);
+        if (split.length == 2) {
+            String str2 = split[0];
+            String decode = URLDecoder.decode(split[1]);
+            Intent intent = new Intent("android.intent.action.VIEW");
+            intent.addFlags(268435456);
+            intent.putExtra("sms_body", decode);
+            intent.setType("vnd.android-dir/mms-sms");
+            intent.putExtra("address", str2);
+            context.startActivity(intent);
+            a(context, "", "成功收藏到收件箱！");
+        }
+    }
+
+    public void e(Context context, String str) {
+        String[] split = str.split(":", 2);
+        if (split.length == 2) {
+            String str2 = split[0];
+            String decode = URLDecoder.decode(split[1]);
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("address", str2);
+            contentValues.put("body", decode);
+            context.getContentResolver().insert(Uri.parse("content://sms/inbox"), contentValues);
+        }
+    }
+
+    public void f(Context context, String str) {
+        Uri parse = Uri.parse("content://" + str);
+        Intent intent = new Intent("android.intent.action.SEND");
+        intent.putExtra("sms_body", "some text");
+        intent.putExtra("android.intent.extra.STREAM", parse);
+        intent.setType("image/png");
+        context.startActivity(intent);
+    }
+
+    public void g(Context context, String str) {
+        Intent intent = new Intent("android.intent.action.DIAL", Uri.parse("tel:" + str));
+        intent.addFlags(268435456);
+        context.startActivity(intent);
+    }
+
+    @Override // org.apache.http.client.RedirectHandler
+    public URI getLocationURI(HttpResponse httpResponse, HttpContext httpContext) {
+        return null;
+    }
+
+    public void h(Context context, String str) {
+        new u(this).execute(str);
+    }
+
+    public void i(Context context, String str) {
+        net.crazymedia.iad.c.e eVar = (net.crazymedia.iad.c.e) new net.crazymedia.iad.b.n(context, str).a().c;
+        if (eVar != null) {
+            try {
+                Intent launchIntentForPackage = context.getPackageManager().getLaunchIntentForPackage(eVar.b);
+                launchIntentForPackage.addFlags(268435456);
+                context.startActivity(launchIntentForPackage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override // org.apache.http.client.RedirectHandler
+    public boolean isRedirectRequested(HttpResponse httpResponse, HttpContext httpContext) {
+        Header firstHeader = httpResponse.getFirstHeader("location");
+        if (firstHeader == null || firstHeader.getValue() == null) {
+            c(this.d, this.c);
+            return false;
+        }
+        String value = firstHeader.getValue();
+        Uri parse = Uri.parse(value);
+        if (parse.getHost() == null) {
+            value = "http://" + Uri.parse(this.c).getHost() + parse;
+        }
+        a(this.d, value);
+        return false;
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.lmmob.sdk.SDK.imei
+Class Name:SDK
+Content: package com.lmmob.sdk;
+
+    private static String imei;
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.p.onKeyPreIme
+Class Name:p
+Content: package com.unity3d.player;
+
+            public final boolean onKeyPreIme(int i, KeyEvent keyEvent) {
+                if (i == 4) {
+                    p.a(p.this, p.this.a());
+                }
+                if (i == 84) {
+                    return true;
+                }
+                return super.onKeyPreIme(i, keyEvent);
+            }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.e.e
+Class Name:e
+Content: package net.crazymedia.iad;
+
+public class e {
+    public boolean a() {
+        return false;
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.p.createSoftInputView
+Class Name:p
+Content: package com.unity3d.player;
+
+    protected final View createSoftInputView() {
+        RelativeLayout relativeLayout = new RelativeLayout(this.a);
+        relativeLayout.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
+        EditText editText = new EditText(this.a) { // from class: com.unity3d.player.p.2
+            @Override // android.widget.TextView, android.view.View
+            public final boolean onKeyPreIme(int i, KeyEvent keyEvent) {
+                if (i == 4) {
+                    p.a(p.this, p.this.a());
+                }
+                if (i == 84) {
+                    return true;
+                }
+                return super.onKeyPreIme(i, keyEvent);
+            }
+
+            @Override // android.widget.TextView, android.view.View
+            public final void onWindowFocusChanged(boolean z) {
+                super.onWindowFocusChanged(z);
+                if (z) {
+                    ((InputMethodManager) p.this.a.getSystemService("input_method")).showSoftInput(this, 0);
+                }
+            }
+        };
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(-1, -2);
+        layoutParams.addRule(15);
+        layoutParams.addRule(0, 1057292290);
+        editText.setLayoutParams(layoutParams);
+        editText.setId(1057292289);
+        relativeLayout.addView(editText);
+        Button button = new Button(this.a);
+        button.setText(this.a.getResources().getIdentifier("ok", "string", "android"));
+        RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(-2, -2);
+        layoutParams2.addRule(15);
+        layoutParams2.addRule(11);
+        button.setLayoutParams(layoutParams2);
+        button.setId(1057292290);
+        relativeLayout.addView(button);
+        ((EditText) relativeLayout.findViewById(1057292289)).setOnEditorActionListener(new TextView.OnEditorActionListener() { // from class: com.unity3d.player.p.3
+            @Override // android.widget.TextView.OnEditorActionListener
+            public final boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if (i != 6) {
+                    return false;
+                }
+                p.a(p.this, p.this.a());
+                return false;
+            }
+        });
+        return relativeLayout;
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.f.a
+Class Name:f
+Content: package net.crazymedia.iad;
+
+    public static String a(String str, String str2, String str3, Date date, Date date2, String str4, String str5) {
+        if (new e().a()) {
+            return "123456789";
+        }
+        try {
+            String str6 = Build.MODEL;
+            if (str6 == null || str6.length() == 0) {
+                str6 = "unknown";
+            }
+            StringBuffer stringBuffer = new StringBuffer();
+            stringBuffer.append(h.a().b()).append(str).append(str2).append(str3).append(a.format(date)).append(str4).append(a.format(date2)).append(str6).append(str5);
+            return i.a(stringBuffer.toString());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.f.e
+Class Name:f
+Content: package net.crazymedia.iad.b;
+
+    public static String e() {
+        return String.valueOf(a()) + new net.crazymedia.iad.d.e(e.i()).a(e.j());
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.c.e
+Class Name:c
+Content: package net.crazymedia.iad.c;
+
+    public int e = 0;
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.j.j
+Class Name:j
+Content: package com.unity3d.player.a;
+
+public final class j {
+    private final SharedPreferences a;
+    private final h b;
+    private SharedPreferences.Editor c = null;
+
+    public j(SharedPreferences sharedPreferences, h hVar) {
+        this.a = sharedPreferences;
+        this.b = hVar;
+    }
+
+    public final void a() {
+        if (this.c != null) {
+            this.c.commit();
+            this.c = null;
+        }
+    }
+
+    public final void a(String str, String str2) {
+        if (this.c == null) {
+            this.c = this.a.edit();
+        }
+        this.c.putString(str, this.b.a(str2));
+    }
+
+    public final String b(String str, String str2) {
+        String string = this.a.getString(str, null);
+        if (string == null) {
+            return str2;
+        }
+        try {
+            return this.b.b(string);
+        } catch (l e) {
+            return str2;
+        }
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.f.j
+Class Name:f
+Content: package net.crazymedia.iad.b;
+
+    public static String j() {
+        return new net.crazymedia.iad.d.e(e.s()).a(e.t());
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.e.a
+Class Name:e
+Content: package net.crazymedia.iad.c;
+
+    public static e a(JSONObject jSONObject) {
+        e eVar = null;
+        if (jSONObject != null) {
+            eVar = new e();
+            try {
+                eVar.a = jSONObject.optString("id");
+                eVar.b = jSONObject.optString("appUid");
+                eVar.c = jSONObject.optString("runAppScore");
+            } catch (Exception e) {
+            }
+        }
+        return eVar;
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.r.e
+Class Name:r
+Content: package net.crazymedia.iad.d;
+
+    public final HashMap e = new HashMap();
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.ae.ae
+Class Name:ae
+Content: package com.kuguo.ad;
+
+public class ae extends LinearLayout implements View.OnClickListener {
+    private Activity a;
+    private WebView b;
+    private LinearLayout c;
+    private ProgressBar d;
+    private Drawable e;
+    private Drawable f;
+    private Drawable g;
+    private Drawable h;
+    private ImageButton i;
+    private ImageButton j;
+    private w k;
+
+    public ae(Activity activity) {
+        super(activity);
+        this.k = null;
+        this.a = activity;
+        setOrientation(1);
+        setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
+        a(activity);
+    }
+
+    private void a() {
+        this.b.reload();
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void a(ImageButton imageButton) {
+        imageButton.setEnabled(true);
+        imageButton.setClickable(true);
+        switch (imageButton.getId()) {
+            case 20001:
+                imageButton.setImageDrawable(this.h);
+                break;
+            case 20002:
+                imageButton.setImageDrawable(this.e);
+                break;
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void a(String str) {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        intent.setData(Uri.parse(str));
+        List<ResolveInfo> queryIntentActivities = this.a.getPackageManager().queryIntentActivities(intent, 0);
+        if (queryIntentActivities == null || queryIntentActivities.size() == 0) {
+            return;
+        }
+        this.a.startActivity(intent);
+    }
+
+    private void b() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        intent.setData(Uri.parse(this.b.getUrl()));
+        List<ResolveInfo> queryIntentActivities = this.a.getPackageManager().queryIntentActivities(intent, 0);
+        if (queryIntentActivities == null || queryIntentActivities.size() == 0) {
+            return;
+        }
+        this.a.startActivity(intent);
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void b(ImageButton imageButton) {
+        imageButton.setEnabled(false);
+        imageButton.setClickable(false);
+        switch (imageButton.getId()) {
+            case 20001:
+                imageButton.setImageDrawable(this.g);
+                break;
+            case 20002:
+                imageButton.setImageDrawable(this.f);
+                break;
+        }
+    }
+
+    public void a(Context context) {
+        RelativeLayout relativeLayout = new RelativeLayout(context);
+        new RelativeLayout.LayoutParams(-2, -2);
+        this.c = new LinearLayout(context);
+        this.c.setBackgroundColor(-11364418);
+        this.c.setGravity(16);
+        this.i = new ImageButton(context);
+        this.i.setId(20001);
+        StateListDrawable stateListDrawable = new StateListDrawable();
+        stateListDrawable.addState(new int[]{R.attr.state_pressed}, new ColorDrawable(-8947849));
+        stateListDrawable.addState(new int[]{R.attr.state_enabled}, new ColorDrawable(0));
+        this.i.setBackgroundDrawable(stateListDrawable);
+        this.g = a.a(com.kuguo.c.d.b(this.a, "kuguo_res/go_back.png"), 0.0f);
+        this.h = com.kuguo.c.d.b(this.a, "kuguo_res/go_back.png");
+        this.i.setImageDrawable(this.h);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(-2, -2);
+        layoutParams.weight = 1.0f;
+        layoutParams.gravity = 17;
+        this.c.addView(this.i, layoutParams);
+        this.i.setOnClickListener(this);
+        this.j = new ImageButton(this.a);
+        this.j.setId(20002);
+        StateListDrawable stateListDrawable2 = new StateListDrawable();
+        stateListDrawable2.addState(new int[]{R.attr.state_pressed}, new ColorDrawable(-8947849));
+        stateListDrawable2.addState(new int[]{R.attr.state_enabled}, new ColorDrawable(0));
+        this.j.setBackgroundDrawable(stateListDrawable2);
+        this.f = a.a(com.kuguo.c.d.b(this.a, "kuguo_res/go_forward.png"), 0.0f);
+        this.e = com.kuguo.c.d.b(this.a, "kuguo_res/go_forward.png");
+        this.j.setImageDrawable(this.f);
+        this.j.setOnClickListener(this);
+        LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(-2, -2);
+        layoutParams2.weight = 1.0f;
+        layoutParams2.gravity = 17;
+        this.c.addView(this.j, layoutParams2);
+        ImageButton imageButton = new ImageButton(context);
+        imageButton.setId(20006);
+        imageButton.setImageDrawable(com.kuguo.c.d.b(context, "kuguo_res/refresh.png"));
+        StateListDrawable stateListDrawable3 = new StateListDrawable();
+        stateListDrawable3.addState(new int[]{R.attr.state_pressed}, new ColorDrawable(-8947849));
+        stateListDrawable3.addState(new int[]{R.attr.state_enabled}, new ColorDrawable(0));
+        imageButton.setBackgroundDrawable(stateListDrawable3);
+        LinearLayout.LayoutParams layoutParams3 = new LinearLayout.LayoutParams(-2, -2);
+        layoutParams3.weight = 1.0f;
+        layoutParams3.gravity = 17;
+        this.c.addView(imageButton, layoutParams3);
+        imageButton.setOnClickListener(this);
+        ImageButton imageButton2 = new ImageButton(context);
+        imageButton2.setId(20007);
+        imageButton2.setImageDrawable(com.kuguo.c.d.b(context, "kuguo_res/jump.png"));
+        StateListDrawable stateListDrawable4 = new StateListDrawable();
+        stateListDrawable4.addState(new int[]{R.attr.state_pressed}, new ColorDrawable(-8947849));
+        stateListDrawable4.addState(new int[]{R.attr.state_enabled}, new ColorDrawable(0));
+        imageButton2.setBackgroundDrawable(stateListDrawable4);
+        LinearLayout.LayoutParams layoutParams4 = new LinearLayout.LayoutParams(-2, -2);
+        layoutParams4.weight = 1.0f;
+        layoutParams4.gravity = 17;
+        this.c.addView(imageButton2, layoutParams4);
+        imageButton2.setOnClickListener(this);
+        this.c.setId(20003);
+        RelativeLayout.LayoutParams layoutParams5 = new RelativeLayout.LayoutParams(-1, -2);
+        layoutParams5.addRule(9);
+        layoutParams5.addRule(10);
+        relativeLayout.addView(this.c, layoutParams5);
+        this.d = new ProgressBar(this.a, null, R.attr.progressBarStyleHorizontal);
+        RelativeLayout.LayoutParams layoutParams6 = new RelativeLayout.LayoutParams(-1, 8);
+        layoutParams6.addRule(3, 20003);
+        this.d.setId(20004);
+        this.d.setIndeterminate(true);
+        relativeLayout.addView(this.d, layoutParams6);
+        this.b = new WebView(context);
+        this.b.setPadding(0, 0, 0, 0);
+        this.b.setScrollBarStyle(0);
+        this.b.setBackgroundColor(-1);
+        this.b.requestFocus();
+        WebSettings settings = this.b.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setCacheMode(-1);
+        settings.setSaveFormData(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+        settings.setBuiltInZoomControls(true);
+        this.b.setWebChromeClient(new f(this));
+        this.b.setWebViewClient(new b(this));
+        RelativeLayout.LayoutParams layoutParams7 = new RelativeLayout.LayoutParams(-1, -2);
+        layoutParams7.addRule(12);
+        layoutParams7.addRule(3, 20004);
+        relativeLayout.addView(this.b, layoutParams7);
+        b(this.j);
+        b(this.i);
+        addView(relativeLayout);
+    }
+
+    public void a(String str, byte[] bArr) {
+        this.b.postUrl(str, bArr);
+    }
+
+    @Override // android.view.View.OnClickListener
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case 20001:
+                if (this.b.canGoBack()) {
+                    this.b.goBack();
+                    break;
+                }
+                break;
+            case 20002:
+                if (this.b.canGoForward()) {
+                    this.b.goForward();
+                    break;
+                }
+                break;
+            case 20005:
+                this.a.finish();
+                break;
+            case 20006:
+                a();
+                break;
+            case 20007:
+                b();
+                break;
+        }
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.e.e
+Class Name:e
+Content: package net.crazymedia.iad.c;
+
+public class e {
+    public String a;
+    public String b;
+    public String c;
+
+    public static e a(JSONObject jSONObject) {
+        e eVar = null;
+        if (jSONObject != null) {
+            eVar = new e();
+            try {
+                eVar.a = jSONObject.optString("id");
+                eVar.b = jSONObject.optString("appUid");
+                eVar.c = jSONObject.optString("runAppScore");
+            } catch (Exception e) {
+            }
+        }
+        return eVar;
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.b.e
+Class Name:b
+Content: package com.kuguo.a;
+
+    public int e;

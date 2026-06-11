@@ -1,27 +1,24 @@
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.b
 Class Name:a
-Java Code: ```java
-package com.unity3d.player;
+Java Code: package com.unity3d.player.a;
 
-import java.security.GeneralSecurityException;
-import java.io.UnsupportedEncodingException;
-
-public final class AESObfuscator {
-    private final byte[] key;
-
-    public AESObfuscator(byte[] key) {
-        this.key = key;
-    }
-
-    public String decrypt(String str) {
+    public final String b(String str) {
         if (str == null) {
             return null;
         }
         try {
-            return com.unity3d.player.b.a.a(this.key.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException | GeneralSecurityException e) {
-            throw new RuntimeException("Invalid environment", e);
+            String str2 = new String(this.c.doFinal(com.unity3d.player.b.a.a(str)), ENV.ENCODING);
+            if (str2.indexOf("com.android.vending.licensing.AESObfuscator-1|") != 0) {
+                throw new l("Header not found (invalid data or key):" + str);
+            }
+            return str2.substring("com.android.vending.licensing.AESObfuscator-1|".length(), str2.length());
+        } catch (com.unity3d.player.b.b e) {
+            throw new l(e.getMessage() + ":" + str);
+        } catch (UnsupportedEncodingException e2) {
+            throw new RuntimeException("Invalid environment", e2);
+        } catch (BadPaddingException e3) {
+            throw new l(e3.getMessage() + ":" + str);
+        } catch (IllegalBlockSizeException e4) {
+            throw new l(e4.getMessage() + ":" + str);
         }
     }
-}
-```

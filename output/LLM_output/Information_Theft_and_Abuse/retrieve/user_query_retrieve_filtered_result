@@ -1,28 +1,36 @@
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
+Class Name:a
+Java Code: package com.unity3d.player.a;
+
+    public final String a(String str) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            return com.unity3d.player.b.a.a(this.b.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes(ENV.ENCODING)));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Invalid environment", e);
+        } catch (GeneralSecurityException e2) {
+            throw new RuntimeException("Invalid environment", e2);
+        }
+    }
+
+===
+
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.b
 Class Name:a
-Java Code: ```java
-package com.unity3d.player;
-
-import java.io.UnsupportedEncodingException;
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-
-public class AESObfuscator {
-    private final javax.crypto.Cipher c;
-    private final String encoding = ENV.ENCODING;
-    private static final String HEADER = "com.android.vending.licensing.AESObfuscator-1|";
+Java Code: package com.unity3d.player.a;
 
     public final String b(String str) {
         if (str == null) {
             return null;
         }
         try {
-            byte[] decryptedBytes = this.c.doFinal(com.unity3d.player.b.a.a(str));
-            String str2 = new String(decryptedBytes, this.encoding);
-            if (!str2.startsWith(HEADER)) {
+            String str2 = new String(this.c.doFinal(com.unity3d.player.b.a.a(str)), ENV.ENCODING);
+            if (str2.indexOf("com.android.vending.licensing.AESObfuscator-1|") != 0) {
                 throw new l("Header not found (invalid data or key):" + str);
             }
-            return str2.substring(HEADER.length());
+            return str2.substring("com.android.vending.licensing.AESObfuscator-1|".length(), str2.length());
         } catch (com.unity3d.player.b.b e) {
             throw new l(e.getMessage() + ":" + str);
         } catch (UnsupportedEncodingException e2) {
@@ -33,47 +41,12 @@ public class AESObfuscator {
             throw new l(e4.getMessage() + ":" + str);
         }
     }
-}
-```
+
 ===
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
-Class Name:a
-Java Code: ```java
-package com.unity3d.player;
 
-import java.security.GeneralSecurityException;
-import java.io.UnsupportedEncodingException;
-
-public final class AESObfuscator {
-    private final byte[] key;
-
-    public AESObfuscator(byte[] key) {
-        this.key = key;
-    }
-
-    public String decrypt(String str) {
-        if (str == null) {
-            return null;
-        }
-        try {
-            return com.unity3d.player.b.a.a(this.key.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException | GeneralSecurityException e) {
-            throw new RuntimeException("Invalid environment", e);
-        }
-    }
-}
-```
-===
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.h
 Class Name:h
-Java Code: ```java
-package com.kuguo;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
+Java Code: package com.kuguo.b;
 
 public class h {
     private String a;
@@ -103,3 +76,20 @@ public class h {
     }
 
     public String d() {
+        if (this.b.isEmpty()) {
+            return "";
+        }
+        ArrayList arrayList = new ArrayList();
+        for (String str : this.b.keySet()) {
+            Object obj = this.b.get(str);
+            if (obj != null) {
+                arrayList.add(new BasicNameValuePair(str, obj.toString()));
+            }
+        }
+        String format = URLEncodedUtils.format(arrayList, "utf-8");
+        return this.e ? com.kuguo.c.b.a(format) : format;
+    }
+
+    public String toString() {
+        String d = d();
+        return d.equals("") ? this.a : this.a + "?"

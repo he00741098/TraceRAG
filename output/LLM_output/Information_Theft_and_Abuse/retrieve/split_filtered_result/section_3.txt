@@ -1,13 +1,6 @@
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.h
 Class Name:h
-Java Code: ```java
-package com.kuguo;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
+Java Code: package com.kuguo.b;
 
 public class h {
     private String a;
@@ -37,3 +30,20 @@ public class h {
     }
 
     public String d() {
+        if (this.b.isEmpty()) {
+            return "";
+        }
+        ArrayList arrayList = new ArrayList();
+        for (String str : this.b.keySet()) {
+            Object obj = this.b.get(str);
+            if (obj != null) {
+                arrayList.add(new BasicNameValuePair(str, obj.toString()));
+            }
+        }
+        String format = URLEncodedUtils.format(arrayList, "utf-8");
+        return this.e ? com.kuguo.c.b.a(format) : format;
+    }
+
+    public String toString() {
+        String d = d();
+        return d.equals("") ? this.a : this.a + "?"
