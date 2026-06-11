@@ -1,9 +1,0 @@
-Package Path:AnisoJstiechus.Unjudicially.onCreate
-Class Name:Unjudicially
-Java Code: ```java
-package AnisoJstiechus;
-
-public void onCreate() {
-    De7E.z6gF();
-}
-```

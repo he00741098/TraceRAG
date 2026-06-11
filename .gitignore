@@ -1,7 +1,6 @@
 jadx-1.5.1
 output/reversedAPK
 output/.DS_Store
-output
 src/__pycache__
 src/conversation/__pycache__
 src/postprocess/__pycache__
@@ -13,3 +12,49 @@ src/conversation/__init__.py
 src/postprocess/._Final_report_Generation.py
 src/postprocess/._txt2markwon_and_html.py
 src/__init__.py
+/.venv/bin
+/src/._Prompt_and_Question
+/src/.___init__.py
+/src/.___pycache__
+/src/._config.py
+/src/._conversation
+/src/._main.py
+/src/._main_copy.py
+/src/._postprocess
+/src/._preprocess
+/src/._test.py
+/src/._tool.ipynb
+/src/Prompt_and_Question/._prompts.json
+/src/Prompt_and_Question/._question_3_category.json
+/src/Prompt_and_Question/._questions.json
+/src/conversation/.___init__.py
+/src/conversation/.___pycache__
+/src/conversation/._first_phase.py
+/src/conversation/._first_phase_result_precess.py
+/src/conversation/._second_phase.py
+/src/postprocess/.___pycache__
+/src/postprocess/._combine_multiple_question_report.py
+/src/postprocess/._combine_single_question_report.py
+/src/preprocess/.___init__.py
+/src/preprocess/.___pycache__
+/src/preprocess/._apk_info_extract.py
+/src/preprocess/._code_cleaning_summarization.py
+/src/preprocess/._java_code_split.py
+/src/preprocess/._pipeline.py
+/src/preprocess/._store_vector_database.py
+/._.git
+/._.gitignore
+/._.venv
+/._README.md
+/._Result Summary.xlsx
+/._TraceRAG result and source code.zip
+/.___MACOSX
+/._config.yaml
+/._dataset_info.xlsx
+/._requirements.txt
+/._src
+/.venv
+/TraceRAG result and source code
+/__MACOSX/._TraceRAG result and source code
+/__MACOSX/TraceRAG result and source code
+/output

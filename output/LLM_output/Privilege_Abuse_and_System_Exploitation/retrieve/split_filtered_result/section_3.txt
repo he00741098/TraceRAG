@@ -1,9 +1,0 @@
-Package Path:AnisoJstiechus.De7E.z6gF
-Class Name:NativeMethods
-Java Code: ```java
-package AnisoJstiechus;
-
-public class NativeMethods {
-    public static native void z6gF();
-}
-```

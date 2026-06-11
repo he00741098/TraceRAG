@@ -1,5 +1,0 @@
-Package Name: com.shaahw.a8rcticiozning
-Version Code: 8188
-Version Name: 7.7.6x02
-
-SHA256: 018f8548c055a31d98201874ebf21591e6d85cb9eee66e8c35716a9289d01f48

@@ -1,9 +1,0 @@
-Package Path:AnisoJstiechus.De7E.De7E
-Class Name:De7E
-Java Code: ```java
-package AnisoJstiechus;
-
-public class De7E {
-    public static native void z6gF();
-}
-```
