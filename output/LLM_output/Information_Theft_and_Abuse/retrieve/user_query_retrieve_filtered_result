@@ -1,0 +1,105 @@
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.b
+Class Name:a
+Java Code: ```java
+package com.unity3d.player;
+
+import java.io.UnsupportedEncodingException;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+
+public class AESObfuscator {
+    private final javax.crypto.Cipher c;
+    private final String encoding = ENV.ENCODING;
+    private static final String HEADER = "com.android.vending.licensing.AESObfuscator-1|";
+
+    public final String b(String str) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            byte[] decryptedBytes = this.c.doFinal(com.unity3d.player.b.a.a(str));
+            String str2 = new String(decryptedBytes, this.encoding);
+            if (!str2.startsWith(HEADER)) {
+                throw new l("Header not found (invalid data or key):" + str);
+            }
+            return str2.substring(HEADER.length());
+        } catch (com.unity3d.player.b.b e) {
+            throw new l(e.getMessage() + ":" + str);
+        } catch (UnsupportedEncodingException e2) {
+            throw new RuntimeException("Invalid environment", e2);
+        } catch (BadPaddingException e3) {
+            throw new l(e3.getMessage() + ":" + str);
+        } catch (IllegalBlockSizeException e4) {
+            throw new l(e4.getMessage() + ":" + str);
+        }
+    }
+}
+```
+===
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
+Class Name:a
+Java Code: ```java
+package com.unity3d.player;
+
+import java.security.GeneralSecurityException;
+import java.io.UnsupportedEncodingException;
+
+public final class AESObfuscator {
+    private final byte[] key;
+
+    public AESObfuscator(byte[] key) {
+        this.key = key;
+    }
+
+    public String decrypt(String str) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            return com.unity3d.player.b.a.a(this.key.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException | GeneralSecurityException e) {
+            throw new RuntimeException("Invalid environment", e);
+        }
+    }
+}
+```
+===
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.h
+Class Name:h
+Java Code: ```java
+package com.kuguo;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
+
+public class h {
+    private String a;
+    private boolean e;
+    private int d = 0;
+    private Map b = new LinkedHashMap();
+    private Map c = new LinkedHashMap();
+
+    public h(String str) {
+        this.a = str;
+    }
+
+    public Map a() {
+        return this.c;
+    }
+
+    public void a(String str, Object obj) {
+        this.c.put(str, obj);
+    }
+
+    public int b() {
+        return this.d;
+    }
+
+    public String c() {
+        return this.a;
+    }
+
+    public String d() {

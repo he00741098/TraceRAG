@@ -1,0 +1,116 @@
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.lmmob.sdk.SDK.imei
+Class Name:SDK
+Content: ```java
+package com.example.app;
+
+public class MainActivity {
+    private String imei;
+
+    public void someMethod() {
+        // Logic preserved based on the provided snippet
+    }
+}
+```
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.lmmob.sdk.SDK.getImei
+Class Name:SDK
+Content: ```java
+package com.example.app;
+
+public class SecurityUtils {
+    public static String getImei() {
+        return imei;
+    }
+}
+```
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.h.e
+Class Name:h
+Content: ```java
+package com.example;
+
+public class SecurityUtils {
+    public String e() {
+        return "pi8c9iw3kq38zcw22s0lx@Ss3o4m44!2";
+    }
+}
+```
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.c.e
+Class Name:c
+Content: ```java
+package com.crazymedia.app;
+
+public class Example {
+    public int e = 0;
+}
+```
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.l.l
+Class Name:l
+Content: ```java
+package net.crazymedia.iad.b;
+
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.List;
+
+public class l extends h {
+    private Context a;
+
+    public l(Context context) {
+        this.a = context;
+    }
+
+    private JSONArray a(Context context) {
+        JSONArray jSONArray = new JSONArray();
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            List<PackageInfo> packages = packageManager.getInstalledPackages(0);
+            String currentVersion = Build.VERSION.RELEASE;
+
+            for (PackageInfo packageInfo : packages) {
+                String versionName = packageInfo.versionName;
+                if (versionName != null && !versionName.equals(currentVersion)) {
+                    if ((packageInfo.applicationInfo.flags & 1) == 0) {
+                        String packageName = packageInfo.packageName;
+                        if (packageName != null) {
+                            JSONObject jSONObject = new JSONObject();
+                            jSONObject.put("appUid", packageName);
+                            jSONObject.put("appVer", versionName);
+                            jSONArray.put(jSONObject);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jSONArray;
+    }
+
+    @Override
+    public g a() {
+        try {
+            JSONObject b = b(net.crazymedia.iad.f.a(net.crazymedia.iad.d.q.a().b, net.crazymedia.iad.d.r.a().a, net.crazymedia.iad.d.r.a().b));
+            b.put("installedList", a(this.a));
+            return a(new d().a(f.e(), b));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new g();
+        }
+    }
+
+    @Override
+    public void a(JSONObject jSONObject, g gVar) {
+        JSONObject optJSONObject = jSONObject.optJSONObject("productInfo");
+        if (optJSONObject != null) {
+            c(optJSONObject);
+        }
+    }
+}
+```

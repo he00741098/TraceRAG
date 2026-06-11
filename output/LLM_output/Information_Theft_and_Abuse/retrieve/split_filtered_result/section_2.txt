@@ -1,0 +1,27 @@
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
+Class Name:a
+Java Code: ```java
+package com.unity3d.player;
+
+import java.security.GeneralSecurityException;
+import java.io.UnsupportedEncodingException;
+
+public final class AESObfuscator {
+    private final byte[] key;
+
+    public AESObfuscator(byte[] key) {
+        this.key = key;
+    }
+
+    public String decrypt(String str) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            return com.unity3d.player.b.a.a(this.key.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException | GeneralSecurityException e) {
+            throw new RuntimeException("Invalid environment", e);
+        }
+    }
+}
+```

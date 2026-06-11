@@ -1,5 +1,4 @@
 jadx-1.5.1
-output/reversedAPK
 output/.DS_Store
 src/__pycache__
 src/conversation/__pycache__
@@ -57,4 +56,6 @@ src/__init__.py
 /TraceRAG result and source code
 /__MACOSX/._TraceRAG result and source code
 /__MACOSX/TraceRAG result and source code
-/output
+
+/output/reversedAPK/resources/assets
+/output/reversedAPK

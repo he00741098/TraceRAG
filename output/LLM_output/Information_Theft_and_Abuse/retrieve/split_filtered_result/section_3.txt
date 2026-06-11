@@ -1,0 +1,39 @@
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.h
+Class Name:h
+Java Code: ```java
+package com.kuguo;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
+
+public class h {
+    private String a;
+    private boolean e;
+    private int d = 0;
+    private Map b = new LinkedHashMap();
+    private Map c = new LinkedHashMap();
+
+    public h(String str) {
+        this.a = str;
+    }
+
+    public Map a() {
+        return this.c;
+    }
+
+    public void a(String str, Object obj) {
+        this.c.put(str, obj);
+    }
+
+    public int b() {
+        return this.d;
+    }
+
+    public String c() {
+        return this.a;
+    }
+
+    public String d() {
