@@ -1,3 +1,9 @@
-It appears you have provided the instruction and the header for the first chunk of data, but the actual content of **"Batched conversation history (Chunk 1)"** is missing from your message.
+It appears that you have provided the header for **Chunk 1**, but the actual content (the summaries and code details) for this specific chunk is missing from your message.
 
-Please provide the text for **Chunk 1** (and any subsequent chunks) so that I can process them and generate the organized, technical Malicious Behavior Analysis Report following your strict guidelines.
+To generate the report, please provide the **summaries, call chains, and detailed descriptions** for Chunk 1. 
+
+Once you provide the content, I will:
+1.  **Filter out** any general security vulnerabilities.
+2.  **Extract and organize** only the malicious behaviors.
+3.  **Structure the report** with an Overall Summary, detailed Behavior Analysis (including fully qualified class paths and call chains), and a Conclusion.
+4.  **Adhere to all writing rules** (technical tone, no vague suggestions, clear evidence).

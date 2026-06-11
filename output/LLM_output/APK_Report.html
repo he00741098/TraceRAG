@@ -1,45 +1,53 @@
 <h1>Final Malicious Behavior Analysis Report</h1>
 <h2>1. Basic Information</h2>
-<p><strong>SHA256:</strong> 00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B</p>
+<p><strong>SHA256:</strong> A28E480AEFE42886A2943ECC4793ACF8D93D0DECA7323A2F45A3E9172343F3B5</p>
 <h2>2. Executive Summary</h2>
-<p>The analyzed application exhibits highly malicious behaviors categorized into <strong>Remote Software Distribution</strong>, <strong>Information Theft</strong>, and <strong>Privilege Abuse</strong>. A total of three distinct malicious behaviors were identified:</p>
+<p>The analyzed application exhibits highly malicious behaviors categorized into <strong>Remote Payload Delivery</strong>, <strong>Information Theft</strong>, and <strong>Privilege Abuse</strong>. A total of three distinct types of malicious behaviors were identified:</p>
 <ol>
 <li>
-<p><strong>Remote Software Distribution</strong>: The application utilizes background tasks to download and install external APK files from remote servers via <code>net.crazymedia.iad.a.c.doInBackground(Void... voidArr)</code>.</p>
+<p><strong>Remote Payload Delivery</strong>: The application downloads and facilitates the installation of external APK files via background tasks.</p>
 </li>
 <li>
-<p><strong>Information Theft</strong>: The application performs extensive data harvesting, collecting sensitive hardware identifiers (IMEI, IMSI, MAC Address, Phone Number) and precise geographic location through <code>net.crazymedia.iad.d.q.a(Context context)</code> and <code>net.crazymedia.iad.d.q.c(Context context)</code>.</p>
+<p><strong>Information Theft</strong>: The application performs extensive data harvesting, collecting sensitive hardware identifiers (IMEI, IMSI, MAC Address), personal information (phone number), and real-time geographic location.</p>
 </li>
 <li>
-<p><strong>Privilege Abuse</strong>: The application attempts to bypass Android security sandboxing by executing unauthorized file permission modifications (<code>chmod 777</code>) on downloaded APK files via <code>com.kuguo.ad.br.a(com.kuguo.a.f, int)</code>.</p>
+<p><strong>Privilege Abuse</strong>: The application attempts to bypass Android security sandboxing by executing shell commands to grant full permissions to downloaded files.</p>
 </li>
 </ol>
+<p>Specific malicious code paths identified include:</p>
+<ul>
+<li><code>net.crazymedia.iad.a.c.doInBackground()</code>: Facilitates remote APK fetching.</li>
+<li><code>net.crazymedia.iad.d.q.a()</code> and <code>net.crazymedia.iad.d.q.c()</code>: Performs comprehensive identity and location tracking.</li>
+<li><code>com.kuguo.ad.br.a()</code>: Executes unauthorized permission modifications via <code>chmod 777</code>.</li>
+</ul>
+<p>No modules were identified as having non-malicious intent within the scope of the provided reports.</p>
 <h2>3. Detailed Analysis</h2>
-<h3>Remote Software Distribution</h3>
+<h3>Remote Payload Delivery</h3>
 <p><strong>Malicious Behavior Detected</strong></p>
-<p><code>net.crazymedia.iad.a.c</code> (Package name: <code>net.crazymedia.iad.a.c</code>)</p>
-<p>The method <code>net.crazymedia.iad.a.c.doInBackground(Void... voidArr)</code> is designed to facilitate the unauthorized downloading of external software. The code performs an HTTP GET request to a remote URL stored in <code>this.e.h</code>. The intent of this operation is confirmed by internal logging using the identifier <code>[MyTaskFetchAndInstallApk]</code>. Upon receiving a successful HTTP 200 response, the method processes the downloaded content, which is intended to be an APK file for subsequent installation on the device.</p>
-<p><strong>Code Call Chain:</strong></p>
+<p><strong>Class Path:</strong> <code>net.crazymedia.iad.a.c</code> (Package name: <code>net.crazymedia.iad</code>)</p>
+<p>The class implements a background task specifically designed to download an external APK file from a remote URL. The code contains explicit logging that identifies the intent of this operation as an APK installation task.</p>
+<p><strong>Call Chain:</strong></p>
 <p><code>net.crazymedia.iad.a.c.doInBackground()</code> $\rightarrow$ <code>HttpGet(this.e.h)</code> $\rightarrow$ <code>this.h.execute(httpGet, basicHttpContext)</code> $\rightarrow$ <code>[MyTaskFetchAndInstallApk]</code></p>
+<p><strong>Evidence and Explanation:</strong><br />
+*   <strong><code>net.crazymedia.iad.a.c.doInBackground(Void... voidArr)</code></strong>: This method initiates an HTTP GET request using a URL stored in the variable <code>this.e.h</code>.<br />
+*   <strong><code>[MyTaskFetchAndInstallApk]</code></strong>: Internal logs within this method explicitly label the process as <code>[MyTaskFetchAndInstallApk]</code>. This confirms that the purpose of the HTTP request and the subsequent handling of the response (upon receiving a 200 OK status) is to fetch and facilitate the installation of an external Android package.</p>
 <hr />
 <h3>Information Theft and Location Tracking</h3>
 <p><strong>Malicious Behavior Detected</strong></p>
-<p><code>net.crazymedia.iad.d.q</code> (Package name: <code>net.crazymedia.iad.d.q</code>)</p>
-<p>This class is dedicated to harvesting sensitive user data and device identifiers through two primary methods:</p>
-<ol>
-<li>
-<p><code>net.crazymedia.iad.d.q.a(Context context)</code>: This method performs extensive data harvesting by collecting the hardware model via <code>Build.MODEL</code>, the unique device identifier via <code>telephonyManager.getDeviceId()</code>, and the Wi-Fi MAC address via <code>WifiManager</code>. It also captures the SIM Subscriber ID (IMSI) via <code>telephonyManager.getSubscriberId()</code>, the mobile phone number via <code>telephonyManager.getLine1Number()</code>, and the SIM operator via <code>telephonyManager.getSimOperator()</code>.</p>
-</li>
-<li>
-<p><code>net.crazymedia.iad.d.q.c(Context context)</code>: This method is utilized for geographic tracking. It checks for <code>android.permission.ACCESS_FINE_LOCATION</code> and, if granted, invokes <code>locationManager.getLastKnownLocation</code> to extract the device's most recent geographic coordinates.</p>
-</li>
-</ol>
-<p><strong>Code Call Chain:</strong></p>
+<p><strong>Class Path:</strong> <code>net.crazymedia.iad.d.q</code> (Package name: <code>net.crazymedia.iad</code>)</p>
+<p>This class is dedicated to harvesting sensitive user data and hardware identifiers to create a comprehensive profile of the user.</p>
+<p><strong>Call Chain:</strong></p>
 <p><code>net.crazymedia.iad.d.q.a(Context context)</code> $\rightarrow$ <code>net.crazymedia.iad.d.q.c(Context context)</code></p>
+<p><strong>Evidence and Explanation:</strong><br />
+*   <strong><code>net.crazymedia.iad.d.q.a(Context context)</code></strong>: This method aggregates multiple sensitive data points into class members. It collects:<br />
+*   <strong>Hardware Model</strong>: via <code>Build.MODEL</code>.<br />
+*   <strong>Device ID/IMEI</strong>: via <code>telephonyManager.getDeviceId()</code>.<br />
+*   <strong>Wi-Fi MAC Address</strong>: via <code>WifiManager.getConnectionInfo().getMacAddress()</code> (used as a fallback).<br />
+*   <strong>IMSI (Subscriber ID)</strong>: via <code>telephonyManager.getSubscriberId()</code>.<br />
+*   <strong>Mobile Phone Number</strong>: via <code>telephonyManager.getLine1Number()</code>.<br />
+*   <strong>SIM Operator</strong>: via <code>telephonyManager.getSimOperator()</code>.<br />
+*   <strong><code>net.crazymedia.iad.d.q.c(Context context)</code></strong>: This method is invoked during the data collection process in <code>a(Context context)</code>. It checks for <code>android.permission.ACCESS_FINE_LOCATION</code> and utilizes <code>locationManager.getLastKnownLocation</code> to capture the device's precise geographic coordinates.</p>
 <hr />
 <h3>Privilege Abuse and System Exploitation</h3>
 <p><strong>Malicious Behavior Detected</strong></p>
-<p><code>com.kuguo.ad.br</code> (Package name: <code>com.kuguo.ad.br</code>)</p>
-<p>The method <code>com.kuguo.ad.br.a(com.kuguo.a.f, int)</code> monitors the status of file downloads. Upon detecting that a download has completed and the resulting file is an APK located within the application's private data directory (<code>/data/data/</code>), the application executes a shell command to change the file permissions to <code>777</code>. This grants full read, write, and execute permissions to all users, a technique used to facilitate the execution of unauthorized packages by bypassing the standard Android security sandbox.</p>
-<p><strong>Code Call Chain:</strong></p>
-<p>`com.kuguo.ad.br.a(com</p>
+<p><strong>Class Path:</strong> `com.kuguo.ad</p>
