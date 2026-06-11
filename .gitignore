@@ -13,3 +13,7 @@ src/conversation/__init__.py
 src/postprocess/._Final_report_Generation.py
 src/postprocess/._txt2markwon_and_html.py
 src/__init__.py
+
+# Extracted result / source-code data (large, not source code)
+TraceRAG_result_and_source/
+__MACOSX/
