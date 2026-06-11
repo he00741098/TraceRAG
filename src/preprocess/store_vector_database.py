@@ -28,15 +28,17 @@ def process_java_summaries(
     os.environ["OPENAI_API_KEY"] = openai_api_key
     openai.api_key = openai_api_key # Deprecated apparently
 
-    # 连接 Weaviate 向量数据库
-    # client = weaviate.connect_to_wcs(
-    #     cluster_url=weaviate_url,
-    #     auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key),
-    # )
-
     max_retries = 5
     retry_count = 0
     client = QdrantClient(url=weaviate_url)
+
+    # Compute the raw (pre-cleaning) java directory.
+    # Pipeline produces:
+    #   sources_Split/             (raw split code, NOT cleaned)
+    #   sources_Split_Cleaned/     (java_directory — cleaned code)
+    #   sources_Split_Cleaned_Summarized/  (summary_directory — summaries)
+    # We want the original pre-cleaning code for the payload.
+    raw_java_directory = java_directory.replace("_Split_Cleaned", "_Split")
 
     # while retry_count < max_retries:
     #     try:
@@ -61,11 +63,14 @@ def process_java_summaries(
                 method_name = filename.replace(".txt", "")  # 获取方法名
                 summary_file_path = os.path.join(root, filename)
 
-                # 构建 Java 文件的完整路径
-                full_java_file_path = summary_file_path.replace(summary_directory, java_directory).replace(".txt", ".java")
+                # 构建 Java 文件的完整路径（使用原始未清洗的代码）
+                full_java_file_path = summary_file_path.replace(summary_directory, raw_java_directory).replace(".txt", ".java")
 
-                # 计算 Java 文件相对于 java_directory 的相对路径
-                java_file_path = os.path.relpath(full_java_file_path, java_directory)
+                # Also compute the cleaned path (for reading if raw doesn't exist)
+                cleaned_java_path = summary_file_path.replace(summary_directory, java_directory).replace(".txt", ".java")
+
+                # 计算 Java 文件相对于原始代码目录的相对路径（用于 FQCN）
+                java_file_path = os.path.relpath(full_java_file_path, raw_java_directory)
 
                 # 转换为 FQCN 格式
                 if java_file_path.startswith("sources" + os.sep):
@@ -77,8 +82,12 @@ def process_java_summaries(
                 with open(summary_file_path, 'r', encoding='utf-8') as summary_file:
                     summary_content = summary_file.read()
 
-                # 读取 Java 代码
-                with open(full_java_file_path, 'r', encoding='utf-8') as java_file:
+                # 读取 Java 代码（优先使用原始未清洗的代码）
+                code_path = full_java_file_path
+                if not os.path.exists(code_path):
+                    code_path = cleaned_java_path
+                    logger.warning(f"Raw code not found at {full_java_file_path}, falling back to cleaned version")
+                with open(code_path, 'r', encoding='utf-8') as java_file:
                     original_code = java_file.read()
 
                 # 提取 class 名称（Java 文件所在的文件夹名）
