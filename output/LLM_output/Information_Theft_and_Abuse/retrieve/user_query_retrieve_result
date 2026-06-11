@@ -69,6 +69,28 @@ Content: package com.kuguo.b;
         return this.e ? com.kuguo.c.b.a(format) : format;
     }
 
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.f.t
+Class Name:f
+Content: package com.kuguo.a;
+
+    private void t() {
+        if (this.a != null) {
+            this.a.b().a("Accept", "image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, application/xaml+xml, application/vnd.ms-xpsdocument, application/x-ms-xbap, application/x-ms-application, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, */*");
+            this.a.b().a("Accept-Language", "zh-CN");
+            this.a.b().a("Charset", ENV.ENCODING);
+            if (this.g == 1) {
+                long o = o();
+                this.d = (int) o;
+                this.a.b().a("Range", "bytes=" + o + "-");
+            } else {
+                this.a.b().a("Range", "bytes=0-");
+                this.d = 0;
+            }
+            this.a.b().a("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)");
+            this.a.b().a("Connection", "Keep-Alive");
+        }
+    }
+
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.m.m
 Class Name:m
 Content: package net.crazymedia.iad.b;
@@ -94,26 +116,44 @@ public class m extends h {
     }
 }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.f.t
-Class Name:f
-Content: package com.kuguo.a;
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.bz.bz
+Class Name:bz
+Content: package com.kuguo.ad;
 
-    private void t() {
-        if (this.a != null) {
-            this.a.b().a("Accept", "image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, application/xaml+xml, application/vnd.ms-xpsdocument, application/x-ms-xbap, application/x-ms-application, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, */*");
-            this.a.b().a("Accept-Language", "zh-CN");
-            this.a.b().a("Charset", ENV.ENCODING);
-            if (this.g == 1) {
-                long o = o();
-                this.d = (int) o;
-                this.a.b().a("Range", "bytes=" + o + "-");
-            } else {
-                this.a.b().a("Range", "bytes=0-");
-                this.d = 0;
-            }
-            this.a.b().a("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)");
-            this.a.b().a("Connection", "Keep-Alive");
+class bz implements com.kuguo.a.a {
+    final /* synthetic */ bk a;
+    final /* synthetic */ bn b;
+
+    bz(bn bnVar, bk bkVar) {
+        this.b = bnVar;
+        this.a = bkVar;
+    }
+
+    @Override // com.kuguo.a.a
+    public void a(com.kuguo.a.f fVar, int i) {
+        Context context;
+        a.a("download state == " + i);
+        if (i == 4 || i == 5) {
+            this.b.post(new by(this));
+            this.a.l = 0;
+            context = this.b.a.a;
+            a.b(context, this.a);
+            MainReceiver.a();
         }
+    }
+
+    @Override // com.kuguo.a.a
+    public void a(com.kuguo.a.f fVar, long j) {
+        a.a("download size == " + j);
+    }
+}
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.u.e
+Class Name:u
+Content: package net.crazymedia.iad.b;
+
+    private g e() {
+        return new l(this.d).a();
     }
 
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
@@ -131,6 +171,24 @@ Content: package com.unity3d.player.a;
         } catch (GeneralSecurityException e2) {
             throw new RuntimeException("Invalid environment", e2);
         }
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.h.d
+Class Name:h
+Content: package com.kuguo.ad;
+
+    private e d;
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.a.c.onProgressUpdate
+Class Name:c
+Content: package net.crazymedia.iad.a;
+
+    public void onProgressUpdate(Integer... numArr) {
+        Integer num = numArr[0];
+        if (this.i) {
+            return;
+        }
+        s.a(this.d, this.e.a.hashCode(), R.drawable.stat_sys_download, this.e.b, this.e.b, "当前下载：" + num + "%", null);
     }
 
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.f.f
@@ -227,46 +285,6 @@ public class f extends a {
     }
 }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.bz.bz
-Class Name:bz
-Content: package com.kuguo.ad;
-
-class bz implements com.kuguo.a.a {
-    final /* synthetic */ bk a;
-    final /* synthetic */ bn b;
-
-    bz(bn bnVar, bk bkVar) {
-        this.b = bnVar;
-        this.a = bkVar;
-    }
-
-    @Override // com.kuguo.a.a
-    public void a(com.kuguo.a.f fVar, int i) {
-        Context context;
-        a.a("download state == " + i);
-        if (i == 4 || i == 5) {
-            this.b.post(new by(this));
-            this.a.l = 0;
-            context = this.b.a.a;
-            a.b(context, this.a);
-            MainReceiver.a();
-        }
-    }
-
-    @Override // com.kuguo.a.a
-    public void a(com.kuguo.a.f fVar, long j) {
-        a.a("download size == " + j);
-    }
-}
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.u.e
-Class Name:u
-Content: package net.crazymedia.iad.b;
-
-    private g e() {
-        return new l(this.d).a();
-    }
-
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.cc.a
 Class Name:cc
 Content: package com.kuguo.ad;
@@ -322,89 +340,36 @@ Content: package com.kuguo.ad;
         return (ce[]) d.b(ce.class, a3);
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.a.c.onProgressUpdate
-Class Name:c
-Content: package net.crazymedia.iad.a;
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.otheri.http.HttpPostTask.runSyncTask
+Class Name:HttpPostTask
+Content: package com.otheri.http;
 
-    public void onProgressUpdate(Integer... numArr) {
-        Integer num = numArr[0];
-        if (this.i) {
-            return;
-        }
-        s.a(this.d, this.e.a.hashCode(), R.drawable.stat_sys_download, this.e.b, this.e.b, "当前下载：" + num + "%", null);
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.b
-Class Name:a
-Content: package com.unity3d.player.a;
-
-    public final String b(String str) {
-        if (str == null) {
-            return null;
+    public Input runSyncTask() {
+        init();
+        this.conn.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        byte[] content = (byte[]) null;
+        if (this.baos != null && this.baos.size() > 0) {
+            content = this.baos.toByteArray();
+            this.conn.addRequestProperty("Content-Length", Integer.toString(content.length));
+        } else {
+            this.conn.addRequestProperty("Content-Length", "0");
         }
         try {
-            String str2 = new String(this.c.doFinal(com.unity3d.player.b.a.a(str)), ENV.ENCODING);
-            if (str2.indexOf("com.android.vending.licensing.AESObfuscator-1|") != 0) {
-                throw new l("Header not found (invalid data or key):" + str);
+            this.conn.connect();
+            if (content != null) {
+                OutputStream os = this.conn.getOutputStream();
+                os.write(content);
+                os.flush();
+                os.close();
             }
-            return str2.substring("com.android.vending.licensing.AESObfuscator-1|".length(), str2.length());
-        } catch (com.unity3d.player.b.b e) {
-            throw new l(e.getMessage() + ":" + str);
-        } catch (UnsupportedEncodingException e2) {
-            throw new RuntimeException("Invalid environment", e2);
-        } catch (BadPaddingException e3) {
-            throw new l(e3.getMessage() + ":" + str);
-        } catch (IllegalBlockSizeException e4) {
-            throw new l(e4.getMessage() + ":" + str);
-        }
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.c
-Class Name:e
-Content: package net.crazymedia.iad.d;
-
-    private static final int[] c = {58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4, 62, 54, 46, 38, 30, 22, 14, 6, 64, 56, 48, 40, 32, 24, 16, 8, 57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3, 61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7};
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.h.d
-Class Name:h
-Content: package com.kuguo.ad;
-
-    private e d;
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.ah.d
-Class Name:ah
-Content: package com.kuguo.ad;
-
-    public void d(int i) {
-        int i2 = 0;
-        if (i == 0) {
-            this.c = a(this.c);
-            while (true) {
-                int i3 = i2;
-                if (i3 >= this.c.size()) {
-                    a(this.e, i);
-                    return;
-                } else {
-                    if (!a((bk) this.c.get(i3), this.e)) {
-                        this.e.add(this.c.get(i3));
-                    }
-                    i2 = i3 + 1;
-                }
+            int responseCode = this.conn.getResponseCode();
+            if (responseCode < 200 || responseCode > 299) {
+                return null;
             }
-        } else {
-            this.d = a(this.d);
-            while (true) {
-                int i4 = i2;
-                if (i4 >= this.d.size()) {
-                    a(this.f, i);
-                    return;
-                } else {
-                    if (!a((bk) this.d.get(i4), this.f)) {
-                        this.f.add(this.d.get(i4));
-                    }
-                    i2 = i4 + 1;
-                }
-            }
+            return new Input(this.conn.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -449,36 +414,71 @@ Content: package com.kuguo.ad;
         a(bkVarArr);
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.otheri.http.HttpPostTask.runSyncTask
-Class Name:HttpPostTask
-Content: package com.otheri.http;
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.c
+Class Name:e
+Content: package net.crazymedia.iad.d;
 
-    public Input runSyncTask() {
-        init();
-        this.conn.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        byte[] content = (byte[]) null;
-        if (this.baos != null && this.baos.size() > 0) {
-            content = this.baos.toByteArray();
-            this.conn.addRequestProperty("Content-Length", Integer.toString(content.length));
-        } else {
-            this.conn.addRequestProperty("Content-Length", "0");
+    private static final int[] c = {58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4, 62, 54, 46, 38, 30, 22, 14, 6, 64, 56, 48, 40, 32, 24, 16, 8, 57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3, 61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7};
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.b
+Class Name:a
+Content: package com.unity3d.player.a;
+
+    public final String b(String str) {
+        if (str == null) {
+            return null;
         }
         try {
-            this.conn.connect();
-            if (content != null) {
-                OutputStream os = this.conn.getOutputStream();
-                os.write(content);
-                os.flush();
-                os.close();
+            String str2 = new String(this.c.doFinal(com.unity3d.player.b.a.a(str)), ENV.ENCODING);
+            if (str2.indexOf("com.android.vending.licensing.AESObfuscator-1|") != 0) {
+                throw new l("Header not found (invalid data or key):" + str);
             }
-            int responseCode = this.conn.getResponseCode();
-            if (responseCode < 200 || responseCode > 299) {
-                return null;
+            return str2.substring("com.android.vending.licensing.AESObfuscator-1|".length(), str2.length());
+        } catch (com.unity3d.player.b.b e) {
+            throw new l(e.getMessage() + ":" + str);
+        } catch (UnsupportedEncodingException e2) {
+            throw new RuntimeException("Invalid environment", e2);
+        } catch (BadPaddingException e3) {
+            throw new l(e3.getMessage() + ":" + str);
+        } catch (IllegalBlockSizeException e4) {
+            throw new l(e4.getMessage() + ":" + str);
+        }
+    }
+
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.ah.d
+Class Name:ah
+Content: package com.kuguo.ad;
+
+    public void d(int i) {
+        int i2 = 0;
+        if (i == 0) {
+            this.c = a(this.c);
+            while (true) {
+                int i3 = i2;
+                if (i3 >= this.c.size()) {
+                    a(this.e, i);
+                    return;
+                } else {
+                    if (!a((bk) this.c.get(i3), this.e)) {
+                        this.e.add(this.c.get(i3));
+                    }
+                    i2 = i3 + 1;
+                }
             }
-            return new Input(this.conn.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+        } else {
+            this.d = a(this.d);
+            while (true) {
+                int i4 = i2;
+                if (i4 >= this.d.size()) {
+                    a(this.f, i);
+                    return;
+                } else {
+                    if (!a((bk) this.d.get(i4), this.f)) {
+                        this.f.add(this.d.get(i4));
+                    }
+                    i2 = i4 + 1;
+                }
+            }
         }
     }
 
@@ -531,6 +531,12 @@ public class n extends h {
     }
 }
 
+Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.i
+Class Name:e
+Content: package net.crazymedia.iad.d;
+
+    private static final int[][][] i = {new int[][]{new int[]{14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7}, new int[]{0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8}, new int[]{4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0}, new int[]{15, 12, 8, 2, 4, 9, 1, 7, 5, 11, 3, 14, 10, 0, 6, 13}}, new int[][]{new int[]{15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10}, new int[]{3, 13, 4, 7, 15, 2, 8, 14, 12, 0, 1, 10, 6, 9, 11, 5}, new int[]{0, 14, 7, 11, 10, 4, 13, 1, 5, 8, 12, 6, 9, 3, 2, 15}, new int[]{13, 8, 10, 1, 3, 15, 4, 2, 11, 6, 7, 12, 0, 5, 14, 9}}, new int[][]{new int[]{10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8}, new int[]{13, 7, 0, 9, 3, 4, 6, 10, 2, 8, 5, 14, 12, 11, 15, 1}, new int[]{13, 6, 4, 9, 8, 15, 3, 0, 11, 1, 2, 12, 5, 10, 14, 7}, new int[]{1, 10, 13, 0, 6, 9, 8, 7, 4, 15, 14, 3, 11, 5, 2, 12}}, new int[][]{new int[]{7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15}, new int[]{13, 8, 11, 5, 6, 15, 0, 3, 4, 7, 2, 12, 1, 10, 14, 9}, new int[]{10, 6, 9, 0, 12, 11, 7, 13, 15, 1, 3, 14, 5, 2, 8, 4}, new int[]{3, 15, 0, 6, 10, 1, 13, 8, 9, 4, 5, 11, 12, 7, 2, 14}}, new int[][]{new int[]{2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9}, new int[]{14, 11, 2, 12, 4, 7, 13, 1, 5, 0, 15, 10, 3, 9, 8, 6}, new int[]{4, 2, 1, 11, 10, 13, 7, 8, 15, 9, 12, 5, 6, 3, 0, 14}, new int[]{11, 8, 12, 7, 1, 14, 2, 13, 6, 15, 0, 9, 10, 4, 5, 3}}, new int[][]{new int[]{12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11}, new int[]{10, 15, 4, 2, 7, 12, 9, 5, 6, 1, 13, 14, 0, 11, 3, 8}, new int[]{9, 14, 15, 5, 2, 8, 12, 3, 7, 0, 4, 10, 1, 13, 11, 6}, new int[]{4, 3, 2, 12, 9, 5, 15, 10, 11, 14, 1, 7, 6, 0, 8, 13}}, new int[][]{new int[]{4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1}, new int[]{13, 0, 11, 7, 4, 9, 1, 10, 14, 3, 5, 12, 2, 15, 8, 6}, new int[]{1, 4, 11, 13, 12, 3, 7, 14, 10, 15, 6, 8, 0, 5, 9, 2}, new int[]{6, 11, 13, 8, 1, 4, 10, 7, 9, 5, 0, 15, 14, 2, 3, 12}}, new int[][]{new int[]{13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7}, new int[]{1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2}, new int[]{7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8}, new int[]{2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11}}};
+
 Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.f.q
 Class Name:f
 Content: package com.kuguo.a;
@@ -547,9 +553,3 @@ Content: package com.kuguo.a;
         }
         this.h = c.a();
     }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.e
-Class Name:e
-Content: package net.crazymedia.iad.d;
-
-    private static final int[] e = {57, 49, 41, 33, 25, 17, 9, 1, 58, 50, 42, 34, 26, 18, 10, 2, 59, 51, 43, 35, 27, 19, 11, 3, 60, 52, 44, 36, 63, 55, 47, 39, 31, 23, 15, 7, 62, 54, 46, 38, 30, 22, 14, 6, 61, 53, 45, 37, 29, 21, 13, 5, 28, 20, 12, 4};

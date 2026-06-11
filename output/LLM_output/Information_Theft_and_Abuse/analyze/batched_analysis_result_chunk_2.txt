@@ -1,0 +1,37 @@
+# Malware Analysis Report: Information Theft
+
+## Summary
+The analyzed code demonstrates malicious behavior categorized as **Information Theft**. The application is designed to harvest a comprehensive profile of the user's device and identity, including highly sensitive hardware identifiers and personal information.
+
+**Identified Malicious Behaviors:**
+* **net.crazymedia.iad.d.q.a(Context context)**: Collects unique hardware identifiers including IMEI/Device ID, IMSI/Subscriber ID, Wi-Fi MAC Address, and the user's mobile phone number. It also gathers device metadata such as the hardware model and SIM operator.
+* **net.crazymedia.iad.d.q.c(Context context)**: Attempts to retrieve the device's last known geographic location using the `LocationManager`.
+
+---
+
+## Detailed Analysis
+
+**net.crazymedia.iad.d.q.a(Context context)**
+This method performs extensive data harvesting of sensitive device and user information. 
+- It retrieves the device hardware model via `Build.MODEL`.
+- It attempts to obtain the unique device identifier using `telephonyManager.getDeviceId()`.
+- If the device ID is unavailable, it falls back to collecting the Wi-Fi MAC address via `((WifiManager) context.getSystemService("wifi")).getConnectionInfo().getMacAddress()`.
+- It retrieves the SIM card's unique Subscriber ID (IMSI) using `telephonyManager.getSubscriberId()`.
+- It collects the user's mobile phone number using `telephonyManager.getLine1Number()`.
+- It also captures the SIM operator information via `telephonyManager.getSimOperator()`.
+
+**net.crazymedia.iad.d.q.c(Context context)**
+This method is dedicated to location tracking.
+- It checks for the `android.permission.ACCESS_FINE_LOCATION` permission.
+- If granted, it utilizes `locationManager.getLastKnownLocation` to extract the device's most recent geographic coordinates.
+
+---
+
+## Malicious Code Call Chain
+
+The following call chain illustrates how the application aggregates sensitive information into a single object instance for potential exfiltration:
+
+**net.crazymedia.iad.d.q.a(Context context)** $\rightarrow$ **net.crazymedia.iad.d.q.c(Context context)**
+
+**Explanation:**
+The primary entry point for data collection is `a(Context context)`. While executing this method, the application populates various class members (`a`, `b`, `c`, `d`, `i`) with sensitive identifiers (IMSI, MAC, Phone Number, IMEI, and Model). During this process, the application also invokes `c(Context context)` to append the user's precise geographic location to the collected data profile. This results in a complete identity and location snapshot of the user.
