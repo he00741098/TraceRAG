@@ -34,6 +34,7 @@ def java_code_cleaning(java_code: str) -> str:
 
         response = client.chat.completions.create(
             temperature=0,
+            max_tokens=4096,
             model=config["llm"]["cleaning_model"],
             messages=[{"role": "system", "content": "You are a code optimization assistant. Respond ONLY with the optimized code."},
                       {"role": "user", "content": prompt}]
@@ -144,6 +145,7 @@ def generate_code_summary(java_code: str) -> str:
         # send request to OpenAI
         response = client.chat.completions.create(
             temperature=0,
+            max_tokens=8192,
             model=config["llm"]["summary_model"],
             messages=[
                 {"role": "system", "content": "You are a code analysis assistant. Respond ONLY with a detailed summary as instructed."},
