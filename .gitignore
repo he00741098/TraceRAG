@@ -1,3 +1,8 @@
+# Generated output (reports, reversed APK, etc.) — every fresh run
+# deletes and recreates this directory, so tracking it in git only
+# adds noise and makes cross-run comparison confusing.
+output/
+TraceRAG_result_and_source/
 jadx-1.5.1
 output/.DS_Store
 src/__pycache__

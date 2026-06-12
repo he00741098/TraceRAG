@@ -124,15 +124,17 @@ def process_java_summaries(
     Settings.embed_model = OpenAIEmbedding(api_base="http://localhost:5002/v1", api_key="sk-local", model="text-embedding-ada-002")
     test_embed = Settings.embed_model.get_text_embedding("test initialization")
     dim_size = len(test_embed)
-    if not client.collection_exists(collection_name=index_name):
-        logger.info(f"Collection '{index_name}' not found. Creating it manually...")
-        client.create_collection(
-            collection_name=index_name,
-            vectors_config=models.VectorParams(
-                size=dim_size, 
-                distance=models.Distance.COSINE
-            )
+    if client.collection_exists(collection_name=index_name):
+        logger.info(f"Collection '{index_name}' already exists. Deleting and recreating it to avoid cross-APK contamination.")
+        client.delete_collection(collection_name=index_name)
+    logger.info(f"Creating collection '{index_name}'...")
+    client.create_collection(
+        collection_name=index_name,
+        vectors_config=models.VectorParams(
+            size=dim_size, 
+            distance=models.Distance.COSINE
         )
+    )
 
 
     # 存储到 Weaviate 数据库
