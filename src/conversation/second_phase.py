@@ -368,8 +368,19 @@ def back_or_output_condition(state: MessagesState):
     Decide whether to return to tools or generate the report.
     If there is sufficient data to generate the report (i.e., identified malicious behavior),
     proceed to the report generation. Otherwise, return to the tools for further analysis.
+    
+    Also caps the number of retrieval rounds to prevent infinite loops
+    when the model keeps generating follow-up queries without concluding.
     """
-
+    MAX_TOOL_CALLS = 5
+    
+    # Count how many tool calls have been made so far in this conversation
+    tool_call_count = sum(
+        1 for msg in state["messages"]
+        if msg.type == "ai" and hasattr(msg, "additional_kwargs")
+        and "tool_calls" in msg.additional_kwargs
+    )
+    
     # 获取最新的 AI 消息
     conversation_messages = [
         message
@@ -377,12 +388,16 @@ def back_or_output_condition(state: MessagesState):
         if message.type == "ai"
     ][0:1]
     
-    # 如果没有函数调用，则返回“generate_report”
+    # 如果没有函数调用，则返回"generate_report"
     if not conversation_messages:  # 确保列表不为空
         return "generate_report"
     
     message = conversation_messages[0]  # 获取最新的消息
 
+    # Force generate_report if we've made too many tool calls
+    if tool_call_count >= MAX_TOOL_CALLS:
+        print(f"  [WARN] Reached max tool calls ({MAX_TOOL_CALLS}), forcing report generation")
+        return "generate_report"
 
     # 检查该消息是否包含 "tool_call"
     if "tool_calls" not in message.additional_kwargs:
@@ -430,7 +445,7 @@ def model_conversation(input_message,code_snippet):
 
     """执行查询流程，并将结果保存至文件。"""
     current_time = "Conversation " + datetime.now().strftime("%Y%m%d_%H%M%S")
-    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
+    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
     
     all_messages = []
     for step in graph1.stream(
