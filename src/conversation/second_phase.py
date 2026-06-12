@@ -32,6 +32,20 @@ llm_o3_mini = ChatOpenAI(model=config["llm"]["model_name"], temperature = config
 #llm_o3_mini = ChatOpenAI(model=config["llm"]["model_o3_mini"])
 
 client = QdrantClient(url=config["qdrant"]["url"])
+
+
+def _check_truncation(response, node_name: str):
+    """Log a warning if the LLM response was truncated due to token limits.
+    
+    LangChain's ChatOpenAI stores the API finish_reason in response_metadata.
+    'length' means the output was cut off at max_tokens — downstream nodes
+    will receive incomplete data.
+    """
+    finish_reason = response.response_metadata.get('finish_reason', '')
+    if finish_reason == 'length':
+        print(f"  [WARN] {node_name}: output TRUNCATED (finish_reason='length'). "
+              f"Response may be incomplete. Consider increasing max_tokens or "
+              f"splitting the input into smaller batches.")
 # max_retries = 5
 # retry_count = 0
 #
@@ -180,6 +194,7 @@ def reorder_for_graph_2(state: MessagesState):
 
     # Run
     response = llm.invoke(prompt)
+    _check_truncation(response, "reorder_for_graph_2")
 
     return {"messages": [response]}
 
@@ -227,6 +242,7 @@ def generate(state: MessagesState):
     # Run
     # response = llm.invoke(prompt)
     response = llm_o3_mini.invoke(prompt)
+    _check_truncation(response, "generate")
     return {"messages": [response]}
 
 # Step 4: Go back to RAG or output the response
@@ -255,13 +271,14 @@ def back_or_output(state: MessagesState):
         message
         for message in reversed(state["messages"])
         if message.type == "ai"
-    ][0:1]
+    ][0:3]  # Use last 3 AI messages for context, not just the most recent
 
     prompt = [SystemMessage(system_message_content)] + conversation_messages
 
     # Run
     llm_with_tools = llm.bind_tools([retrieve])
     response = llm_with_tools.invoke(prompt)
+    _check_truncation(response, "back_or_output")
     return {"messages": [response]}
 
 
@@ -314,6 +331,7 @@ def report_generator(state: MessagesState):
 
     # 运行 LLM
     response = llm.invoke(prompt)
+    _check_truncation(response, "report_generator")
 
     # # 保存分析结论
     # output_file_2 = os.path.join(output_dir, "conclusion.txt")
@@ -414,12 +432,17 @@ def model_conversation(input_message,code_snippet):
     current_time = "Conversation " + datetime.now().strftime("%Y%m%d_%H%M%S")
     config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
     
+    all_messages = []
     for step in graph1.stream(
         {"messages": [{"role": "user", "content": input_message}]},
         stream_mode="values",
         config=config,
     ):
         step["messages"][-1].pretty_print()
-        last_message = step["messages"][-1].content
+        all_messages.append(step["messages"][-1].content)
 
-    return last_message
+    # Return ALL accumulated messages, not just the last.
+    # The last message alone is just the report_generator output, which
+    # is often truncated. The intermediate generate steps contain the
+    # actual analysis and are essential for downstream report generation.
+    return "\n\n".join(msg for msg in all_messages if msg)
