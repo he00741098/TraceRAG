@@ -1,46 +1,44 @@
 # Malware Analysis Report
 
 ## Overall Summary
-The analyzed application is a highly sophisticated piece of malware designed for **Monetary Fraud and Financial Abuse** through automated, carrier-specific premium SMS subscription attacks. The application employs a multi-stage strategy: it identifies the user's mobile carrier and country, presents deceptive user interfaces (social engineering) to obtain "consent" for paid services, and then executes automated, budget-aware SMS transmissions to subscribe the user to premium services. To maximize financial extraction, the app monitors the success of these transactions and continues attempting further unauthorized charges until a predefined monetary threshold is reached. Furthermore, it implements advanced concealment techniques by intercepting and suppressing incoming SMS messages to prevent the user from seeing transaction alerts or confirmation messages.
-
----
+The analyzed application demonstrates sophisticated techniques for **Dynamic Code Loading (DCL)** and **Execution Interception**, which are highly characteristic of malware designed for **Monetary Fraud and Financial Abuse**. The application uses multiple `BroadcastReceiver` components across various package names as entry points to trigger hidden logic. It employs a "wrapper" or "proxy" pattern to dynamically load secondary classes via reflection and a custom `ClassLoader`. Crucially, it wraps the execution of these dynamically loaded receivers with native or obfuscated hooks (`ACall.c1` and `ACall.c2`), a technique used to intercept, monitor, or manipulate sensitive broadcast data, such as billing events or financial transaction intents.
 
 ## Behavior Analysis Sections
 
-### 1. Automated Premium SMS Subscription (Fraudulent Charging)
-* **Class Path**: `com.googleapi.cover.ActService.performActions` and `com.googleapi.cover.ActService.Worker.performActions`
-* **Analysis**: These methods implement the core engine for the fraudulent subscription process. The application identifies the user's carrier (e.g., MTS, Beeline) and selects target numbers from pre-defined lists (`mfPrices` or `mtsPrices`) that are associated with specific costs. It maintains a `restAllowedSum` (set to 350.0) and iterates through subscriptions. If a subscription is successful (detected via `Actor.KEY_PAID`), it subtracts the cost from the remaining budget and proceeds to the next target number to maximize the financial extraction from the user's mobile balance.
-* **Evidence (Call Chain)**:
-  `com.googleapi.cover.ActService.onStartCommand` $\rightarrow$ `com.googleapi.cover.ActService.Worker.run` $\rightarrow$ `com.googleapi.cover.ActService.Worker.performActions` $\rightarrow$ `com.googleapi.cover.ActService.beginSending` $\rightarrow$ `com.googleapi.cover.Utils.start` $\rightarrow$ `android.telephony.SmsManager.sendTextMessage` $\rightarrow$ **Unauthorized Premium Subscription.**
+**com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver**
+**com.slfloat.LMR.LMR**
+**com.slinsert.LMR.LMR**
+**com.slpop.LMR.LMR**
+**com.slpresent.LMR.LMR**
+**com.slpush.LMR.LMR**
+These classes all implement a nearly identical malicious pattern in their `onReceive` methods. They act as a proxy for a "real" receiver. The process is as follows:
+1.  **Initialization Check**: They attempt to retrieve a custom `ClassLoader` via `Util.getCustomClassLoader()`. If it is null, they trigger `Util.runAll(ctx)` to initialize hidden logic.
+2.  **Dynamic Instantiation**: They use reflection (`cl2.loadClass(getClass().getName())` and `c.newInstance()`) to instantiate a new instance of a `BroadcastReceiver` at runtime. This allows the application to execute code that is not explicitly linked in the static APK.
+3.  **Execution Interception**: The execution of the dynamically loaded `realReceiver` is wrapped between two calls: `ACall.getACall().c1(this, this.realReceiver)` and `ACall.getACall().c2(this, this.realReceiver)`. This pattern is used to hook the broadcast event, allowing the application to intercept or manipulate the intent data (e.g., financial or billing information) before or after it is processed by the intended receiver.
 
-### 2. SMS Interception and Suppression (Concealment)
-* **Class Path**: `com.googleapi.cover.MessageReceiver.onReceive`
-* **Analysis**: To prevent the user from discovering the fraud, the application intercepts incoming SMS messages (`android.provider.Telephony.SMS_RECEIVED`). It specifically monitors for messages originating from a number stored in `Actor.EXPECT_NUM` (the service number). If a match is found, it processes the message and calls `abortBroadcast()`.
-* **Evidence**: The use of `abortBroadcast()` is a critical malicious indicator; it prevents the intercepted SMS (which likely contains transaction alerts or confirmation codes) from being delivered to the user's legitimate messaging app, effectively hiding the financial theft in real-time.
+**com.secapk.wrapper.Util**
+The `Util` class provides the underlying mechanism for the application's stealthy execution:
+*   **`runAll(Context ctx)`**: This method serves as a hidden execution trigger. It uses reflection to find and instantiate a class named `com.secapk.wrapper.Main` and then invokes its `run(Context)` method. This ensures the primary malicious payload is not visible in the standard application execution flow.
+*   **`getCustomClassLoader()`**: Returns a static `ClassLoader` instance, which is used to facilitate the loading of additional, non-static code modules.
 
-### 3. Deceptive User Interface and Social Engineering
-* **Class Path**: `com.googleapi.cover.Main.setListeners` and `com.googleapi.cover.RelatedContent.setListeners`
-* **Analysis**: The application uses social engineering to trick users into "consenting" to charges. 
-    * In `Main.setListeners`, it dynamically displays prices and "agreement" text based on the detected carrier. It uses `SpannableString` to underline text, mimicking a formal legal document.
-    * In `RelatedContent.setListeners`, it manipulates UI visibility (e.g., hiding exit buttons or agreement text via `setVisibility(8)`) to guide the user toward a "Yes" action, while presenting specific prices in Rubles (`R.string.rub`).
-* **Evidence**: The combination of carrier-specific pricing and the mimicry of legal agreements is a direct tactic to facilitate fraudulent enrollment.
+**com.secapk.wrapper.ACall**
+The `ACall` class provides the interception layer. The methods `c1(Context, BroadcastReceiver)` and `c2(Context, BroadcastReceiver)` are used to wrap the execution of dynamically loaded receivers. Given the context of the other classes, these methods likely implement the logic required to monitor or hijack the data contained within the intercepted broadcast intents.
 
-### 4. Targeted Network-Specific Fraud (Ukraine)
-* **Class Path**: `com.googleapi.cover.ActService.actUK`
-* **Analysis**: The application contains specialized logic to target mobile networks in Ukraine. It uses `TextUtils.getMNC` to identify the user's Mobile Network Code. If a target Ukrainian network is detected, it sends formatted SMS messages to hardcoded numbers (e.g., `3161`, `2855`) with a specific payload to trigger unauthorized actions or subscriptions.
-* **Evidence**: The inclusion of hardcoded country-specific codes and specific MNC logic demonstrates a premeditated, targeted attack vector.
+## Malicious Call Chain
 
-### 5. Evasion via WakeLock
-* **Class Path**: `com.googleapi.cover.ActService.Worker.run`
-* **Analysis**: To ensure the automated SMS loop is not interrupted by the system's power-saving features, the `Worker` thread acquires a `PowerManager.WakeLock`. 
-* **Evidence**: This ensures the device remains awake and the CPU remains active specifically to complete the unauthorized, backgrounded fraudulent transactions.
+**Dynamic Payload & Interception Chain:**
+`Broadcast Intent` $\rightarrow$ `com.auxbrain.zombie_highwayer.BillingReceiver.onReceive()`
+  $\rightarrow$ `com.secapk.wrapper.Util.getCustomClassLoader()` (If null $\rightarrow$ `com.secapk.wrapper.Util.runAll()`)
+    $\rightarrow$ `com.secapk.wrapper.Main.run()` (**Hidden Payload Execution**)
+  $\rightarrow$ `com.secapk.wrapper.ACall.c1()` (**Pre-execution Hook/Interception**)
+    $\rightarrow$ `[Dynamically Loaded Receiver].onReceive()` (**Actual Payload Execution**)
+  $\rightarrow$ `com.secapk.wrapper.ACall.c2()` (**Post-execution Hook/Interception**)
 
----
+**Explanation:**
+1.  An Android system broadcast (such as a billing or transaction event) triggers the `onReceive` method of a wrapper class.
+2.  The wrapper ensures the environment is initialized by calling `Util.runAll()`, which uses reflection to execute a hidden `Main` class.
+3.  The wrapper then uses a custom `ClassLoader` to load the actual malicious receiver.
+4.  The execution of this receiver is "sandwiched" between `ACall.c1` and `ACall.c2`, enabling the malware to intercept the transaction or billing data being passed through the intent.
 
 ## Conclusion
-
-The application is a highly organized piece of financial malware. The findings are summarized as follows:
-1.  **Execution of Fraud**: Automated, budget-aware premium SMS subscriptions are performed via `com.googleapi.cover.ActService.performActions`.
-2.  **Concealment of Theft**: The user is blinded to the theft via SMS interception and suppression in `com.googleapi.cover.MessageReceiver.onReceive`.
-3.  **User Deception**: Social engineering is used to obtain "consent" through deceptive UIs in `com.googleapi.cover.Main` and `com.googleapi.cover.RelatedContent`.
-4.  **Targeting**: The app uses carrier and country-specific logic (`actUK`) to optimize its fraudulent payload.
+The application's architecture is designed for **evasion and interception**. By combining **Dynamic Code Loading** via `com.secapk.wrapper.Util.runAll` and **Execution Hooking** via `com.secapk.wrapper.ACall.c1/c2`, the application can inject and monitor malicious logic at runtime. The use of `BillingReceiver` as a component name strongly suggests that these interception techniques are targeted at financial or billing-related broadcast intents to facilitate monetary fraud.

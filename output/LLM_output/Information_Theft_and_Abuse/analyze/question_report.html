@@ -1,57 +1,40 @@
 <h1>Malware Analysis Report</h1>
 <h2>Overall Summary</h2>
-<p>The analyzed application exhibits highly sophisticated and malicious behavior centered around <strong>Information Theft</strong>, <strong>Unauthorized Data Exfiltration via SMS</strong>, and <strong>Social Engineering</strong>. The application is designed to collect sensitive device identifiers (such as the SIM Subscription ID and network metadata), intercept or retrieve sensitive SMS data, and exfiltrate this information to remote attackers. Notably, the app uses a dual-channel exfiltration strategy: sending data to a Command and Control (C2) server via HTTP requests and sending stolen data to remote numbers via unauthorized SMS messages. Furthermore, the app employs deceptive UI components and notifications to facilitate social engineering attacks.</p>
-<hr />
+<p>The analyzed application exhibits sophisticated behaviors characteristic of a <strong>malicious loader or dropper</strong>. The application employs a multi-layered strategy to evade detection, including the use of a custom wrapper to dynamically load secondary payloads via <code>DexClassLoader</code>, the implementation of a dynamic proxy mechanism for <code>BroadcastReceivers</code> to hide execution flow, and the heavy delegation of sensitive operations to native (JNI) methods. Furthermore, the application actively collects device metadata (package name, APK path, and process name) and system information (CPU details) and uses Java Reflection to bypass access controls, all of which are indicative of a coordinated effort for information theft and unauthorized code execution.</p>
 <h2>Behavior Analysis Sections</h2>
-<h3>1. Unauthorized Exfiltration of SMS Data via SMS (SMS Stealing/Smishing)</h3>
+<p><strong>com.secapk.wrapper.ApplicationWrapper</strong></p>
+<p>The <code>com.secapk.wrapper.ApplicationWrapper</code> class implements a custom initialization routine in its <code>onCreate</code> method. It utilizes a <code>DexClassLoader</code> to dynamically load a class named <code>com.secapk.wrapper.FirstApplication</code>. Once loaded, it instantiates this class and invokes its <code>onCreate()</code> method. This pattern is used to separate the initial application entry point from the actual functional logic, allowing the primary malicious payload to be loaded dynamically from a separate DEX file at runtime.</p>
+<p><strong>com.secapk.wrapper.Util</strong></p>
+<p>The <code>com.secapk.wrapper.Util</code> class contains several methods used for information gathering and process manipulation:</p>
 <ul>
-<li><strong>Class Path</strong>: <code>com.googleapi.cover.Utils.start</code></li>
-<li><strong>Analysis</strong>: This method is the primary engine for exfiltrating stolen data. It utilizes the <code>SmsManager</code> to programmatically send text messages to a list of predefined phone numbers retrieved from a <code>Sch</code> object. The content of these messages consists of a prefix (likely a command or identifier) concatenated with a <code>data</code> string. When combined with other snippets, it is evident that this <code>data</code> string is sensitive SMS content stolen from the device.</li>
-<li><strong>Evidence (Call Chain)</strong>:</li>
+<li><strong><code>createChildProcess</code></strong>: This method retrieves the application's source directory (the path to the APK file) and its package name, passing them as byte arrays to the native method <code>ACall.r1</code>. This is a strong indicator of attempting to spawn child processes or execute secondary payloads from the native layer.</li>
+<li><strong><code>tryDo</code></strong>: This method retrieves the application's package name, the absolute file path of the APK (<code>sourceDir</code>), and the current process name, passing them to the native method <code>ACall.r2</code>. This gathers environmental identifiers used to identify the target or prepare for exfiltrating the APK.</li>
+<li><strong><code>getCPUinfo</code></strong>: This method executes the system command <code>/system/bin/cat /proc/cpuinfo</code> via <code>ProcessBuilder</code> to retrieve hardware specifications for device fingerprinting.</li>
+<li><strong><code>getField</code> &amp; <code>getFieldValue</code></strong>: These methods use Java Reflection to bypass access control. <code>getField</code> explicitly calls <code>field.setAccessible(true)</code>, allowing the application to extract sensitive data stored in <code>private</code> or <code>protected</code> fields of various objects.</li>
+<li><strong><code>toASC</code></strong>: This method converts byte arrays into a hexadecimal representation, commonly used to format stolen data for exfiltration or to avoid detection by string-based security filters.</li>
+<li><strong><code>checkUpdate</code></strong>: This method manages hidden directories (<code>.cache/</code>) and files (<code>.sec_version</code>) within the application's private data directory, a typical pattern for managing downloaded malicious components.</li>
 </ul>
-<p><code>com.googleapi.cover.MessageHandler.onReceive</code> $\rightarrow$ retrieves <code>smsData</code> from <code>SharedPreferences</code> $\rightarrow$ <code>com.googleapi.cover.Utils.start</code> $\rightarrow$ <code>android.telephony.SmsManager.sendTextMessage</code> $\rightarrow$ <strong>Exfiltration of SMS content to remote numbers.</strong></p>
-<h3>2. Exfiltration of Device Identifiers (Information Theft)</h3>
-<ul>
-<li><strong>Class Path</strong>: <code>com.googleapi.cover.DevReg.sendOpening</code> and <code>com.googleapi.cover.DevReg.run</code></li>
-<li><strong>Analysis</strong>: These methods implement a background thread that performs unauthorized data collection. The code retrieves the device's unique Subscription ID (<code>SubId</code>) using <code>TextUtils.getSubId(context)</code> and appends it as a query parameter (<code>&amp;s=</code>) to a URL constructed from a remote script path. This information is then transmitted to an attacker-controlled server via an HTTP GET request.</li>
-<li><strong>Evidence</strong>:</li>
-</ul>
-<p><code>com.googleapi.cover.DevReg.sendOpening</code> $\rightarrow$ <code>new Thread().start()</code> $\rightarrow$ <code>TextUtils.getSubId(context)</code> $\rightarrow$ <code>HttpClient.execute(HttpGet)</code> $\rightarrow$ <strong>Leaking SIM/network identity to C2 server.</strong></p>
-<h3>3. Deceptive Notifications and Social Engineering</h3>
-<ul>
-<li><strong>Class Path</strong>: <code>com.googleapi.cover.Notifier.showNotification</code> and <code>com.googleapi.cover.ShowURL.onCreate</code></li>
-<li><strong>Analysis</strong>:</li>
-<li><code>com.googleapi.cover.Notifier.showNotification</code> dynamically constructs notifications (title, body, and action URL) by reading from raw resource files (<code>R.raw.act_schemes</code>). This allows the attacker to push arbitrary, deceptive messages to the user that redirect them to malicious websites.</li>
-<li><code>com.googleapi.cover.ShowURL.onCreate</code> implements a social engineering interface. It displays a "support number" and, upon user interaction, triggers a direct phone call (<code>android.intent.action.CALL</code>). This is a common tactic used in fraudulent technical support scams.</li>
-</ul>
-<h3>4. Systematic Information Gathering (Device/Network Metadata)</h3>
-<ul>
-<li><strong>Class Path</strong>: <code>com.googleapi.cover.TextUtils</code></li>
-<li><strong>Analysis</strong>: This utility class contains several methods specifically designed to harvest network and device metadata.</li>
-<li><code>getMCC</code> and <code>getMNC</code>: Extract the Mobile Country Code and Mobile Network Code.</li>
-<li><code>getOperatorString</code>: Retrieves the SIM operator information.</li>
-<li><code>getSubId</code>: Extracts a subscription identifier from internal resources.</li>
-<li><code>getTexts</code>: Parses XML resources to extract structured configuration data, which is used to orchestrate the malicious activities described above.</li>
-</ul>
-<h3>5. Remote Command and Payload Preparation</h3>
-<ul>
-<li><strong>Class Path</strong>: <code>com.googleapi.cover.Main.finishInstallation</code></li>
-<li><strong>Analysis</strong>: This method saves a URL retrieved from an <code>Actor</code> object into <code>SharedPreferences</code> under the key <code>INSTALL_URL</code>. This indicates the application is architected to receive and store remote URLs, which can be used to dynamically trigger the downloading of secondary payloads or the execution of remote instructions.</li>
-</ul>
-<hr />
+<p><strong>com.secapk.wrapper.ACall</strong></p>
+<p>The <code>com.secapk.wrapper.ACall</code> class serves as the primary interface for hidden logic through numerous <code>native</code> method declarations (e.g., <code>at1</code>, <code>set2</code>, <code>r1</code>, <code>r2</code>, <code>set4</code>, <code>set5</code>, <code>c1</code>, <code>c2</code>). By implementing core logic in a compiled C/C++ library (JNI), the application obscures its true intent, making it difficult for static analysis tools and automated sandboxes to trace the execution flow or identify data exfiltration mechanisms.</p>
+<p><strong>com.slpresent.LMR.LMR</strong></p>
+<p>The <code>com.slpresent.LMR.LMR</code> class implements a dynamic proxy pattern within its <code>onReceive</code> method. It uses a custom class loader to dynamically instantiate a <code>BroadcastReceiver</code>. Crucially, it wraps the execution of this <code>realReceiver</code> with native calls: <code>ACall.getACall().c1(...)</code> before execution and <code>ACall.getACall().c2(...)</code> after execution. This structure is designed to intercept or monitor the dynamically loaded component's execution via the native layer, effectively hiding the malicious payload's activity from the Java runtime.</p>
+<h2>Malicious Call Chain</h2>
+<p><strong>1. Dynamic Payload Execution &amp; Native Hooking Chain:</strong></p>
+<p><code>com.secapk.wrapper.ApplicationWrapper.onCreate()</code></p>
+<p>$\rightarrow$ <code>com.secapk.wrapper.Util.getCustomClassLoader()</code> (Dynamic Loading)</p>
+<p>$\rightarrow$ <code>com.secapk.wrapper.FirstApplication.onCreate()</code></p>
+<p>$\rightarrow$ <code>com.slpresent.LMR.LMR.onReceive()</code></p>
+<p>$\rightarrow$ <code>com.secapk.wrapper.ACall.c1()</code> (Native Hook/Pre-execution)</p>
+<p>$\rightarrow$ <code>[Dynamically Loaded Receiver].onReceive()</code> (Payload Execution)</p>
+<p>$\rightarrow$ <code>com.secapk.wrapper.ACall.c2()</code> (Native Hook/Post-execution)</p>
+<p><strong>2. Metadata Collection &amp; Exfiltration Chain:</strong></p>
+<p><code>com.secapk.wrapper.Util.tryDo()</code></p>
+<p>$\rightarrow$ <code>Context.getApplicationInfo().sourceDir</code> (Get APK path)</p>
+<p>$\rightarrow$ <code>com.secapk.wrapper.ACall.r2(packageName, apkFilePath, processName)</code> (Native processing/exfiltration)</p>
 <h2>Conclusion</h2>
-<p>The application is a malicious entity designed for comprehensive data theft and user exploitation. The core malicious activities are:</p>
-<ol>
-<li>
-<p><strong>SMS Exfiltration</strong>: Stolen SMS data is sent to remote numbers via <code>com.googleapi.cover.Utils.start</code>.</p>
-</li>
-<li>
-<p><strong>Device Tracking</strong>: Unique Subscription IDs are leaked to a C2 server via <code>com.googleapi.cover.DevReg.sendOpening</code>.</p>
-</li>
-<li>
-<p><strong>Metadata Harvesting</strong>: Network details (MCC, MNC, Operator) are collected via <code>com.googleapi.cover.TextUtils</code>.</p>
-</li>
-<li>
-<p><strong>Social Engineering</strong>: Deceptive notifications and fraudulent support call triggers are implemented in <code>com.googleapi.cover.Notifier</code> and <code>com.googleapi.cover.ShowURL</code>.</p>
-</li>
-</ol>
+<p>The application is identified as a <strong>malicious loader/dropper</strong> with capabilities for <strong>information theft</strong> and <strong>evasive execution</strong>. The findings are supported by the following code paths:</p>
+<ul>
+<li><strong>Dynamic Loading</strong>: <code>com.secapk.wrapper.ApplicationWrapper</code> and <code>com.slpresent.LMR.LMR</code> use <code>DexClassLoader</code> to execute code at runtime.</li>
+<li><strong>Information Gathering</strong>: <code>com.secapk.wrapper.Util.getCPUinfo</code>, <code>com.secapk.wrapper.Util.tryDo</code>, and <code>com.secapk.wrapper.Util.getField</code> (via reflection) are used to collect device and application metadata.</li>
+<li><strong>Evasive Native Execution</strong>: <code>com.secapk.wrapper.ACall</code> provides a suite of native methods used to process stolen data and proxy malicious components, specifically triggered through chains involving <code>com.secapk.wrapper.Util.createChildProcess</code> and <code>com.slpresent.LMR.LMR.onReceive</code>.</li>
+</ul>

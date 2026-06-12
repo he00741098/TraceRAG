@@ -1,39 +1,49 @@
 <h1>Final Malware Analysis Report</h1>
 <h2>1. Basic Information</h2>
-<p><strong>SHA256:</strong> 589D0C83A01B4548B2945802F353ED80DA1F759270AB4EACF221B638843BB262</p>
+<p><strong>SHA256:</strong> 0246B52CDFF33386AE5AE4891BE94DEE927737404D04435FB11F8ABC1FD3B05C</p>
 <h2>2. Executive Summary</h2>
-<p>The analyzed Android application is a highly sophisticated and multi-functional piece of malware designed for <strong>Information Theft</strong>, <strong>Monetary Fraud</strong>, and <strong>System Exploitation</strong>. The application exhibits several distinct categories of malicious behavior:</p>
+<p>The analyzed application is a sophisticated <strong>malicious loader/dropper</strong> designed for <strong>information theft, monetary fraud, and privilege abuse</strong>. The application employs a highly evasive, multi-layered architecture characterized by the following behaviors:</p>
 <ul>
-<li><strong>Information Theft &amp; Data Exfiltration:</strong> The app harvests sensitive device and network metadata (including SIM Subscription IDs, MCC, MNC, and Operator information) and exfiltrates this data to a Command and Control (C2) server via HTTP. It also intercepts and exfiltrates stolen SMS content to remote numbers via unauthorized SMS messages.</li>
-<li><strong>Monetary Fraud (Premium SMS Subscriptions):</strong> The application executes automated, budget-aware fraudulent subscription attacks. It identifies the user's carrier and country to target specific premium SMS services, attempting to maximize financial extraction until a predefined monetary threshold is reached.</li>
-<li><strong>Social Engineering &amp; Deception:</strong> The app employs deceptive UI components, including carrier-specific "agreement" text and fraudulent technical support prompts, to trick users into consenting to charges or interacting with malicious links.</li>
-<li><strong>System Exploitation &amp; Persistence:</strong> The malware attempts to forcefully disable Airplane Mode to ensure network connectivity for its operations. It utilizes <code>WakeLock</code> to maintain high-privilege background execution and implements SMS interception/suppression to hide fraudulent transaction alerts from the user.</li>
+<li><strong>Dynamic Code Loading (DCL):</strong> Extensive use of <code>DexClassLoader</code> and custom <code>ClassLoader</code> implementations to execute secondary payloads that are not present in the primary DEX files.</li>
+<li><strong>Execution Interception &amp; Hooking:</strong> A "wrapper" or "proxy" pattern is implemented across multiple <code>BroadcastReceiver</code> components. These components use native (JNI) hooks (<code>ACall.c1</code> and <code>ACall.c2</code>) to intercept, monitor, or manipulate broadcast intents, specifically targeting billing and financial transaction data.</li>
+<li><strong>Information Gathering:</strong> Systematic collection of device metadata (package name, APK path, process name), hardware specifications (via <code>/proc/cpuinfo</code>), and the use of Java Reflection to bypass access controls for sensitive data extraction.</li>
+<li><strong>Evasive Native Execution:</strong> Critical and sensitive logic is delegated to a compiled C/C++ library via <code>com.secapk.wrapper.ACall</code> to obscure functional intent and bypass Java-level security monitoring.</li>
 </ul>
-<p>No modules or code paths were identified as having purely benign intent; all analyzed components contribute to the application's malicious lifecycle.</p>
+<p><strong>Summary of Malicious Behaviors:</strong><br />
+*   <strong>Dynamic Code Loading:</strong> Detected in <code>com.secapk.wrapper.ApplicationWrapper</code>, <code>com.secapk.wrapper.Util</code>, and various <code>LMR</code> classes.<br />
+*   <strong>Information Theft:</strong> Detected in <code>com.secapk.wrapper.Util</code>.<br />
+*   <strong>Monetary Fraud/Interception:</strong> Detected in <code>com.auxbrain.zombie_highwayer.BillingReceiver</code> and associated <code>LMR</code> modules.<br />
+*   <strong>Privilege Abuse/System Exploitation:</strong> Detected in <code>com.secapk.wrapper.ACall</code> and <code>com.secapk.wrapper.Util</code>.</p>
 <h2>3. Detailed Analysis</h2>
+<h3>Dynamic Code Loading</h3>
+<p><strong>Malicious Behavior Detected</strong></p>
+<p><strong>com.secapk.wrapper.ApplicationWrapper</strong></p>
+<p>The class implements a custom initialization routine in <code>onCreate</code>. It utilizes <code>DexClassLoader</code> to dynamically load <code>com.secapk.wrapper.FirstApplication</code>, instantiates it, and invokes its <code>onCreate()</code> method. This separates the initial entry point from the functional malicious logic.</p>
+<p><strong>com.secapk.wrapper.Util</strong></p>
+<p>This class facilitates the deployment of secondary payloads through <code>loadDex(Context context, String dexName)</code>, which extracts a DEX file from the assets, saves it to a private directory, and initializes a <code>DexClassLoader</code>. Additionally, <code>runAll(Context ctx)</code> uses reflection to instantiate and execute <code>com.secapk.wrapper.Main.run(Context)</code>.</p>
+<p><strong>com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver, com.slfloat.LMR.LMR, com.slinsert.LMR.LMR, com.slpop.LMR.LMR, com.slpresent.LMR.LMR, and com.slpush.LMR.LMR</strong></p>
+<p>These classes implement a proxy pattern. They retrieve a custom <code>ClassLoader</code> via <code>Util.getCustomClassLoader()</code>. If null, they trigger initialization via <code>Util.runAll()</code>. They then use reflection (<code>cl2.loadClass(getClass().getName())</code> and <code>c.newInstance()</code>) to instantiate a "real" <code>BroadcastReceiver</code> at runtime, executing code not explicitly linked in the static APK.</p>
 <h3>Information Theft and Abuse</h3>
 <p><strong>Malicious Behavior Detected</strong></p>
+<p><strong>com.secapk.wrapper.Util</strong></p>
+<p>The class performs several information-gathering operations:</p>
 <ul>
-<li><strong>com.googleapi.cover.Utils.start</strong>: This method serves as the primary engine for exfiltrating stolen SMS content. It utilizes <code>android.telephony.SmsManager.sendTextMessage</code> to programmatically send sensitive data to predefined phone numbers retrieved from a <code>Sch</code> object.</li>
-<li><strong>com.googleapi.cover.DevReg.sendOpening and com.googleapi.cover.DevReg.run</strong>: These methods implement a background thread that performs unauthorized data collection. The code retrieves the device's unique Subscription ID (<code>SubId</code>) via <code>TextUtils.getSubId(context)</code> and transmits it to an attacker-controlled server via an HTTP GET request.</li>
-<li><strong>com.googleapi.cover.Notifier.showNotification and com.googleapi.cover.ShowURL.onCreate</strong>: These components facilitate social engineering. <code>Notifier.showNotification</code> constructs deceptive notifications using raw resources (<code>R.raw.act_schemes</code>) to redirect users to malicious websites, while <code>ShowURL.onCreate</code> triggers fraudulent technical support phone calls via <code>android.intent.action.CALL</code>.</li>
-<li><strong>com.googleapi.cover.TextUtils</strong>: This utility class is designed for systematic metadata harvesting, including the extraction of Mobile Country Code (MCC), Mobile Network Code (MNC), and SIM operator information.</li>
-<li><strong>com.googleapi.cover.Main.finishInstallation</strong>: This method enables remote command execution by saving URLs retrieved from an <code>Actor</code> object into <code>SharedPreferences</code> under the key <code>INSTALL_URL</code>, facilitating the potential download of secondary payloads.</li>
+<li><strong><code>createChildProcess</code></strong>: Retrieves the APK source directory and package name, passing them to the native method <code>ACall.r1</code>, indicating attempts to spawn child processes from the native layer.</li>
+<li><strong><code>tryDo</code></strong>: Collects the package name, APK absolute file path (<code>sourceDir</code>), and current process name, passing them to native method <code>ACall.r2</code> for potential exfiltration.</li>
+<li><strong><code>getCPUinfo</code></strong>: Executes <code>/system/bin/cat /proc/cpuinfo</code> via <code>ProcessBuilder</code> to retrieve hardware details for device fingerprinting.</li>
+<li><strong><code>getField</code> &amp; <code>getFieldValue</code></strong>: Uses Java Reflection and <code>field.setAccessible(true)</code> to bypass access controls and extract data from <code>private</code> or <code>protected</code> fields.</li>
+<li><strong><code>toASC</code></strong>: Converts byte arrays to hexadecimal representation to format stolen data for exfiltration.</li>
+<li><strong><code>checkUpdate</code></strong>: Manages hidden directories (<code>.cache/</code>) and files (<code>.sec_version</code>) to store downloaded malicious components.</li>
 </ul>
 <h3>Monetary Fraud and Financial Abuse</h3>
 <p><strong>Malicious Behavior Detected</strong></p>
-<ul>
-<li><strong>com.googleapi.cover.ActService.performActions and com.googleapi.cover.ActService.Worker.performActions</strong>: These methods implement the core engine for fraudulent premium SMS subscriptions. The application identifies the user's carrier and iterates through target numbers to maximize financial extraction, maintaining a <code>restAllowedSum</code> (350.0) to manage the automated theft process.</li>
-<li><strong>com.googleapi.cover.MessageReceiver.onReceive</strong>: This component performs SMS interception and suppression to conceal theft. By calling <code>abortBroadcast()</code> on incoming messages from service numbers (identified by <code>Actor.EXPECT_NUM</code>), the app prevents transaction alerts or confirmation messages from reaching the user.</li>
-<li><strong>com.googleapi.cover.Main.setListeners and com.googleapi.cover.RelatedContent.setListeners</strong>: These methods implement deceptive UIs to obtain fraudulent "consent." They dynamically display carrier-specific pricing and use UI manipulation (e.g., <code>setVisibility(8)</code>) to guide users toward authorizing charges.</li>
-<li><strong>com.googleapi.cover.ActService.actUK</strong>: This method contains specialized, targeted logic for mobile networks in Ukraine, using <code>TextUtils.getMNC</code> to trigger specific unauthorized payloads on Ukrainian networks.</li>
-<li><strong>com.googleapi.cover.ActService.Worker.run</strong>: The application acquires a <code>PowerManager.WakeLock</code> to ensure that the automated fraudulent SMS loop is not interrupted by system power-saving features.</li>
-</ul>
+<p><strong>com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver, com.slfloat.LMR.LMR, com.slinsert.LMR.LMR, com.slpop.LMR.LMR, com.slpresent.LMR.LMR, and com.slpush.LMR.LMR</strong></p>
+<p>These classes act as interception proxies for system broadcasts. The execution of the dynamically loaded <code>realReceiver</code> is "sandwiched" between two native calls: <code>ACall.getACall().c1(...)</code> and <code>ACall.getACall().c2(...)</code>. This structure allows the application to intercept or manipulate the intent data (such as billing or financial transaction events) before or after it is processed by the intended receiver.</p>
+<p><strong>com.secapk.wrapper.ACall</strong></p>
+<p>The <code>c1(Context, BroadcastReceiver)</code> and <code>c2(Context, BroadcastReceiver)</code> methods provide the interception layer used to monitor or hijack the data contained within the intercepted broadcast intents.</p>
 <h3>Privilege Abuse and System Exploitation</h3>
 <p><strong>Malicious Behavior Detected</strong></p>
-<ul>
-<li><strong>com.googleapi.cover.Main.showAirplaneDialog and com.googleapi.cover.Utils.setAirplaneMode</strong>: The application attempts to override system-level connectivity settings. It presents a non-cancelable <code>AlertDialog</code> to force the user to disable Airplane Mode, subsequently using <code>Settings.System.putInt</code> and broadcasting an <code>AIRPLANE_MODE</code> intent to ensure network availability for exfiltration.</li>
-<li><strong>com.googleapi.cover.DevReg.sendOpening and com.googleapi.cover.DevReg.run</strong>: These methods implement a "phone home" mechanism for C2 registration. The device's Subscriber ID is sent to a remote server along with a <code>task=update</code> parameter, characterizing a standard malware registration pattern.</li>
-<li><strong>com.googleapi.cover.ActService.run</strong>: The application utilizes a <code>WakeLock</code> through the <code>PowerManager</code> service to maintain high-privilege background execution, preventing the system from throttling the <code>performActions()</code> malicious tasks.</li>
-<li><strong>com.googleapi.cover.AirModeHandler.onReceive</strong>: This <code>BroadcastReceiver</code> monitors system state changes. If the device regains network connectivity after Airplane Mode was previously enabled, it automatically triggers the <code>Main</code> activity to re-engage malicious workflows.</li>
-</ul>
+<p><strong>com.secapk.wrapper.ACall</strong></p>
+<p>This class serves as the primary interface for hidden logic via numerous <code>native</code> method declarations (e.g., <code>at1</code>, <code>set2</code>, <code>r1</code>, <code>r2</code>, <code>c1</code>, <code>c2</code>). By implementing core logic in a compiled C/C++ library (JNI), the application obscures its true intent and bypasses Java-level security monitoring.</p>
+<p><strong>com.secapk.wrapper.Util</strong></p>
+<p>Provides the infrastructure for stealthy execution, including the <code>runAll</code> method which uses reflection to trigger the hidden <code>com.secapk.wrapper.Main</code> class, ensuring the primary payload is not visible in the standard execution flow.</p>

@@ -1,0 +1,13 @@
+Package Path:com.secapk.wrapper.Util.toASC
+Class Name:Util
+Java Code: package com.secapk.wrapper;
+
+    public static byte[] toASC(byte[] bts) {
+        byte[] ret = new byte[bts.length * 2];
+        for (int i = 0; i < bts.length; i++) {
+            byte b = bts[i];
+            ret[i * 2] = hexDigits[(b >> 4) & 15];
+            ret[(i * 2) + 1] = hexDigits[b & 15];
+        }
+        return ret;
+    }
