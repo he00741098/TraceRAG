@@ -228,7 +228,7 @@ graph = graph_builder.compile(checkpointer=memory)
 def execute_query(input_message: str):
     """执行查询流程，并将结果保存至文件。"""
     current_time = "Experiment_" + datetime.now().strftime("%Y%m%d_%H%M%S")
-    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
+    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
     final_result = ""
     
     for step in graph.stream(
