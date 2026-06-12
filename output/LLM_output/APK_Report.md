@@ -2,69 +2,56 @@
 
 
 ## 1. Basic Information
-**SHA256:** A28E480AEFE42886A2943ECC4793ACF8D93D0DECA7323A2F45A3E9172343F3B5
+**SHA256:** 589D0C83A01B4548B2945802F353ED80DA1F759270AB4EACF221B638843BB262
 
 
 ## 2. Executive Summary
 
-The analyzed application is a sophisticated and highly coordinated malware framework designed for multi-stage attacks, primarily focusing on **Monetary Fraud (Premium SMS Scams)**, **Information Theft**, **Device Tracking**, and **System Exploitation**.
+The analyzed Android application is a highly sophisticated and multi-functional piece of malware designed for **Information Theft**, **Monetary Fraud**, and **System Exploitation**. The application exhibits several distinct categories of malicious behavior:
 
 
 
-
-The application exhibits several distinct types of malicious behaviors:
-
-*   **Monetary Fraud & Financial Abuse:** Automated premium SMS subscription scams using budget-aware engines and deceptive UIs.
-*   **Information Theft:** Exfiltration of sensitive SMS content and device identifiers (Subscription ID).
-*   **System Exploitation & Privilege Abuse:** Unauthorized manipulation of system settings (Airplane Mode) and use of `WakeLock` for persistence.
-*   **Concealment & Social Engineering:** Interception of SMS alerts to hide transaction evidence and the use of deceptive notifications and "support" interfaces to manipulate users.
-*   **Command-and-Control (C2) Communication:** Remote registration of infected devices via HTTP requests containing unique device metadata.
+*   **Information Theft & Data Exfiltration:** The app harvests sensitive device and network metadata (including SIM Subscription IDs, MCC, MNC, and Operator information) and exfiltrates this data to a Command and Control (C2) server via HTTP. It also intercepts and exfiltrates stolen SMS content to remote numbers via unauthorized SMS messages.
+*   **Monetary Fraud (Premium SMS Subscriptions):** The application executes automated, budget-aware fraudulent subscription attacks. It identifies the user's carrier and country to target specific premium SMS services, attempting to maximize financial extraction until a predefined monetary threshold is reached.
+*   **Social Engineering & Deception:** The app employs deceptive UI components, including carrier-specific "agreement" text and fraudulent technical support prompts, to trick users into consenting to charges or interacting with malicious links.
+*   **System Exploitation & Persistence:** The malware attempts to forcefully disable Airplane Mode to ensure network connectivity for its operations. It utilizes `WakeLock` to maintain high-privilege background execution and implements SMS interception/suppression to hide fraudulent transaction alerts from the user.
 
 
 
-All analyzed modules show clear malicious intent, working in concert to maximize financial extraction and data theft while evading user detection.
+No modules or code paths were identified as having purely benign intent; all analyzed components contribute to the application's malicious lifecycle.
 
 
 
 ## 3. Detailed Analysis
 
 
-### Monetary Fraud and Financial Abuse
-**Malicious behavior detected.**
-
-
-*   **`com.googleapi.cover.ActService.performActions`** and **`com.googleapi.cover.ActService.Worker.performActions`** (Package name: `com.googleapi.cover`): These methods implement a "budget-aware" fraudulent engine. The application identifies the user's mobile carrier and selects target short-codes. It tracks a `restAllowedSum` (e.g., 350.0) and monitors successful subscriptions via the `Actor.KEY_PAID` flag, automatically proceeding to the next target number to maximize funds until the monetary threshold is reached.
-*   **`com.googleapi.cover.ActService.beginSending`** (Package name: `com.googleapi.cover`): Acts as the execution trigger by resetting status flags in `SharedPreferences` (e.g., `MESSAGE_IS_RECEIVED_KEY`) and calling `Utils.start` to transmit the SMS.
-*   **`com.googleapi.cover.Utils.start`** (Package name: `com.googleapi.cover`): The core execution component that uses `android.telephony.SmsManager.sendTextMessage` to iterate through target numbers and send the payload.
-*   **`com.googleapi.cover.ActService.actUK`** (Package name: `com.googleapi.cover`): A specialized module for Ukrainian networks that uses `TextUtils.getMNC` to identify the network and sends formatted SMS to hardcoded numbers (e.g., `3161`, `2855`), utilizing `sleep(60000L)` to evade rate-limiting detection.
-*   **`com.googleapi.cover.Main.setListeners`** and **`com.googleapi.cover.RelatedContent.setListeners`** (Package name: `com.googleapi.cover`): Implements social engineering by dynamically displaying subscription prices and using `SpannableString` to mimic legal agreements. It manipulates UI visibility (e.g., `setVisibility(8)`) to hide exit or cancel options.
-*   **`com.googleapi.cover.AgActivity.initAgr`** (Package name: `com.googleapi.cover`): Populates deceptive subscription offers tailored to the detected carrier (e.g., `beeline_subscription_offert`).
-
-
 ### Information Theft and Abuse
-**Malicious behavior detected.**
+**Malicious Behavior Detected**
 
 
-*   **`com.googleapi.cover.Utils.start`** (Package name: `com.googleapi.cover`): Serves as the exfiltration engine for stolen SMS data. It iterates through target phone numbers in `actScheme.list` and uses `android.telephony.SmsManager.sendTextMessage` to send a payload consisting of stolen sensitive content.
-*   **`com.googleapi.cover.MessageHandler.onReceive`** (Package name: `com.googleapi.cover`): The trigger for SMS exfiltration. It retrieves sensitive data from `SharedPreferences` under `Actor.KEY_MSG_DATA_TEXT` and initiates the unauthorized transmission via `Utils.start`.
-*   **`com.googleapi.cover.DevReg.sendOpening`** and **`com.googleapi.cover.DevReg.run`** (Package name: `com.googleapi.cover`): Implements a background thread that exfiltrates the device's unique Subscription ID (SubId). It constructs a URL with `?task=update&Opening&s=` followed by `TextUtils.getSubId(context)` and executes an `HttpGet` request via `HttpClient`.
-*   **`com.googleapi.cover.TextUtils`** (Package name: `com.googleapi.cover`): Provides reconnaissance utilities including `getMCC`, `getMNC`, and `getOperatorString` to extract geographic and service provider metadata from the SIM card.
-*   **`com.googleapi.cover.Notifier.showNotification`** (Package name: `com.googleapi.cover`): Uses dynamic resource loading from `R.raw.act_schemes` to display deceptive notifications that redirect users to external URLs via a `PendingIntent`.
-*   **`com.googleapi.cover.ShowURL.onCreate`** (Package name: `com.googleapi.cover`): Displays a "support number" that triggers an `android.intent.action.CALL` intent, facilitating technical support scams.
-*   **`com.googleapi.cover.Main.finishInstallation`** (Package name: `com.googleapi.cover`): Persists remote instruction URLs into `SharedPreferences` under the key `INSTALL_URL`.
+*   **com.googleapi.cover.Utils.start**: This method serves as the primary engine for exfiltrating stolen SMS content. It utilizes `android.telephony.SmsManager.sendTextMessage` to programmatically send sensitive data to predefined phone numbers retrieved from a `Sch` object.
+*   **com.googleapi.cover.DevReg.sendOpening and com.googleapi.cover.DevReg.run**: These methods implement a background thread that performs unauthorized data collection. The code retrieves the device's unique Subscription ID (`SubId`) via `TextUtils.getSubId(context)` and transmits it to an attacker-controlled server via an HTTP GET request.
+*   **com.googleapi.cover.Notifier.showNotification and com.googleapi.cover.ShowURL.onCreate**: These components facilitate social engineering. `Notifier.showNotification` constructs deceptive notifications using raw resources (`R.raw.act_schemes`) to redirect users to malicious websites, while `ShowURL.onCreate` triggers fraudulent technical support phone calls via `android.intent.action.CALL`.
+*   **com.googleapi.cover.TextUtils**: This utility class is designed for systematic metadata harvesting, including the extraction of Mobile Country Code (MCC), Mobile Network Code (MNC), and SIM operator information.
+*   **com.googleapi.cover.Main.finishInstallation**: This method enables remote command execution by saving URLs retrieved from an `Actor` object into `SharedPreferences` under the key `INSTALL_URL`, facilitating the potential download of secondary payloads.
+
+
+### Monetary Fraud and Financial Abuse
+**Malicious Behavior Detected**
+
+
+*   **com.googleapi.cover.ActService.performActions and com.googleapi.cover.ActService.Worker.performActions**: These methods implement the core engine for fraudulent premium SMS subscriptions. The application identifies the user's carrier and iterates through target numbers to maximize financial extraction, maintaining a `restAllowedSum` (350.0) to manage the automated theft process.
+*   **com.googleapi.cover.MessageReceiver.onReceive**: This component performs SMS interception and suppression to conceal theft. By calling `abortBroadcast()` on incoming messages from service numbers (identified by `Actor.EXPECT_NUM`), the app prevents transaction alerts or confirmation messages from reaching the user.
+*   **com.googleapi.cover.Main.setListeners and com.googleapi.cover.RelatedContent.setListeners**: These methods implement deceptive UIs to obtain fraudulent "consent." They dynamically display carrier-specific pricing and use UI manipulation (e.g., `setVisibility(8)`) to guide users toward authorizing charges.
+*   **com.googleapi.cover.ActService.actUK**: This method contains specialized, targeted logic for mobile networks in Ukraine, using `TextUtils.getMNC` to trigger specific unauthorized payloads on Ukrainian networks.
+*   **com.googleapi.cover.ActService.Worker.run**: The application acquires a `PowerManager.WakeLock` to ensure that the automated fraudulent SMS loop is not interrupted by system power-saving features.
 
 
 ### Privilege Abuse and System Exploitation
-**Malicious behavior detected.**
+**Malicious Behavior Detected**
 
 
-*   **`com.googleapi.cover.Main.showAirplaneDialog`** and **`com.googleapi.cover.Utils.setAirplaneMode`** (Package name: `com.googleapi.cover`): Implements a mechanism to manipulate the device's radio state. The app presents a non-cancelable `AlertDialog` mimicking a system prompt. Upon user interaction, `Utils.setAirplaneMode` uses `Settings.System.putInt` to programmatically disable Airplane Mode.
-*   **`com.googleapi.cover.AirModeHandler.onReceive`** (Package name: `com.googleapi.cover`): A `BroadcastReceiver` that monitors system state. If the device regains connectivity after Airplane Mode was previously enabled, it automatically launches the `Main` activity to re-trigger malicious logic.
-*   **`com.googleapi.cover.ActService.run`** (Package name: `com.googleapi.cover`): Utilizes a `WakeLock` via `PowerManager` to ensure persistence, preventing the system from suspending the CPU during fraudulent or exfiltration tasks.
-
-
-### SMS Interception and Concealment
-**Malicious behavior detected.**
-
-
-*   **`com.googleapi.cover.MessageReceiver.onReceive`** (Package name: `com.googleapi.cover`): Intercepts the `android.provider.Telephony.SMS_RECEIVED` broadcast. If a message arrives from an expected number (`Actor.EXPECT_NUM`), it calls `abortBroadcast()`. This prevents transaction confirmations or subscription alerts from reaching the user's legitimate messaging app, concealing the ongoing fraud.
+*   **com.googleapi.cover.Main.showAirplaneDialog and com.googleapi.cover.Utils.setAirplaneMode**: The application attempts to override system-level connectivity settings. It presents a non-cancelable `AlertDialog` to force the user to disable Airplane Mode, subsequently using `Settings.System.putInt` and broadcasting an `AIRPLANE_MODE` intent to ensure network availability for exfiltration.
+*   **com.googleapi.cover.DevReg.sendOpening and com.googleapi.cover.DevReg.run**: These methods implement a "phone home" mechanism for C2 registration. The device's Subscriber ID is sent to a remote server along with a `task=update` parameter, characterizing a standard malware registration pattern.
+*   **com.googleapi.cover.ActService.run**: The application utilizes a `WakeLock` through the `PowerManager` service to maintain high-privilege background execution, preventing the system from throttling the `performActions()` malicious tasks.
+*   **com.googleapi.cover.AirModeHandler.onReceive**: This `BroadcastReceiver` monitors system state changes. If the device regains network connectivity after Airplane Mode was previously enabled, it automatically triggers the `Main` activity to re-engage malicious workflows.
