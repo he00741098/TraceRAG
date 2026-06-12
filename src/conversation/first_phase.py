@@ -7,6 +7,8 @@ config = load_config()
 
 from langchain_openai import ChatOpenAI
 llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
+# Tool-call nodes only need a short response (~500 tokens for JSON tool call)
+llm_toolcall = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=2048)
 
 from langchain_openai import OpenAIEmbeddings
 
@@ -57,7 +59,7 @@ from typing import Optional
 def query_or_respond(state: MessagesState):
     """Generate tool call for retrieval"""
 
-    llm_with_tools = llm.bind_tools([retrieve], tool_choice="any")
+    llm_with_tools = llm_toolcall.bind_tools([retrieve], tool_choice="any")
     response = llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 

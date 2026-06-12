@@ -24,6 +24,9 @@ from langchain_openai import ChatOpenAI
 
 
 llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
+# Tool-call nodes only need a short response — ~500 tokens for the JSON tool call.
+# A low max_tokens prevents the model from rambling before generating the call.
+llm_toolcall = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=2048)
 #TODO: potentially use a different model for the o3_mini replacement if necessary. Note: We are currently using a single model to do all work except for embeddings. If we need to use o3 mini again, comment out this line, and uncomment the following one.
 llm_o3_mini = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
 #llm_o3_mini = ChatOpenAI(model=config["llm"]["model_o3_mini"])
