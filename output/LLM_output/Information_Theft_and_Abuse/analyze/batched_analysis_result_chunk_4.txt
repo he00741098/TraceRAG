@@ -1,13 +1,3 @@
-Batched conversation history (Chunk 1)
-
-
-Batched conversation history (Chunk 2)
-
-
-Batched conversation history (Chunk 3)
-
-
-Batched conversation history (Chunk 4)
  the method i4 in class RRRCall?
 
     Follow-up query: None

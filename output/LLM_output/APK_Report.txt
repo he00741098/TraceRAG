@@ -1,47 +1,51 @@
-# Final Malware Analysis Report
+# Final Analysis Report
 
 ## 1. Basic Information
-**SHA256:** A28E480AEFE42886A2943ECC4793ACF8D93D0DECA7323A2F45A3E9172343F3B5
+**SHA256:** 589D0C83A01B4548B2945802F353ED80DA1F759270AB4EACF221B638843BB262
 
 ## 2. Executive Summary
-The analyzed application is a highly sophisticated and multi-functional malware package designed for **Automated Premium SMS Fraud**, **Information Theft**, and **System Connectivity Manipulation**. 
+The analysis of the provided Android application reveals a highly sophisticated architecture designed for evasion and the execution of hidden malicious payloads. The application functions as a **Malware Dropper/Loader**, utilizing multiple layers of obfuscation to conceal its true intent.
 
-The application exhibits several distinct malicious behaviors:
-*   **Automated SMS Fraud & Financial Abuse:** The application uses network-aware logic (via Mobile Network Code identification) to target specific high-cost service numbers. It implements an automated loop to send unauthorized messages, monitors incoming responses to confirm successful financial charges, and uses `abortBroadcast()` to hide these transactions from the user.
-*   **Information Theft:** The application exfiltrates the device's unique **Subscription ID** to a remote Command and Control (C2) server to track and register infected devices.
-*   **System Manipulation:** The application contains functionality to programmatically toggle **Airplane Mode**, allowing it to disrupt network connectivity.
-*   **Persistence and Evasion:** The malware utilizes `WakeLock` to ensure background processes are not interrupted by system power management and implements `sleep()` timers to evade SMS rate-limiting detection.
+Key malicious behaviors identified include:
+*   **Dynamic Code Loading (DCL):** The application implements a custom class loader mechanism to execute arbitrary bytecode at runtime, bypassing static analysis of the primary DEX files.
+*   **JNI (Java Native Interface) Obfuscation:** Extensive use of fragmented wrapper classes and massive arrays of native methods with nonsensical names and masked parameters to hide functional logic within compiled native libraries (`.so` files).
+*   **Event-Based Execution Orchestration:** The use of singleton wrappers to manage `BroadcastReceivers`, allowing the application to trigger hidden payloads in response to system events.
 
-The following fully qualified class paths are central to these activities: `com.googleapi.cover.ActService`, `com.googleapi.cover.DevReg`, `com.googleapi.cover.MessageReceiver`, and `com.googleapi.cover.Utils`.
+The core malicious functionality is decoupled from the static APK and is primarily encapsulated within native binaries and dynamically loaded modules.
 
 ## 3. Detailed Analysis
 
-### Automated Premium SMS Fraud and Financial Abuse
-**Detected: Yes**
+### Dynamic Code Loading and Class Loader Manipulation
+**Malicious Behavior Detected: Yes**
 
-**com.googleapi.cover.ActService.actUK**
-This method automates the dispatch of fraudulent SMS messages. It identifies the user's mobile network operator using `TextUtils.getMNC` to select specific target phone number fragments (e.g., `"3161"`, `"2855"`). The message content is retrieved from `SharedPreferences` using the key `Actor.KEY_MSG_DATA_TEXT`. To evade detection by mobile network security systems, the method implements a 60-second delay (`sleep(60000L)`) between transmissions.
+**com.secapk.wrapper.Util**
+The application utilizes a custom class loader mechanism to load and execute code that is not present in the initial application package.
+*   **com.secapk.wrapper.Util.getCustomClassLoader**: This method provides a custom class loader, allowing the application to load classes from non-standard locations (e.g., private data directories or memory), which evades standard Android security scanning.
+*   **com.secapk.wrapper.Util.runAll**: This method acts as an execution orchestrator, providing a structured way to trigger the payloads loaded via the custom class loader.
 
-**com.googleapi.cover.ActService.performActions**
-This method serves as the central decision-making hub and automated fraud loop. It iterates through a predefined list of target phone numbers. After an SMS is dispatched, it monitors the `Actor.KEY_PAID` flag. If the flag is set to `true` (indicating a successful transaction), the method automatically proceeds to the next target in the list to facilitate large-scale financial extraction.
+**Call Chain:**
+`com.secapk.wrapper.Main.run()` $\rightarrow$ `com.secapk.wrapper.Util.runAll()` $\rightarrow$ `com.secapk.wrapper.Util.getCustomClassLoader()` $\rightarrow$ `[Loaded Malicious Payload]`
 
-**com.googleapi.cover.ActService.beginSending**
-This method is the final execution point for the fraud mechanism, utilizing `SmsManager.sendTextMessage` to deliver the unauthorized payloads to the identified targets.
+### JNI (Java Native Interface) Obfuscation
+**Malicious Behavior Detected: Yes**
 
-**com.googleapi.cover.ActService.Worker.run / com.googleapi.cover.ActService.run**
-These methods ensure the continuous operation of the fraud module by acquiring a `WakeLock`. This prevents the Android system from entering sleep mode, guaranteeing that background SMS-sending tasks and network communications remain uninterrupted.
+**com.secapk.wrapper.ACall**
+The application uses this class as a massive, obfuscated dispatcher to native code.
+*   **com.secapk.wrapper.ACall.s113 through s219**: This class contains over 100 `native` methods with identical, non-descriptive signatures: `void methodName(Object obj, Object obj2, Object obj3)`. The use of the `Object` type masks the actual data being passed (e.g., credentials, URLs, or file paths), while the nonsensical naming convention prevents functional mapping.
 
-**com.googleapi.cover.ActService**
-This class acts as a repository for the fraud kit, containing extensive hardcoded data, including phone number lists and specific price mappings (e.g., `mfPrices`, `mtsPrices`, `NUM_5_SD`) used to target specific high-cost mobile operators.
+**com.secapk.wrapper.[Multiple Wrapper Classes]**
+The application employs extreme fragmentation to hide native function calls across a vast array of classes in the `com.secapk.wrapper` package.
+*   **Classes including SSSCall, TTTCall, RRRCall, etc.**: Each of these classes contains single `native` methods with randomized, short-form names (e.g., `j4`, `k4`, `i5`). By spreading these calls across dozens of unique classes, the application breaks the call chain during static analysis.
 
-**com.googleapi.cover.MessageReceiver**
-This class functions as a hidden listener to manage the feedback loop and conceal fraud from the victim. It intercepts incoming SMS messages from `Actor.EXPECT_NUM`. If the message contains patterns indicating a successful transaction (e.g., `"http://"`), it sets `Actor.KEY_PAID` to `true`. Crucially, it calls `abortBroadcast()` to prevent the SMS from being delivered to the user's messaging application, ensuring the victim remains unaware of the unauthorized charges.
+**Call Chain/Pattern:**
+`Application Logic` $\rightarrow$ `com.secapk.wrapper.[ObfuscatedClass].[ObfuscatedMethod]()` $\rightarrow$ `[Hidden Native Library (.so)]`
 
-**com.googleapi.cover.Main.setListeners**
-This class provides the entry point for the malicious activity via the user interface. Interaction with the application triggers the `start()` method, which initiates the background `ActService` to begin the fraud loop.
+### Event-Based Execution and Receiver Interception
+**Malicious Behavior Detected: Yes**
 
-### Information Theft (Device Identifier Exfiltration)
-**Detected: Yes**
+**com.secapk.wrapper.ACall**
+The application uses a singleton pattern to manage the execution of dynamically loaded components in response to system events.
+*   **com.secapk.wrapper.ACall.c1/c2**: These methods, which accept `Context` and `BroadcastReceiver` parameters, are designed to register or trigger receivers that have been loaded dynamically. This allows the malware to respond to system events such as `BOOT_COMPLETED` or `SMS_RECEIVED` to execute its payload without user intervention.
 
-**com.googleapi.cover.DevReg.sendOpening / com.googleapi.cover.DevReg.run**
-The application performs unauthorized exfiltration of sensitive device metadata. It retrieves the device's unique **Subscription ID** via `TextUtils.getSubId
+**Call Chain:**
+`com.secapk.wrapper.Util.runAll()` $\rightarrow$ `com.secapk.wrapper.ACall.getACall()` $\rightarrow$ `com.secapk.wrapper.ACall.c1/c2()` $\rightarrow$ `[Dynamically Loaded BroadcastReceiver]`

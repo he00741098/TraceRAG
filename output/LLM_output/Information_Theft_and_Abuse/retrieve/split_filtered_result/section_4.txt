@@ -1,0 +1,5 @@
+Package Path:com.secapk.wrapper.ACall.a1
+Class Name:ACall
+Java Code: package com.secapk.wrapper;
+
+    public native void a1(byte[] bArr, byte[] bArr2);
