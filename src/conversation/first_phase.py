@@ -91,8 +91,13 @@ def retrieve(query: str, method_name: Optional[str]=None, class_name: Optional[s
         # Java_Vec_DB = client.collections.get(config["weaviate"]["index_name"])
 
         filter_condition = None
-        if method_name and class_name:
-            filter_condition = QFilter(must=[FieldCondition(key="methods", match=MatchText(text=method_name)), FieldCondition(key="class", match=MatchText(text=class_name))])
+        must_conditions = []
+        if method_name:
+            must_conditions.append(FieldCondition(key="methods", match=MatchText(text=method_name)))
+        if class_name:
+            must_conditions.append(FieldCondition(key="class", match=MatchText(text=class_name)))
+        if must_conditions:
+            filter_condition = QFilter(must=must_conditions)
 
         # 查询向量数据库
         retrieved_docs = client.query_points(
@@ -208,19 +213,6 @@ graph_builder.set_entry_point("query_or_respond")
 graph_builder.add_edge("query_or_respond", "tools")
 graph_builder.add_edge("tools", "reorder")
 
-
-graph = graph_builder.compile()
-
-img_data = graph.get_graph().draw_mermaid_png()
-
-# 确保output文件夹存在
-output_dir = "output"
-os.makedirs(output_dir, exist_ok=True)
-
-# 保存图像
-output_path = os.path.join(output_dir, "first_phase_graph.png")
-with open(output_path, "wb") as f:
-    f.write(img_data)
 
 
 from langgraph.checkpoint.memory import MemorySaver
