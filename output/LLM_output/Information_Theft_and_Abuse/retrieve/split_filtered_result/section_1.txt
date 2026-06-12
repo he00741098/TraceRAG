@@ -1,5 +1,29 @@
-Package Path:com.secapk.wrapper.ACall.r2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    public native void r2(byte[] bArr, byte[] bArr2, byte[] bArr3);
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
+        try {
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
+                }
+            }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
+    }

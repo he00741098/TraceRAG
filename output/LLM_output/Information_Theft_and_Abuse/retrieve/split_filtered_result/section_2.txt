@@ -1,5 +1,24 @@
-Package Path:com.secapk.wrapper.ACall.r1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    public native void r1(byte[] bArr, byte[] bArr2);
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
+    }

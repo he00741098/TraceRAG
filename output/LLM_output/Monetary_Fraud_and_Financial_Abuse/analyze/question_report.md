@@ -3,86 +3,69 @@
 
 ## Overall Summary
 
-The analyzed application demonstrates sophisticated techniques for **Dynamic Code Loading (DCL)** and **Execution Interception**, which are highly characteristic of malware designed for **Monetary Fraud and Financial Abuse**. The application uses multiple `BroadcastReceiver` components across various package names as entry points to trigger hidden logic. It employs a "wrapper" or "proxy" pattern to dynamically load secondary classes via reflection and a custom `ClassLoader`. Crucially, it wraps the execution of these dynamically loaded receivers with native or obfuscated hooks (`ACall.c1` and `ACall.c2`), a technique used to intercept, monitor, or manipulate sensitive broadcast data, such as billing events or financial transaction intents.
+The analyzed application functions as a **Dropper**, specifically designed to facilitate the side-loading and installation of a secondary application (`com.moxiu.launcher`). The application employs several deceptive and high-risk techniques, including embedding a payload within its internal assets, using social engineering via dialog boxes to trick users into installation, and implementing inter-app communication to coordinate behavior with the dropped payload.
 
+
+
+---
 
 
 ## Behavior Analysis Sections
 
 
-**com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver**
-**com.slfloat.LMR.LMR**
-**com.slinsert.LMR.LMR**
-**com.slpop.LMR.LMR**
-**com.slpresent.LMR.LMR**
-**com.slpush.LMR.LMR**
+### aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk
+**Description:**
 
-These classes all implement a nearly identical malicious pattern in their `onReceive` methods. They act as a proxy for a "real" receiver. The process is as follows:
-
-
-1.  **Initialization Check**: They attempt to retrieve a custom `ClassLoader` via `Util.getCustomClassLoader()`. If it is null, they trigger `Util.runAll(ctx)` to initialize hidden logic.
-
-
-2.  **Dynamic Instantiation**: They use reflection (`cl2.loadClass(getClass().getName())` and `c.newInstance()`) to instantiate a new instance of a `BroadcastReceiver` at runtime. This allows the application to execute code that is not explicitly linked in the static APK.
-
-
-3.  **Execution Interception**: The execution of the dynamically loaded `realReceiver` is wrapped between two calls: `ACall.getACall().c1(this, this.realReceiver)` and `ACall.getACall().c2(this, this.realReceiver)`. This pattern is used to hook the broadcast event, allowing the application to intercept or manipulate the intent data (e.g., financial or billing information) before or after it is processed by the intended receiver.
+This method performs the core dropper functionality by extracting a hidden APK from the application's assets and preparing it for installation.
 
 
 
-**com.secapk.wrapper.Util**
+**Evidence and Technical Details:**
 
-The `Util` class provides the underlying mechanism for the application's stealthy execution:
-
-*   **`runAll(Context ctx)`**: This method serves as a hidden execution trigger. It uses reflection to find and instantiate a class named `com.secapk.wrapper.Main` and then invokes its `run(Context)` method. This ensures the primary malicious payload is not visible in the standard application execution flow.
-*   **`getCustomClassLoader()`**: Returns a static `ClassLoader` instance, which is used to facilitate the loading of additional, non-static code modules.
+1.  **Extraction of Embedded APK**: The method accesses an internal asset named `/assets/MoXiuLauncher_alone.apk` using `getClass().getResourceAsStream()`. It then writes this byte stream to the application's internal storage as a file named `MoXiuLauncher_alone.apk` via `openFileOutput`.
 
 
-**com.secapk.wrapper.ACall**
-
-The `ACall` class provides the interception layer. The methods `c1(Context, BroadcastReceiver)` and `c2(Context, BroadcastReceiver)` are used to wrap the execution of dynamically loaded receivers. Given the context of the other classes, these methods likely implement the logic required to monitor or hijack the data contained within the intercepted broadcast intents.
+2.  **Triggering Side-loading via Intent**: After the file is written, the method creates an `Intent` with the action `android.intent.action.VIEW` and sets the MIME type to `application/vnd.android.package-archive`. It then calls `startActivityForResult` with the URI of the extracted file, which triggers the Android system package installer to initiate the installation of the unauthorized APK.
 
 
 
-## Malicious Call Chain
+**Call Chain:**
 
-
-**Dynamic Payload & Interception Chain:**
-
-`Broadcast Intent` $\rightarrow$ `com.auxbrain.zombie_highwayer.BillingReceiver.onReceive()`
-
-
-$\rightarrow$ `com.secapk.wrapper.Util.getCustomClassLoader()` (If null $\rightarrow$ `com.secapk.wrapper.Util.runAll()`)
-
-
-$\rightarrow$ `com.secapk.wrapper.Main.run()` (**Hidden Payload Execution**)
-
-
-$\rightarrow$ `com.secapk.wrapper.ACall.c1()` (**Pre-execution Hook/Interception**)
-
-
-$\rightarrow$ `[Dynamically Loaded Receiver].onReceive()` (**Actual Payload Execution**)
-
-
-$\rightarrow$ `com.secapk.wrapper.ACall.c2()` (**Post-execution Hook/Interception**)
+`aimoxiu.theme.carbqagp.carbqagp.onCreate()` $\rightarrow$ (User clicks "OK" on `AlertDialog`) $\rightarrow$ `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()` $\rightarrow$ **System Package Installer**
 
 
 
-**Explanation:**
+### aimoxiu.theme.carbqagp.carbqagp.onCreate / onClick
+**Description:**
 
-1.  An Android system broadcast (such as a billing or transaction event) triggers the `onReceive` method of a wrapper class.
-
-
-2.  The wrapper ensures the environment is initialized by calling `Util.runAll()`, which uses reflection to execute a hidden `Main` class.
+The application utilizes social engineering tactics to deceive users into triggering the payload installation.
 
 
-3.  The wrapper then uses a custom `ClassLoader` to load the actual malicious receiver.
+
+**Evidence and Technical Details:**
+
+The application displays `AlertDialog` components to prompt the user to proceed with an installation. Depending on whether the target package (`com.moxiu.launcher`) is missing or outdated, it displays messages (referencing `R.string.moxiu_install_info` or `R.string.moxiu_version_info`) to encourage the user to click "OK". This click event directly invokes the `installMoXiuLauncherApk()` method.
 
 
-4.  The execution of this receiver is "sandwiched" between `ACall.c1` and `ACall.c2`, enabling the malware to intercept the transaction or billing data being passed through the intent.
 
+### aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme / OpenThemeDetail
+**Description:**
+
+These methods demonstrate coordinated inter-app communication, suggesting the primary app and the dropped payload act as a single ecosystem.
+
+
+
+**Evidence and Technical Details:**
+
+Once the secondary application is detected, the primary application attempts to communicate with it using specific custom intents and component names:
+
+*   **OpenMoxiuTheme**: Targets `com.moxiu.market.activity.ActivityMarket_main`.
+*   **OpenThemeDetail**: Sends a custom intent `com.moxiu.launcher.theme.MYACTION` containing a bundle of metadata (including the original app's package name and APK path) to the secondary application.
+
+
+---
 
 
 ## Conclusion
 
-The application's architecture is designed for **evasion and interception**. By combining **Dynamic Code Loading** via `com.secapk.wrapper.Util.runAll` and **Execution Hooking** via `com.secapk.wrapper.ACall.c1/c2`, the application can inject and monitor malicious logic at runtime. The use of `BillingReceiver` as a component name strongly suggests that these interception techniques are targeted at financial or billing-related broadcast intents to facilitate monetary fraud.
+The application is a delivery mechanism designed to bypass standard installation processes. It hides a secondary payload within its assets, uses social engineering via `aimoxiu.theme.carbqagp.carbqagp.onCreate` to deceive users, and executes the side-loading process through `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk`. The presence of coordinated communication via `OpenMoxiuTheme` and `OpenThemeDetail` confirms that the application is part of a multi-component system designed to control the user experience or facilitate unauthorized activities.

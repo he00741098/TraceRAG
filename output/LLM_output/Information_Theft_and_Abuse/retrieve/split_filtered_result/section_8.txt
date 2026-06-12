@@ -1,5 +1,0 @@
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native void c1(Object obj, Object obj2);

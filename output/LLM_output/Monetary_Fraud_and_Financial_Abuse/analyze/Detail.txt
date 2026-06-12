@@ -1,1800 +1,253 @@
 Here is a batch of Android app java code snippets about Monetary_Fraud_and_Financial_Abuse. Please analyze them together to identify any potential malicious behavior.
 
 
---- Start of snippet 6 ---
-Package Path:com.slinsert.LMR.onReceive
-Class Name:LMR
-Java Code: package com.slinsert;
+--- Start of snippet 1 ---
+Package Path:aimoxiu.theme.carbqagp.carbqagp
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    public void onReceive(Context ctx, Intent intent) {
-        ClassLoader cl = Util.getCustomClassLoader();
-        if (cl == null) {
-            Util.runAll(ctx);
+public class carbqagp extends Activity {
+    public static final String MOXIU_FOLDER_THEME = Environment.getExternalStorageDirectory().toString() + "/moxiu/themes/";
+    private static final int MOXIU_LAUNCHER_INSTALL_SUCCESS = 1;
+    private static final String MOXIU_LAUNCHER_NAME = "com.moxiu.launcher";
+    public static final String channel = "moxiu_theme_single";
+    public static final int hezuotiaozhuan = 4097;
+    public static final int hezuotiaozhuan_noinstall = 4098;
+    private AlertDialog interDialog;
+    private int ver = 105;
+    public Boolean isZhiJieYingYong = true;
+
+    @Override // android.app.Activity
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        setContentView(R.layout.main);
+        if (isInstalled()) {
+            if (this.ver < 311) {
+                this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_version_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.1
+                    @Override // android.content.DialogInterface.OnClickListener
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        carbqagp.this.installMoXiuLauncherApk();
+                        dialogInterface.dismiss();
+                    }
+                }).create();
+                this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.2
+                    @Override // android.content.DialogInterface.OnKeyListener
+                    public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                        if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                            carbqagp.this.finish();
+                            carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                            return false;
+                        }
+                        return false;
+                    }
+                });
+                this.interDialog.show();
+                return;
+            }
+            OpenThemeDetail();
+            return;
         }
+        this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_install_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.3
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
+            }
+        }).create();
+        this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.4
+            @Override // android.content.DialogInterface.OnKeyListener
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                    carbqagp.this.finish();
+                    carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                    return false;
+                }
+                return false;
+            }
+        });
+        this.interDialog.show();
+    }
+
+    private void OpenMoxiuTheme() {
         try {
-            ClassLoader cl2 = Util.getCustomClassLoader();
-            Class<?> c = cl2.loadClass(getClass().getName());
-            this.realReceiver = (BroadcastReceiver) c.newInstance();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            this.realReceiver = null;
-        }
-        if (this.realReceiver != null) {
-            ACall.getACall().c1(this, this.realReceiver);
-            this.realReceiver.onReceive(ctx, intent);
-            ACall.getACall().c2(this, this.realReceiver);
+            getPackageManager().getPackageInfo(getApplication().getPackageName(), 0).applicationInfo.loadLabel(getPackageManager()).toString();
+            ComponentName componentName = new ComponentName(MOXIU_LAUNCHER_NAME, "com.moxiu.market.activity.ActivityMarket_main");
+            Intent intent = new Intent();
+            intent.setFlags(131072);
+            intent.addFlags(268435456);
+            intent.setAction("android.intent.action.MAIN");
+            intent.setComponent(componentName);
+            startActivity(intent);
+            overridePendingTransition(R.anim.moxiu_zoom_in, R.anim.moxiu_zoom_out);
+            finish();
+        } catch (PackageManager.NameNotFoundException e) {
         }
     }
---- End of snippet 6 ---
 
-
---- Start of snippet 7 ---
-Package Path:com.slpop.LMR.onReceive
-Class Name:LMR
-Java Code: package com.slpop;
-
-    public void onReceive(Context ctx, Intent intent) {
-        ClassLoader cl = Util.getCustomClassLoader();
-        if (cl == null) {
-            Util.runAll(ctx);
-        }
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
         try {
-            ClassLoader cl2 = Util.getCustomClassLoader();
-            Class<?> c = cl2.loadClass(getClass().getName());
-            this.realReceiver = (BroadcastReceiver) c.newInstance();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            this.realReceiver = null;
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
-        if (this.realReceiver != null) {
-            ACall.getACall().c1(this, this.realReceiver);
-            this.realReceiver.onReceive(ctx, intent);
-            ACall.getACall().c2(this, this.realReceiver);
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override // android.app.Activity
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        if (i == MOXIU_LAUNCHER_INSTALL_SUCCESS && i2 == 0) {
+            if (isInstalled() && this.ver > 310) {
+                OpenThemeDetail();
+            } else {
+                OpenMoxiuTheme();
+            }
         }
     }
---- End of snippet 7 ---
 
-
---- Start of snippet 8 ---
-Package Path:com.slpresent.LMR.LMR
-Class Name:LMR
-Java Code: package com.slpresent;
-
-public class LMR extends BroadcastReceiver {
-    private BroadcastReceiver realReceiver = null;
-
-    @Override // android.content.BroadcastReceiver
-    public void onReceive(Context ctx, Intent intent) {
-        ClassLoader cl = Util.getCustomClassLoader();
-        if (cl == null) {
-            Util.runAll(ctx);
-        }
+    private boolean isInstalled() {
         try {
-            ClassLoader cl2 = Util.getCustomClassLoader();
-            Class<?> c = cl2.loadClass(getClass().getName());
-            this.realReceiver = (BroadcastReceiver) c.newInstance();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            this.realReceiver = null;
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(MOXIU_LAUNCHER_NAME, 0);
+            this.ver = packageInfo.versionCode;
+            return packageInfo != null;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
-        if (this.realReceiver != null) {
-            ACall.getACall().c1(this, this.realReceiver);
-            this.realReceiver.onReceive(ctx, intent);
-            ACall.getACall().c2(this, this.realReceiver);
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
+        try {
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
+                }
+            }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
+    }
+
+    @Override // android.app.Activity
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }
---- End of snippet 8 ---
+--- End of snippet 1 ---
 
 
---- Start of snippet 9 ---
-Package Path:com.slpresent.LMR.onReceive
-Class Name:LMR
-Java Code: package com.slpresent;
+--- Start of snippet 2 ---
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    public void onReceive(Context ctx, Intent intent) {
-        ClassLoader cl = Util.getCustomClassLoader();
-        if (cl == null) {
-            Util.runAll(ctx);
-        }
+    private void OpenMoxiuTheme() {
         try {
-            ClassLoader cl2 = Util.getCustomClassLoader();
-            Class<?> c = cl2.loadClass(getClass().getName());
-            this.realReceiver = (BroadcastReceiver) c.newInstance();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            this.realReceiver = null;
-        }
-        if (this.realReceiver != null) {
-            ACall.getACall().c1(this, this.realReceiver);
-            this.realReceiver.onReceive(ctx, intent);
-            ACall.getACall().c2(this, this.realReceiver);
+            getPackageManager().getPackageInfo(getApplication().getPackageName(), 0).applicationInfo.loadLabel(getPackageManager()).toString();
+            ComponentName componentName = new ComponentName(MOXIU_LAUNCHER_NAME, "com.moxiu.market.activity.ActivityMarket_main");
+            Intent intent = new Intent();
+            intent.setFlags(131072);
+            intent.addFlags(268435456);
+            intent.setAction("android.intent.action.MAIN");
+            intent.setComponent(componentName);
+            startActivity(intent);
+            overridePendingTransition(R.anim.moxiu_zoom_in, R.anim.moxiu_zoom_out);
+            finish();
+        } catch (PackageManager.NameNotFoundException e) {
         }
     }
---- End of snippet 9 ---
+--- End of snippet 2 ---
 
 
---- Start of snippet 10 ---
-Package Path:com.slpush.LMR.onReceive
-Class Name:LMR
-Java Code: package com.slpush;
+--- Start of snippet 3 ---
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    public void onReceive(Context ctx, Intent intent) {
-        ClassLoader cl = Util.getCustomClassLoader();
-        if (cl == null) {
-            Util.runAll(ctx);
-        }
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
         try {
-            ClassLoader cl2 = Util.getCustomClassLoader();
-            Class<?> c = cl2.loadClass(getClass().getName());
-            this.realReceiver = (BroadcastReceiver) c.newInstance();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            this.realReceiver = null;
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
-        if (this.realReceiver != null) {
-            ACall.getACall().c1(this, this.realReceiver);
-            this.realReceiver.onReceive(ctx, intent);
-            ACall.getACall().c2(this, this.realReceiver);
-        }
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
     }
---- End of snippet 10 ---
+--- End of snippet 3 ---
 
 
-The provided code snippets exhibit malicious behavior related to **Dynamic Code Loading (DCL)** and **Indirection/Evasion** through the use of custom class loaders to execute code.
+--- Start of snippet 4 ---
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onClick
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-### Malicious Behavior Identified:
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
+            }
+--- End of snippet 4 ---
 
-**1. Dynamic Code Loading and Execution via Custom ClassLoader**
-Across all snippets (Snippet 6, 7, 8, 9, and 10), the `LMR` class (which extends `BroadcastReceiver`) implements an `onReceive` method that attempts to bypass standard execution flows by using a custom class loader. 
 
-*   **Mechanism**: The code calls `Util.getCustomClassLoader()` to obtain a `ClassLoader`. If this returns `null`, it triggers `Util.runAll(ctx)`, which suggests a secondary initialization or loading routine.
-*   **Indirection**: The code then uses the custom class loader to load a class by its own name (`cl2.loadClass(getClass().getName())`) and instantiates it (`c.newInstance()`). This creates a "real" receiver (`realReceiver`) that is distinct from the initial receiver, effectively hiding the actual logic being executed.
-*   **Evasion/Monitoring**: Before and after delegating the `onReceive` call to the newly instantiated `realReceiver`, the code invokes `ACall.getACall().c1(...)` and `ACall.getACall().c2(...)`. This pattern is characteristic of a proxy or a wrapper used to intercept intents, monitor execution, or hide the true intent of the broadcast receiver from static analysis tools.
+Based on the provided code snippets, the following malicious behavior has been identified:
 
-### Code Locations:
-*   **Snippet 6**: `com.slinsert.LMR.onReceive`
-*   **Snippet 7**: `com.slpop.LMR.onReceive`
-*   **Snippet 8**: `com.slpresent.LMR.LMR.onReceive`
-*   **Snippet 9**: `com.slpresent.LMR.onReceive`
-*   **Snippet 10**: `com.slpush.LMR.onReceive`
+### Malicious Behavior: Dropping and Installing Secondary APK (Side-loading)
 
-### Summary:
-The consistent pattern across different packages (`com.slinsert`, `com.slpop`, `com.slpresent`, `com.slpush`) indicates a coordinated attempt to use dynamic class loading to execute code at runtime. This technique is frequently used to load malicious payloads (such as those related to financial fraud) that are not present in the initial APK's static code, thereby evading detection.
+The application exhibits behavior consistent with a dropper, where it extracts an embedded APK from its own assets and attempts to install it on the device.
 
-To further analyze the payload being loaded, I need more information regarding the utility classes used.
+**1. Extraction of Embedded APK:**
+In the method `installMoXiuLauncherApk()` within the class `carbqagp`, the application accesses its internal assets to read a file named `MoXiuLauncher_alone.apk`. It then writes this file to the application's local file directory.
+*   **Location:** `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()`
 
-Could you provide the implementation of the method `getCustomClassLoader` defined in class `Util`, which takes no parameters?
+**2. Triggering Installation via Intent:**
+After extracting the file, the application creates an `Intent` with the action `android.intent.action.VIEW` and sets the data type to `application/vnd.android.package-archive`. This is a standard method used to trigger the Android package installer to install an APK file located at the path where the file was just extracted.
+*   **Location:** `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()`
 
-package com.secapk.wrapper;
+**3. User Deception/Social Engineering:**
+The application uses `AlertDialog` components to prompt the user to proceed with the installation. Depending on whether a specific package (`com.moxiu.launcher`) is already installed or if the version is below a certain threshold, it displays different messages (referenced via `R.string.moxiu_install_info` or `R.string.moxiu_version_info`) to encourage the user to click "OK", which triggers the `installMoXiuLauncherApk()` method.
+*   **Location:** `aimoxiu.theme.carbqagp.carbqagp.onCreate()` and `aimoxiu.theme.carbqagp.carbqagp.onClick()`
 
-    public static ClassLoader getCustomClassLoader() {
-        return cl;
-    }
-    // Path: com.secapk.wrapper.Util.getCustomClassLoader, Class Name: Util
-
-, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.sec
-
-package com.secapk.wrapper;
-
-    public static ClassLoader getCustomClassLoader() {
-        return cl;
-    }
-    // Path: com.secapk.wrapper.Util.getCustomClassLoader, Class Name: Util
-
-, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.secapk.wrapper;
-    // Path:com.secapk.wrapper.Util.runAll, Class Name: Util, Java Code: package com.sec
-
-package com.secapk.wrapper;
-
-    public static ClassLoader getCustomClassLoader() {
-        return cl;
-    }
-    // Path: com.secapk.wrapper.Util.getCustomClassLoader, Class Name: Util
-
-
-    
-    public static void runAll(Context ctx) {
-        // Implementation details...
-    }
-    // Path: com.secapk.wrapper.Util.runAll, Class Name: Util
-    
-    private static ClassLoader cl;
-    // Path: com.secapk.wrapper.Util.cl, Class Name: Util
-}
-// Path: com.secapk.wrapper.Util, Class Name: Util
---- End of snippet 11 ---
-
---- Start of snippet 12 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 12 ---
-
---- Start of snippet 13 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 13 ---
-
---- Start of snippet 14 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 14 ---
-
---- Start of snippet 15 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 15 ---
-
---- Start of snippet 16 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 16 ---
-
---- Start of snippet 17 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 17 ---
-
---- Start of snippet 18 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 18 ---
-
---- Start of snippet 19 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 19 ---
-
---- Start of snippet 20 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 20 ---
-
---- Start of snippet 21 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 21 ---
-
---- Start of snippet 22 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 22 ---
-
---- Start of snippet 23 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 23 ---
-
---- Start of snippet 24 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 24 ---
-
---- Start of snippet 25 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 25 ---
-
---- Start of snippet 26 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 26 ---
-
---- Start of snippet 27 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 27 ---
-
---- Start of snippet 28 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 28 ---
-
---- Start of snippet 29 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 29 ---
-
---- Start of snippet 30 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 30 ---
-
---- Start of snippet 31 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 31 ---
-
---- Start of snippet 32 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 32 ---
-
---- Start of snippet 33 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 33 ---
-
---- Start of snippet 34 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 34 ---
-
---- Start of snippet 35 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 35 ---
-
---- Start of snippet 36 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 36 ---
-
---- Start of snippet 37 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 37 ---
-
---- Start of snippet 38 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 38 ---
-
---- Start of snippet 39 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 39 ---
-
---- Start of snippet 40 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 40 ---
-
---- Start of snippet 41 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 41 ---
-
---- Start of snippet 42 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 42 ---
-
---- Start of snippet 43 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 43 ---
-
---- Start of snippet 44 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 44 ---
-
---- Start of snippet 45 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 45 ---
-
---- Start of snippet 46 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 46 ---
-
---- Start of snippet 47 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 47 ---
-
---- Start of snippet 48 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 48 ---
-
---- Start of snippet 49 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 49 ---
-
---- Start of snippet 50 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 50 ---
-
---- Start of snippet 51 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 51 ---
-
---- Start of snippet 52 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 52 ---
-
---- Start of snippet 53 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 53 ---
-
---- Start of snippet 54 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 54 ---
-
---- Start of snippet 55 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 55 ---
-
---- Start of snippet 56 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 56 ---
-
---- Start of snippet 57 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 57 ---
-
---- Start of snippet 58 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 58 ---
-
---- Start of snippet 59 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 59 ---
-
---- Start of snippet 60 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 60 ---
-
---- Start of snippet 61 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 61 ---
-
---- Start of snippet 62 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 62 ---
-
---- Start of snippet 63 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
+**4. Inter-App Communication for Control:**
+The methods `OpenMoxiuTheme()` and `OpenThemeDetail()` demonstrate that once the secondary application is present, the current application attempts to communicate with it using specific custom intents (e.g., `com.moxiu.launcher.theme.MYACTION`) and component names (e.g., `com.moxiu.market.activity.ActivityMarket_main`). This suggests a coordinated behavior between the two applications to control the user experience or facilitate further actions.
+*   **Location:** `aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme()` and `aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail()`
 
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 63 ---
-
---- Start of snippet 64 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 64 ---
-
---- Start of snippet 65 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 65 ---
-
---- Start of snippet 66 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 66 ---
-
---- Start of snippet 67 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 67 ---
-
---- Start of snippet 68 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 68 ---
-
---- Start of snippet 69 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 69 ---
-
---- Start of snippet 70 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 70 ---
-
---- Start of snippet 71 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 71 ---
-
---- Start of snippet 72 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 72 ---
-
---- Start of snippet 73 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 73 ---
-
---- Start of snippet 74 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 74 ---
-
---- Start of snippet 75 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 75 ---
-
---- Start of snippet 76 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 76 ---
-
---- Start of snippet 77 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 77 ---
-
---- Start of snippet 78 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 78 ---
-
---- Start of snippet 79 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 79 ---
-
---- Start of snippet 80 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 80 ---
-
---- Start of snippet 81 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 81 ---
-
---- Start of snippet 82 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 82 ---
-
---- Start of snippet 83 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 83 ---
-
---- Start of snippet 84 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 84 ---
-
---- Start of snippet 85 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 85 ---
-
---- Start of snippet 86 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 86 ---
-
---- Start of snippet 87 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 87 ---
-
---- Start of snippet 88 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 88 ---
-
---- Start of snippet 89 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 89 ---
-
---- Start of snippet 90 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 90 ---
-
---- Start of snippet 91 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 91 ---
-
---- Start of snippet 92 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 92 ---
-
---- Start of snippet 93 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 93 ---
-
---- Start of snippet 94 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 94 ---
-
---- Start of snippet 95 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 95 ---
-
---- Start of snippet 96 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 96 ---
-
---- Start of snippet 97 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 97 ---
-
---- Start of snippet 98 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 98 ---
-
---- Start of snippet 99 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 99 ---
-
---- Start of snippet 100 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 100 ---
-
---- Start of snippet 101 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 101 ---
-
---- Start of snippet 102 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 102 ---
-
---- Start of snippet 103 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 103 ---
-
---- Start of snippet 104 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 104 ---
-
---- Start of snippet 105 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 105 ---
-
---- Start of snippet 106 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 106 ---
-
---- Start of snippet 107 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 107 ---
-
---- Start of snippet 108 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 108 ---
-
---- Start of snippet 109 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 109 ---
-
---- Start of snippet 110 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 110 ---
-
---- Start of snippet 111 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 111 ---
-
---- Start of snippet 112 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 112 ---
-
---- Start of snippet 113 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 113 ---
-
---- Start of snippet 114 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
---- End of snippet 114 ---
-
---- Start of snippet 115 ---
-Package Path:com.secapk.wrapper.ACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public class ACall {
-        // Implementation details...
-    }
---- End of snippet 115 ---
-
---- Start of snippet 116 ---
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c1(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 116 ---
-
---- Start of snippet 117 ---
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public void c2(Context ctx, BroadcastReceiver receiver) {
-        // Implementation details...
-    }
---- End of snippet 117 ---
-
---- Start of snippet 118 ---
-Package Path:com.secapk.wrapper.ACall.getACall
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public static ACall getACall() {
-        return instance;
-    }
-    private static ACall instance = new ACall();
+**Summary:**
+The application acts as a delivery mechanism for another application (`com.moxiu.launcher`). It hides an APK within its assets, extracts it to the device's storage, and uses social engineering via dialog boxes to trick the user into installing the secondary payload.
 
-<|tool_call>call:retrieve{query: "Could you provide the implementation of the method getCustomClassLoader defined in class Util, which takes no parameters?",method_name: "getCustomClassLoader",class_name: "Util"}<tool_call|>
+ This pattern is a hallmark of malware or potentially unwanted applications (PUAs) designed to bypass standard app store installation processes.
 

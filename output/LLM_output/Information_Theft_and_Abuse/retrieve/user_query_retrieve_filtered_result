@@ -1,67 +1,56 @@
-Package Path:com.secapk.wrapper.ACall.r2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    public native void r2(byte[] bArr, byte[] bArr2, byte[] bArr3);
-===
-Package Path:com.secapk.wrapper.ACall.r1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native void r1(byte[] bArr, byte[] bArr2);
-===
-Package Path:com.secapk.wrapper.ACall.a1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native void a1(byte[] bArr, byte[] bArr2);
-===
-Package Path:com.secapk.wrapper.ACall.s1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native void s1(Object obj, Object obj2, Object obj3);
-===
-Package Path:com.secapk.wrapper.ACall.at1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native void at1(Application application, Context context);
-===
-Package Path:com.secapk.wrapper.ACall.set2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native Object set2(Application application, Application application2, ClassLoader classLoader, Context context);
-===
-Package Path:com.secapk.wrapper.ACall.c3
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native Object c3(Object obj, Object obj2);
-===
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native void c1(Object obj, Object obj2);
-===
-Package Path:com.secapk.wrapper.ACall.c2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native void c2(Object obj, Object obj2);
-===
-Package Path:com.secapk.wrapper.Util.toASC
-Class Name:Util
-Java Code: package com.secapk.wrapper;
-
-    public static byte[] toASC(byte[] bts) {
-        byte[] ret = new byte[bts.length * 2];
-        for (int i = 0; i < bts.length; i++) {
-            byte b = bts[i];
-            ret[i * 2] = hexDigits[(b >> 4) & 15];
-            ret[(i * 2) + 1] = hexDigits[b & 15];
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
+        try {
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
+                }
+            }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return ret;
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
+    }
+
+===
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
+
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
     }

@@ -2,48 +2,35 @@
 <h2>1. Basic Information</h2>
 <p><strong>SHA256:</strong> 0246B52CDFF33386AE5AE4891BE94DEE927737404D04435FB11F8ABC1FD3B05C</p>
 <h2>2. Executive Summary</h2>
-<p>The analyzed application is a sophisticated <strong>malicious loader/dropper</strong> designed for <strong>information theft, monetary fraud, and privilege abuse</strong>. The application employs a highly evasive, multi-layered architecture characterized by the following behaviors:</p>
-<ul>
-<li><strong>Dynamic Code Loading (DCL):</strong> Extensive use of <code>DexClassLoader</code> and custom <code>ClassLoader</code> implementations to execute secondary payloads that are not present in the primary DEX files.</li>
-<li><strong>Execution Interception &amp; Hooking:</strong> A "wrapper" or "proxy" pattern is implemented across multiple <code>BroadcastReceiver</code> components. These components use native (JNI) hooks (<code>ACall.c1</code> and <code>ACall.c2</code>) to intercept, monitor, or manipulate broadcast intents, specifically targeting billing and financial transaction data.</li>
-<li><strong>Information Gathering:</strong> Systematic collection of device metadata (package name, APK path, process name), hardware specifications (via <code>/proc/cpuinfo</code>), and the use of Java Reflection to bypass access controls for sensitive data extraction.</li>
-<li><strong>Evasive Native Execution:</strong> Critical and sensitive logic is delegated to a compiled C/C++ library via <code>com.secapk.wrapper.ACall</code> to obscure functional intent and bypass Java-level security monitoring.</li>
-</ul>
-<p><strong>Summary of Malicious Behaviors:</strong><br />
-*   <strong>Dynamic Code Loading:</strong> Detected in <code>com.secapk.wrapper.ApplicationWrapper</code>, <code>com.secapk.wrapper.Util</code>, and various <code>LMR</code> classes.<br />
-*   <strong>Information Theft:</strong> Detected in <code>com.secapk.wrapper.Util</code>.<br />
-*   <strong>Monetary Fraud/Interception:</strong> Detected in <code>com.auxbrain.zombie_highwayer.BillingReceiver</code> and associated <code>LMR</code> modules.<br />
-*   <strong>Privilege Abuse/System Exploitation:</strong> Detected in <code>com.secapk.wrapper.ACall</code> and <code>com.secapk.wrapper.Util</code>.</p>
+<p>The analyzed application functions as a <strong>Dropper</strong>, specifically designed to facilitate the unauthorized side-loading and installation of a secondary application (<code>com.moxiu.launcher</code>). Across all analyzed reports, three distinct types of malicious behaviors were identified:</p>
+<ol>
+<li>
+<p><strong>Information Theft and Abuse / Privilege Abuse</strong>: The application employs a dropper mechanism to extract an embedded APK from its internal assets and trigger the Android system package installer.</p>
+</li>
+<li>
+<p><strong>Monetary Fraud and Financial Abuse</strong>: The application utilizes social engineering via deceptive <code>AlertDialog</code> components to trick users into initiating the installation of the secondary payload.</p>
+</li>
+<li>
+<p><strong>System Exploitation</strong>: The application implements coordinated inter-app communication, using custom intents to interact with the dropped payload, indicating a multi-component malicious ecosystem.</p>
+</li>
+</ol>
+<p>The primary delivery mechanism is centered within the <code>aimoxiu.theme.carbqagp.carbqagp</code> package.</p>
 <h2>3. Detailed Analysis</h2>
-<h3>Dynamic Code Loading</h3>
+<h3>Dropper and Side-loading Behavior</h3>
 <p><strong>Malicious Behavior Detected</strong></p>
-<p><strong>com.secapk.wrapper.ApplicationWrapper</strong></p>
-<p>The class implements a custom initialization routine in <code>onCreate</code>. It utilizes <code>DexClassLoader</code> to dynamically load <code>com.secapk.wrapper.FirstApplication</code>, instantiates it, and invokes its <code>onCreate()</code> method. This separates the initial entry point from the functional malicious logic.</p>
-<p><strong>com.secapk.wrapper.Util</strong></p>
-<p>This class facilitates the deployment of secondary payloads through <code>loadDex(Context context, String dexName)</code>, which extracts a DEX file from the assets, saves it to a private directory, and initializes a <code>DexClassLoader</code>. Additionally, <code>runAll(Context ctx)</code> uses reflection to instantiate and execute <code>com.secapk.wrapper.Main.run(Context)</code>.</p>
-<p><strong>com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver, com.slfloat.LMR.LMR, com.slinsert.LMR.LMR, com.slpop.LMR.LMR, com.slpresent.LMR.LMR, and com.slpush.LMR.LMR</strong></p>
-<p>These classes implement a proxy pattern. They retrieve a custom <code>ClassLoader</code> via <code>Util.getCustomClassLoader()</code>. If null, they trigger initialization via <code>Util.runAll()</code>. They then use reflection (<code>cl2.loadClass(getClass().getName())</code> and <code>c.newInstance()</code>) to instantiate a "real" <code>BroadcastReceiver</code> at runtime, executing code not explicitly linked in the static APK.</p>
-<h3>Information Theft and Abuse</h3>
+<p><code>aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk</code></p>
+<p>The application implements core dropper logic to bypass standard installation flows. It accesses an embedded APK file (<code>/assets/MoXiuLauncher_alone.apk</code>) using <code>getClass().getResourceAsStream()</code>. This file is then extracted to the application's internal storage as <code>MoXiuLauncher_alone.apk</code> via <code>openFileOutput</code>. Following extraction, the method constructs an <code>Intent</code> with the action <code>android.intent.action.VIEW</code> and the MIME type <code>application/vnd.android.package-archive</code>. It executes <code>startActivityForResult</code> using the URI of the dropped file, which instructs the Android OS to launch the system package installer for the unauthorized APK.</p>
+<p><strong>Call Chain:</strong></p>
+<p><code>aimoxiu.theme.carbqagp.carbqagp.onCreate()</code> $\rightarrow$ (User interaction with <code>AlertDialog</code>) $\rightarrow$ <code>aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()</code> $\rightarrow$ <strong>System Package Installer</strong></p>
+<h3>Social Engineering</h3>
 <p><strong>Malicious Behavior Detected</strong></p>
-<p><strong>com.secapk.wrapper.Util</strong></p>
-<p>The class performs several information-gathering operations:</p>
+<p><code>aimoxiu.theme.carbqagp.carbqagp.onCreate</code></p>
+<p>The application uses deceptive tactics to prompt users to install the secondary payload. Upon startup, the <code>onCreate</code> method checks if the target package (<code>com.moxiu.launcher</code>) is missing or outdated. If so, it displays an <code>AlertDialog</code> using strings <code>R.string.moxiu_install_info</code> or <code>R.string.moxiu_version_info</code>. When the user clicks the positive button (<code>R.string.moxiu_ok</code>), the <code>installMoXiuLauncherApk()</code> method is directly invoked, leading to the side-loading process.</p>
+<h3>Inter-App Communication and Ecosystem Coordination</h3>
+<p><strong>Malicious Behavior Detected</strong></p>
+<p><code>aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme</code> / <code>aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail</code></p>
+<p>The application demonstrates coordinated communication with the dropped payload to act as a single ecosystem.</p>
 <ul>
-<li><strong><code>createChildProcess</code></strong>: Retrieves the APK source directory and package name, passing them to the native method <code>ACall.r1</code>, indicating attempts to spawn child processes from the native layer.</li>
-<li><strong><code>tryDo</code></strong>: Collects the package name, APK absolute file path (<code>sourceDir</code>), and current process name, passing them to native method <code>ACall.r2</code> for potential exfiltration.</li>
-<li><strong><code>getCPUinfo</code></strong>: Executes <code>/system/bin/cat /proc/cpuinfo</code> via <code>ProcessBuilder</code> to retrieve hardware details for device fingerprinting.</li>
-<li><strong><code>getField</code> &amp; <code>getFieldValue</code></strong>: Uses Java Reflection and <code>field.setAccessible(true)</code> to bypass access controls and extract data from <code>private</code> or <code>protected</code> fields.</li>
-<li><strong><code>toASC</code></strong>: Converts byte arrays to hexadecimal representation to format stolen data for exfiltration.</li>
-<li><strong><code>checkUpdate</code></strong>: Manages hidden directories (<code>.cache/</code>) and files (<code>.sec_version</code>) to store downloaded malicious components.</li>
+<li><strong>OpenMoxiuTheme</strong>: Targets the specific component <code>com.moxiu.market.activity.ActivityMarket_main</code> within the <code>com.moxiu.launcher</code> package.</li>
+<li><strong>OpenThemeDetail</strong>: Dispatches a custom intent with the action <code>com.moxiu.launcher.theme.MYACTION</code>. This intent includes a <code>Bundle</code> containing metadata, such as the original application's package name and its installation path (<code>apkpath</code>), to facilitate interaction with the secondary application.</li>
 </ul>
-<h3>Monetary Fraud and Financial Abuse</h3>
-<p><strong>Malicious Behavior Detected</strong></p>
-<p><strong>com.auxbrain.zombie_highwayer.BillingReceiver.BillingReceiver, com.slfloat.LMR.LMR, com.slinsert.LMR.LMR, com.slpop.LMR.LMR, com.slpresent.LMR.LMR, and com.slpush.LMR.LMR</strong></p>
-<p>These classes act as interception proxies for system broadcasts. The execution of the dynamically loaded <code>realReceiver</code> is "sandwiched" between two native calls: <code>ACall.getACall().c1(...)</code> and <code>ACall.getACall().c2(...)</code>. This structure allows the application to intercept or manipulate the intent data (such as billing or financial transaction events) before or after it is processed by the intended receiver.</p>
-<p><strong>com.secapk.wrapper.ACall</strong></p>
-<p>The <code>c1(Context, BroadcastReceiver)</code> and <code>c2(Context, BroadcastReceiver)</code> methods provide the interception layer used to monitor or hijack the data contained within the intercepted broadcast intents.</p>
-<h3>Privilege Abuse and System Exploitation</h3>
-<p><strong>Malicious Behavior Detected</strong></p>
-<p><strong>com.secapk.wrapper.ACall</strong></p>
-<p>This class serves as the primary interface for hidden logic via numerous <code>native</code> method declarations (e.g., <code>at1</code>, <code>set2</code>, <code>r1</code>, <code>r2</code>, <code>c1</code>, <code>c2</code>). By implementing core logic in a compiled C/C++ library (JNI), the application obscures its true intent and bypasses Java-level security monitoring.</p>
-<p><strong>com.secapk.wrapper.Util</strong></p>
-<p>Provides the infrastructure for stealthy execution, including the <code>runAll</code> method which uses reflection to trigger the hidden <code>com.secapk.wrapper.Main</code> class, ensuring the primary payload is not visible in the standard execution flow.</p>

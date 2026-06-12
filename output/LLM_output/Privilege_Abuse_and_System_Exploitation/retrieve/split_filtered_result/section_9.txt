@@ -1,5 +1,0 @@
-Package Path:com.secapk.wrapper.ACall.set2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native Object set2(Application application, Application application2, ClassLoader classLoader, Context context);

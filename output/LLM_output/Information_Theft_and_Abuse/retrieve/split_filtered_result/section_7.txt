@@ -1,5 +1,0 @@
-Package Path:com.secapk.wrapper.ACall.c3
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
-
-    public native Object c3(Object obj, Object obj2);

@@ -1,821 +1,513 @@
-Package Path:com.secapk.wrapper.Util.getCPUinfo
-Class Name:Util
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onCreate
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
 
-    public static String getCPUinfo() {
-        String result = "";
-        try {
-            String[] args = {"/system/bin/cat", "/proc/cpuinfo"};
-            ProcessBuilder cmd = new ProcessBuilder(args);
-            Process process = cmd.start();
-            InputStream in = process.getInputStream();
-            byte[] re = new byte[1024];
-            while (in.read(re) != -1) {
-                result = result + new String(re);
-            }
-            in.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        return result;
-    }
-
-Package Path:com.secapk.wrapper.Util.checkUpdate
-Class Name:Util
-Content: package com.secapk.wrapper;
-
-    private static void checkUpdate(Context ctx) {
-        try {
-            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
-            PackageInfo pinfo = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
-            int versionCode = pinfo.versionCode;
-            String versionName = pinfo.versionName;
-            if (versionName == null) {
-                versionName = VERSION_NAME;
-            }
-            File fversion = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
-            if (!fversion.exists()) {
-                deleteDirectory(f);
-                writeVersion(fversion, versionCode, versionName);
-                return;
-            }
-            String[] ret = readVersions(fversion);
-            if (ret == null) {
-                deleteDirectory(f);
-                fversion.delete();
-                return;
-            }
-            int localVersionCode = Integer.parseInt(ret[0]);
-            String localVersionName = ret[1];
-            if (!localVersionName.equals(versionName) || localVersionCode != versionCode) {
-                deleteDirectory(f);
-                fversion.delete();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            deleteDirectory(new File("/data/data/" + ctx.getPackageName() + "/.cache/"));
-            File fversion2 = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
-            if (fversion2.exists()) {
-                fversion2.delete();
-            }
-        }
-    }
-
-Package Path:com.secapk.wrapper.ApplicationWrapper.onTerminate
-Class Name:ApplicationWrapper
-Content: package com.secapk.wrapper;
-
-    public void onTerminate() {
-        super.onTerminate();
-        if (realApplication != null) {
-            realApplication.onTerminate();
-        }
-    }
-
-Package Path:com.secapk.wrapper.MyClassLoader.Constructor
-Class Name:MyClassLoader
-Content: package com.secapk.wrapper;
-
-    public MyClassLoader(String dexPath, String optimizedDirectory, String libraryPath, ClassLoader cl) {
-        super(dexPath, optimizedDirectory, libraryPath, cl.getParent());
-        this.mClassLoader = null;
-        this.mClassLoader = cl;
-    }
-
-Package Path:com.secapk.wrapper.ACall.c1
-Class Name:ACall
-Content: package com.secapk.wrapper;
-
-    public native void c1(Object obj, Object obj2);
-
-Package Path:com.secapk.wrapper.Util.runAll1
-Class Name:Util
-Content: package com.secapk.wrapper;
-
-    public static void runAll1(Context ctx) {
-        try {
-            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
-            if (!f.exists()) {
-                f.mkdir();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        checkX86(ctx);
-    }
-
-Package Path:com.secapk.wrapper.Util.CopyLib
-Class Name:Util
-Content: package com.secapk.wrapper;
-
-    private static void CopyLib(Context ctx) {
-        JarFile jarFile;
-        String apkFilePath = ctx.getApplicationInfo().sourceDir;
-        try {
-            jarFile = new JarFile(apkFilePath);
-        } catch (IOException e) {
-            e = e;
-        }
-        try {
-            Enumeration<JarEntry> iter = jarFile.entries();
-            while (iter.hasMoreElements()) {
-                JarEntry jarEntry = iter.nextElement();
-                String jarEntryName = jarEntry.getName();
-                if (jarEntryName.equals("assets/libsecexe.x86.so")) {
-                    String soName = jarEntryName.replaceAll("assets/", "");
-                    String destSoName = "/data/data/" + ctx.getPackageName() + "/.cache/" + soName;
-                    realCopy(destSoName, jarFile, jarEntry);
-                }
-                if (jarEntryName.equals("assets/libsecmain.x86.so")) {
-                    jarEntryName.replaceAll("assets/", "");
-                    String destSoName2 = "/data/data/" + ctx.getPackageName() + "/.cache/libsecmain.x86.so";
-                    realCopy(destSoName2, jarFile, jarEntry);
-                }
-                if (jarEntryName.equals("assets/" + ctx.getPackageName() + ".x86")) {
-                    jarEntryName.replaceAll("assets/", "");
-                    String destSoName3 = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
-                    realCopy(destSoName3, jarFile, jarEntry);
-                }
-            }
-        } catch (IOException e2) {
-            e = e2;
-            e.printStackTrace();
-        }
-    }
-
-Package Path:com.secapk.wrapper.FirstApplication.onCreate
-Class Name:FirstApplication
-Content: package com.secapk.wrapper;
-
-    public void onCreate() {
-        super.onCreate();
-    }
-
-Package Path:com.secapk.wrapper.ApplicationWrapper.ApplicationWrapper
-Class Name:ApplicationWrapper
-Content: package com.secapk.wrapper;
-
-public class ApplicationWrapper extends Application {
-    private DexClassLoader cl;
-    public static Application realApplication = null;
-    public static String FirstApplication = "com.secapk.wrapper.FirstApplication";
-
-    @Override // android.app.Application
-    public void onCreate() {
-        super.onCreate();
-        if (Util.getCustomClassLoader() == null) {
-            Util.runAll(this);
-        }
-        String applicationClass = FirstApplication;
-        try {
-            this.cl = (DexClassLoader) Util.getCustomClassLoader();
-            Class<?> c = getClassLoader().loadClass(applicationClass);
-            realApplication = (Application) c.newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-            realApplication = null;
-        }
-        if (realApplication != null) {
-            ACall p = ACall.getACall();
-            p.at1(realApplication, getBaseContext());
-            p.set2(this, realApplication, this.cl, getBaseContext());
-            try {
-                if (Float.parseFloat(Build.VERSION.RELEASE.substring(0, 3)) <= 2.1f) {
-                    p.set3(realApplication);
-                }
-            } catch (Exception e2) {
-            }
-            Util.doProvider();
-            realApplication.onCreate();
-        }
-    }
-
-    @Override // android.app.Application
-    public void onTerminate() {
-        super.onTerminate();
-        if (realApplication != null) {
-            realApplication.onTerminate();
-        }
-    }
-
-    @Override // android.app.Application, android.content.ComponentCallbacks
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (realApplication != null) {
-            realApplication.onConfigurationChanged(newConfig);
-        }
-    }
-
-    @Override // android.app.Application, android.content.ComponentCallbacks
-    public void onLowMemory() {
-        super.onLowMemory();
-        if (realApplication != null) {
-            realApplication.onLowMemory();
-        }
-    }
-}
-
-Package Path:com.secapk.wrapper.FirstApplication.FirstApplication
-Class Name:FirstApplication
-Content: package com.secapk.wrapper;
-
-public class FirstApplication extends Application {
-    @Override // android.app.Application
-    public void onCreate() {
-        super.onCreate();
-    }
-}
-
-Package Path:com.secapk.wrapper.Util.Util
-Class Name:Util
-Content: package com.secapk.wrapper;
-
-public class Util {
-    private static ClassLoader cl = null;
-    private static String VERSION_NAME = "1.8";
-    private static ArrayList<ContentProvider> ps = new ArrayList<>();
-    public static Context x86Ctx = null;
-    public static boolean isX86 = false;
-    static byte[] hexDigits = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 65, 66, 67, 68, 69, 70};
-
-    public static void addProvider(ContentProvider p) {
-        synchronized (ps) {
-            x86Ctx = p.getContext();
-            ACall.getACall().set5(p);
-        }
-    }
-
-    public static void doProvider() {
-        synchronized (ps) {
-            ACall.getACall().set4();
-        }
-    }
-
-    public static ClassLoader getCustomClassLoader() {
-        return cl;
-    }
-
-    private static void runPkg(Context ctx, String pkgName) {
-        try {
-            if (cl == null) {
-                if (isX86) {
-                    cl = new MyClassLoader("/data/data/" + pkgName + "/.cache/classes.jar", "/data/data/" + pkgName + "/.cache", "/data/data/" + pkgName + "/lib/", ctx.getClassLoader());
-                } else {
-                    cl = new MyClassLoader("/data/data/" + pkgName + "/.cache/classes.jar", "/data/data/" + pkgName + "/.cache", "/data/data/" + pkgName + "/lib/", ctx.getClassLoader());
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private static void getAssetFile(Context context, String source, String dirstr) {
-        File dir = new File(dirstr);
-        if (!dir.exists()) {
-            try {
-                dir.createNewFile();
-                InputStream is = context.getAssets().open(source);
-                FileOutputStream fos = new FileOutputStream(dir);
-                byte[] buffer = new byte[4096];
-                while (true) {
-                    int len = is.read(buffer);
-                    if (len != -1) {
-                        fos.write(buffer, 0, len);
-                    } else {
-                        fos.close();
-                        is.close();
-                        return;
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        setContentView(R.layout.main);
+        if (isInstalled()) {
+            if (this.ver < 311) {
+                this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_version_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.1
+                    @Override // android.content.DialogInterface.OnClickListener
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        carbqagp.this.installMoXiuLauncherApk();
+                        dialogInterface.dismiss();
                     }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                dir.delete();
-            }
-        }
-    }
-
-    private static void copyJarFile(Context ctx) {
-        String jarFileName = "/data/data/" + ctx.getPackageName() + "/.cache/classes.jar";
-        try {
-            String apkFilePath = ctx.getApplicationInfo().sourceDir;
-            JarFile jar = new JarFile(apkFilePath);
-            ZipEntry entry = jar.getEntry("assets/bangcle_classes.jar");
-            File outfile = new File(jarFileName);
-            byte[] buffer = new byte[65536];
-            InputStream in = new BufferedInputStream(jar.getInputStream(entry));
-            OutputStream out = new BufferedOutputStream(new FileOutputStream(outfile));
-            while (true) {
-                int nBytes = in.read(buffer);
-                if (nBytes > 0) {
-                    out.write(buffer, 0, nBytes);
-                } else {
-                    out.flush();
-                    out.close();
-                    in.close();
-                    return;
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private static boolean deleteDirectory(File path) {
-        if (path.exists()) {
-            File[] files = path.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].isDirectory()) {
-                    deleteDirectory(files[i]);
-                } else {
-                    files[i].delete();
-                }
-            }
-        }
-        return path.delete();
-    }
-
-    private static void writeVersion(File f, int versionCode, String versionName) {
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-            String vcode = Integer.toString(versionCode);
-            bw.write(vcode);
-            bw.newLine();
-            bw.write(versionName);
-            bw.flush();
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static String[] readVersions(File f) {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(f));
-            String[] lines = {reader.readLine(), reader.readLine()};
-            reader.close();
-            return lines;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private static void checkUpdate(Context ctx) {
-        try {
-            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
-            PackageInfo pinfo = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
-            int versionCode = pinfo.versionCode;
-            String versionName = pinfo.versionName;
-            if (versionName == null) {
-                versionName = VERSION_NAME;
-            }
-            File fversion = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
-            if (!fversion.exists()) {
-                deleteDirectory(f);
-                writeVersion(fversion, versionCode, versionName);
-                return;
-            }
-            String[] ret = readVersions(fversion);
-            if (ret == null) {
-                deleteDirectory(f);
-                fversion.delete();
-                return;
-            }
-            int localVersionCode = Integer.parseInt(ret[0]);
-            String localVersionName = ret[1];
-            if (!localVersionName.equals(versionName) || localVersionCode != versionCode) {
-                deleteDirectory(f);
-                fversion.delete();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            deleteDirectory(new File("/data/data/" + ctx.getPackageName() + "/.cache/"));
-            File fversion2 = new File("/data/data/" + ctx.getPackageName() + "/.sec_version");
-            if (fversion2.exists()) {
-                fversion2.delete();
-            }
-        }
-    }
-
-    public static String getCPUinfo() {
-        String result = "";
-        try {
-            String[] args = {"/system/bin/cat", "/proc/cpuinfo"};
-            ProcessBuilder cmd = new ProcessBuilder(args);
-            Process process = cmd.start();
-            InputStream in = process.getInputStream();
-            byte[] re = new byte[1024];
-            while (in.read(re) != -1) {
-                result = result + new String(re);
-            }
-            in.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        return result;
-    }
-
-    public static void realCopy(String destFileName, JarFile jar, ZipEntry entry) {
-        try {
-            File outfile = new File(destFileName);
-            byte[] buffer = new byte[65536];
-            InputStream in = new BufferedInputStream(jar.getInputStream(entry));
-            OutputStream out = new BufferedOutputStream(new FileOutputStream(outfile));
-            while (true) {
-                int nBytes = in.read(buffer);
-                if (nBytes > 0) {
-                    out.write(buffer, 0, nBytes);
-                } else {
-                    out.flush();
-                    out.close();
-                    in.close();
-                    return;
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private static void CopyLib(Context ctx) {
-        JarFile jarFile;
-        String apkFilePath = ctx.getApplicationInfo().sourceDir;
-        try {
-            jarFile = new JarFile(apkFilePath);
-        } catch (IOException e) {
-            e = e;
-        }
-        try {
-            Enumeration<JarEntry> iter = jarFile.entries();
-            while (iter.hasMoreElements()) {
-                JarEntry jarEntry = iter.nextElement();
-                String jarEntryName = jarEntry.getName();
-                if (jarEntryName.equals("assets/libsecexe.x86.so")) {
-                    String soName = jarEntryName.replaceAll("assets/", "");
-                    String destSoName = "/data/data/" + ctx.getPackageName() + "/.cache/" + soName;
-                    realCopy(destSoName, jarFile, jarEntry);
-                }
-                if (jarEntryName.equals("assets/libsecmain.x86.so")) {
-                    jarEntryName.replaceAll("assets/", "");
-                    String destSoName2 = "/data/data/" + ctx.getPackageName() + "/.cache/libsecmain.x86.so";
-                    realCopy(destSoName2, jarFile, jarEntry);
-                }
-                if (jarEntryName.equals("assets/" + ctx.getPackageName() + ".x86")) {
-                    jarEntryName.replaceAll("assets/", "");
-                    String destSoName3 = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
-                    realCopy(destSoName3, jarFile, jarEntry);
-                }
-            }
-        } catch (IOException e2) {
-            e = e2;
-            e.printStackTrace();
-        }
-    }
-
-    private static void checkX86(Context ctx) {
-        String cpuinfo = Build.CPU_ABI;
-        if (cpuinfo.equals("x86")) {
-            isX86 = true;
-        }
-        if (isX86) {
-            String libfileName = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
-            File libFile = new File(libfileName);
-            if (!libFile.exists()) {
-                CopyLib(ctx);
-            }
-        }
-    }
-
-    private static long getDataSize() {
-        File data = Environment.getDataDirectory();
-        StatFs fs = new StatFs(data.getPath());
-        long availableBlocks = fs.getAvailableBlocks();
-        long size = fs.getBlockSize();
-        long availableSize = availableBlocks * size;
-        return availableSize;
-    }
-
-    private static long getClassesJarSize(Context ctx) {
-        try {
-            String apkFilePath = ctx.getApplicationInfo().sourceDir;
-            JarFile jarFile = new JarFile(apkFilePath);
-            JarEntry jarEntry = jarFile.getJarEntry("assets/bangcle_classes.jar");
-            return jarEntry.getSize();
-        } catch (Exception e) {
-            return 0L;
-        }
-    }
-
-    private static boolean isSpaceEnough(Context ctx) {
-        String classesJarFileName = "/data/data/" + ctx.getPackageName() + "/.cache/classes.jar";
-        String dexFileName = "/data/data/" + ctx.getPackageName() + "/.cache/classes.dex";
-        File classesJarFile = new File(classesJarFileName);
-        File dexFile = new File(dexFileName);
-        if (classesJarFile.exists() && dexFile.exists()) {
-            return true;
-        }
-        long size = getDataSize();
-        long classSize = getClassesJarSize(ctx);
-        return 4 * classSize <= size;
-    }
-
-    private static void checkSpace(Context ctx) {
-        if (!isSpaceEnough(ctx)) {
-            long size = getDataSize();
-            long classSize = getClassesJarSize(ctx);
-            Log.e("SecApk", "Insufficient Space For SecApk available size:" + size + " classSize" + classSize);
-            try {
-                Runtime r = Runtime.getRuntime();
-                r.exec("kill -9 " + Process.myPid());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-
-    private static void CopyBinaryFile(Context ctx) {
-        String jarFileName = "/data/data/" + ctx.getPackageName() + "/.cache/classes.jar";
-        String myDexOptFile = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
-        File jarFile = new File(jarFileName);
-        if (!jarFile.exists()) {
-            ACall.getACall().a1(ctx.getPackageName().getBytes(), ctx.getApplicationInfo().sourceDir.getBytes());
-        }
-        try {
-            Process proc = Runtime.getRuntime().exec("chmod 755 " + myDexOptFile);
-            proc.waitFor();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e2) {
-            e2.printStackTrace();
-        }
-    }
-
-    private static void createChildProcess(Context ctx) {
-        String apkFilePath = ctx.getApplicationInfo().sourceDir;
-        ACall.getACall().r1(ctx.getPackageName().getBytes(), apkFilePath.getBytes());
-    }
-
-    private static void tryDo(Context ctx) {
-        String apkFilePath = ctx.getApplicationInfo().sourceDir;
-        ACall.getACall().r2(ctx.getPackageName().getBytes(), apkFilePath.getBytes(), ctx.getApplicationInfo().processName.getBytes());
-    }
-
-    public static void doCheck(Context ctx) {
-        byte[] md5;
-        ApplicationInfo info = ctx.getApplicationInfo();
-        File checkFile = new File(info.dataDir, ".md5");
-        File targetFile = new File(info.dataDir, ".cache/classes.dex");
-        String dexPath = "/data/dalvik-cache/";
-        String apkPath = new String(info.sourceDir);
-        StringTokenizer st = new StringTokenizer(apkPath, "/");
-        while (st.hasMoreTokens()) {
-            System.out.println();
-            dexPath = (dexPath + st.nextToken()) + "@";
-        }
-        boolean todo = false;
-        try {
-            byte[] dexResult = toASC(calFileMD5(dexPath + "classes.dex"));
-            if (!checkFile.exists()) {
-                if (dexResult != null) {
-                    FileOutputStream chkOut = new FileOutputStream(checkFile);
-                    chkOut.write(dexResult);
-                    chkOut.close();
-                    todo = true;
-                }
-            } else if (dexResult != null && (md5 = readFile(checkFile)) != null) {
-                if (md5.length == dexResult.length) {
-                    for (int i = 0; i < md5.length; i++) {
-                        if (md5[i] != dexResult[i]) {
-                            todo = true;
-                            break;
+                }).create();
+                this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.2
+                    @Override // android.content.DialogInterface.OnKeyListener
+                    public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                        if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                            carbqagp.this.finish();
+                            carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                            return false;
                         }
+                        return false;
                     }
-                } else {
-                    todo = true;
-                }
+                });
+                this.interDialog.show();
+                return;
             }
-        } catch (Exception ex) {
-            ex.printStackTrace(System.out);
-        }
-        if (!todo || !targetFile.exists()) {
+            OpenThemeDetail();
             return;
         }
-        targetFile.delete();
+        this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_install_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.3
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
+            }
+        }).create();
+        this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.4
+            @Override // android.content.DialogInterface.OnKeyListener
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                    carbqagp.this.finish();
+                    carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                    return false;
+                }
+                return false;
+            }
+        });
+        this.interDialog.show();
     }
 
-    public static byte[] toASC(byte[] bts) {
-        byte[] ret = new byte[bts.length * 2];
-        for (int i = 0; i < bts.length; i++) {
-            byte b = bts[i];
-            ret[i * 2] = hexDigits[(b >> 4) & 15];
-            ret[(i * 2) + 1] = hexDigits[b & 15];
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onClick
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
+            }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.carbqagp
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+public class carbqagp extends Activity {
+    public static final String MOXIU_FOLDER_THEME = Environment.getExternalStorageDirectory().toString() + "/moxiu/themes/";
+    private static final int MOXIU_LAUNCHER_INSTALL_SUCCESS = 1;
+    private static final String MOXIU_LAUNCHER_NAME = "com.moxiu.launcher";
+    public static final String channel = "moxiu_theme_single";
+    public static final int hezuotiaozhuan = 4097;
+    public static final int hezuotiaozhuan_noinstall = 4098;
+    private AlertDialog interDialog;
+    private int ver = 105;
+    public Boolean isZhiJieYingYong = true;
+
+    @Override // android.app.Activity
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        setContentView(R.layout.main);
+        if (isInstalled()) {
+            if (this.ver < 311) {
+                this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_version_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.1
+                    @Override // android.content.DialogInterface.OnClickListener
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        carbqagp.this.installMoXiuLauncherApk();
+                        dialogInterface.dismiss();
+                    }
+                }).create();
+                this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.2
+                    @Override // android.content.DialogInterface.OnKeyListener
+                    public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                        if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                            carbqagp.this.finish();
+                            carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                            return false;
+                        }
+                        return false;
+                    }
+                });
+                this.interDialog.show();
+                return;
+            }
+            OpenThemeDetail();
+            return;
         }
-        return ret;
+        this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_install_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.3
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
+            }
+        }).create();
+        this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.4
+            @Override // android.content.DialogInterface.OnKeyListener
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                    carbqagp.this.finish();
+                    carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                    return false;
+                }
+                return false;
+            }
+        });
+        this.interDialog.show();
     }
 
-    public static byte[] readFile(File path) throws Exception {
-        FileInputStream input = new FileInputStream(path);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buffer = new byte[32768];
-        while (true) {
-            int readed = input.read(buffer);
-            if (readed > 0) {
-                out.write(buffer, 0, readed);
+    private void OpenMoxiuTheme() {
+        try {
+            getPackageManager().getPackageInfo(getApplication().getPackageName(), 0).applicationInfo.loadLabel(getPackageManager()).toString();
+            ComponentName componentName = new ComponentName(MOXIU_LAUNCHER_NAME, "com.moxiu.market.activity.ActivityMarket_main");
+            Intent intent = new Intent();
+            intent.setFlags(131072);
+            intent.addFlags(268435456);
+            intent.setAction("android.intent.action.MAIN");
+            intent.setComponent(componentName);
+            startActivity(intent);
+            overridePendingTransition(R.anim.moxiu_zoom_in, R.anim.moxiu_zoom_out);
+            finish();
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+    }
+
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override // android.app.Activity
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        if (i == MOXIU_LAUNCHER_INSTALL_SUCCESS && i2 == 0) {
+            if (isInstalled() && this.ver > 310) {
+                OpenThemeDetail();
             } else {
-                return out.toByteArray();
+                OpenMoxiuTheme();
             }
         }
     }
 
-    public static byte[] calFileMD5(String path) throws Exception {
-        FileInputStream input = new FileInputStream(path);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buffer = new byte[32768];
-        while (true) {
-            int readed = input.read(buffer);
-            if (readed > 0) {
-                out.write(buffer, 0, readed);
-            } else {
-                MessageDigest md = MessageDigest.getInstance("MD5");
-                md.update(out.toByteArray());
-                return md.digest();
-            }
-        }
-    }
-
-    public static void runAll1(Context ctx) {
+    private boolean isInstalled() {
         try {
-            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
-            if (!f.exists()) {
-                f.mkdir();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(MOXIU_LAUNCHER_NAME, 0);
+            this.ver = packageInfo.versionCode;
+            return packageInfo != null;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
-        checkX86(ctx);
     }
 
-    public static void runAll(Context ctx) {
-        x86Ctx = ctx;
-        doCheck(ctx);
-        checkUpdate(ctx);
+    /* JADX INFO: Access modifiers changed from: private */
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
         try {
-            File f = new File("/data/data/" + ctx.getPackageName() + "/.cache/");
-            if (!f.exists()) {
-                f.mkdir();
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
+                }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        checkX86(ctx);
-        CopyBinaryFile(ctx);
-        createChildProcess(ctx);
-        tryDo(ctx);
-        runPkg(ctx, ctx.getPackageName());
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
     }
 
-    public static Field getField(Class<?> cls, String name) {
-        Field[] arr$ = cls.getDeclaredFields();
-        for (Field field : arr$) {
-            if (!field.isAccessible()) {
-                field.setAccessible(true);
-            }
-            if (field.getName().equals(name)) {
-                return field;
-            }
-        }
-        return null;
-    }
-
-    public static Object getFieldValue(Class<?> cls, Object obj, String name) {
-        try {
-            Field f = getField(cls, name);
-            return f.get(obj);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-    public static void setFieldValue(Class<?> cls, Object obj, String name, Object value) {
-        System.out.println("setFieldValue" + cls + obj + name + value);
-        if (name != null) {
-            try {
-                Field f = getField(cls, name);
-                f.setAccessible(true);
-                f.set(obj, value);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
+    @Override // android.app.Activity
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }
 
-Package Path:com.secapk.wrapper.Util.tryDo
-Class Name:Util
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.interDialog
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
 
-    private static void tryDo(Context ctx) {
-        String apkFilePath = ctx.getApplicationInfo().sourceDir;
-        ACall.getACall().r2(ctx.getPackageName().getBytes(), apkFilePath.getBytes(), ctx.getApplicationInfo().processName.getBytes());
+    private AlertDialog interDialog;
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onKey
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                    carbqagp.this.finish();
+                    carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                    return false;
+                }
+                return false;
+            }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.isInstalled
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    private boolean isInstalled() {
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(MOXIU_LAUNCHER_NAME, 0);
+            this.ver = packageInfo.versionCode;
+            return packageInfo != null;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 
-Package Path:com.secapk.wrapper.ACall.s1
-Class Name:ACall
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
 
-    public native void s1(Object obj, Object obj2, Object obj3);
-
-Package Path:com.secapk.wrapper.ApplicationWrapper.onCreate
-Class Name:ApplicationWrapper
-Content: package com.secapk.wrapper;
-
-    public void onCreate() {
-        super.onCreate();
-        if (Util.getCustomClassLoader() == null) {
-            Util.runAll(this);
-        }
-        String applicationClass = FirstApplication;
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
         try {
-            this.cl = (DexClassLoader) Util.getCustomClassLoader();
-            Class<?> c = getClassLoader().loadClass(applicationClass);
-            realApplication = (Application) c.newInstance();
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
+    }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.ver
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    private int ver = 105;
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.MOXIU_FOLDER_THEME
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    public static final String MOXIU_FOLDER_THEME = Environment.getExternalStorageDirectory().toString() + "/moxiu/themes/";
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onDestroy
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    private void OpenMoxiuTheme() {
+        try {
+            getPackageManager().getPackageInfo(getApplication().getPackageName(), 0).applicationInfo.loadLabel(getPackageManager()).toString();
+            ComponentName componentName = new ComponentName(MOXIU_LAUNCHER_NAME, "com.moxiu.market.activity.ActivityMarket_main");
+            Intent intent = new Intent();
+            intent.setFlags(131072);
+            intent.addFlags(268435456);
+            intent.setAction("android.intent.action.MAIN");
+            intent.setComponent(componentName);
+            startActivity(intent);
+            overridePendingTransition(R.anim.moxiu_zoom_in, R.anim.moxiu_zoom_out);
+            finish();
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+    }
+
+Package Path:aimoxiu.theme.carbqagp.R.R
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
+
+public final class R {
+
+    public static final class anim {
+        public static final int moxiu_zoom_in = 0x7f060000;
+        public static final int moxiu_zoom_in_back = 0x7f060001;
+        public static final int moxiu_zoom_out = 0x7f060002;
+        public static final int moxiu_zoom_out_back = 0x7f060003;
+    }
+
+    public static final class attr {
+    }
+
+    public static final class color {
+        public static final int moxiu_color = 0x7f050000;
+    }
+
+    public static final class drawable {
+        public static final int alarm_clock = 0x7f020000;
+        public static final int browser = 0x7f020001;
+        public static final int calculator = 0x7f020002;
+        public static final int calendar = 0x7f020003;
+        public static final int camera = 0x7f020004;
+        public static final int contacts = 0x7f020005;
+        public static final int filemanager = 0x7f020006;
+        public static final int gallery = 0x7f020007;
+        public static final int gmail = 0x7f020008;
+        public static final int google_maps = 0x7f020009;
+        public static final int icon = 0x7f02000a;
+        public static final int market = 0x7f02000b;
+        public static final int mms = 0x7f02000c;
+        public static final int moxiu_all_apps_button = 0x7f02000d;
+        public static final int moxiu_all_apps_button_focused = 0x7f02000e;
+        public static final int moxiu_all_apps_button_normal = 0x7f02000f;
+        public static final int moxiu_all_apps_layout_bg = 0x7f020010;
+        public static final int moxiu_mainmenu = 0x7f020011;
+        public static final int moxiu_mainmenu_home = 0x7f020012;
+        public static final int moxiu_mainmenu_home_focused = 0x7f020013;
+        public static final int moxiu_mainmenu_home_normal = 0x7f020014;
+        public static final int moxiu_mainmenu_icon_background = 0x7f020015;
+        public static final int moxiu_mainmenu_icon_mask = 0x7f020016;
+        public static final int moxiu_pressed_background = 0x7f020017;
+        public static final int moxiu_preview = 0x7f020018;
+        public static final int moxiu_preview_thumb = 0x7f020019;
+        public static final int moxiu_selector = 0x7f02001a;
+        public static final int moxiu_sense = 0x7f02001b;
+        public static final int moxiu_shortcut_selector = 0x7f02001c;
+        public static final int music = 0x7f02001d;
+        public static final int pattern_carbon_fiber_dark = 0x7f02001e;
+        public static final int phone = 0x7f02001f;
+        public static final int qq = 0x7f020020;
+        public static final int settings = 0x7f020021;
+        public static final int wallpaper = 0x7f020022;
+        public static final int weibo = 0x7f020023;
+        public static final int weixin = 0x7f020024;
+    }
+
+    public static final class id {
+        public static final int alpha = 0x7f070000;
+    }
+
+    public static final class layout {
+        public static final int main = 0x7f030000;
+    }
+
+    public static final class string {
+        public static final int drawable_level = 0x7f040005;
+        public static final int moxiu_info = 0x7f040001;
+        public static final int moxiu_install_info = 0x7f040002;
+        public static final int moxiu_ok = 0x7f040004;
+        public static final int moxiu_theme_name = 0x7f040000;
+        public static final int moxiu_version_info = 0x7f040003;
+    }
+}
+
+Package Path:aimoxiu.theme.carbqagp.R.drawable
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
+
+    public static final class drawable {
+        public static final int alarm_clock = 0x7f020000;
+        public static final int browser = 0x7f020001;
+        public static final int calculator = 0x7f020002;
+        public static final int calendar = 0x7f020003;
+        public static final int camera = 0x7f020004;
+        public static final int contacts = 0x7f020005;
+        public static final int filemanager = 0x7f020006;
+        public static final int gallery = 0x7f020007;
+        public static final int gmail = 0x7f020008;
+        public static final int google_maps = 0x7f020009;
+        public static final int icon = 0x7f02000a;
+        public static final int market = 0x7f02000b;
+        public static final int mms = 0x7f02000c;
+        public static final int moxiu_all_apps_button = 0x7f02000d;
+        public static final int moxiu_all_apps_button_focused = 0x7f02000e;
+        public static final int moxiu_all_apps_button_normal = 0x7f02000f;
+        public static final int moxiu_all_apps_layout_bg = 0x7f020010;
+        public static final int moxiu_mainmenu = 0x7f020011;
+        public static final int moxiu_mainmenu_home = 0x7f020012;
+        public static final int moxiu_mainmenu_home_focused = 0x7f020013;
+        public static final int moxiu_mainmenu_home_normal = 0x7f020014;
+        public static final int moxiu_mainmenu_icon_background = 0x7f020015;
+        public static final int moxiu_mainmenu_icon_mask = 0x7f020016;
+        public static final int moxiu_pressed_background = 0x7f020017;
+        public static final int moxiu_preview = 0x7f020018;
+        public static final int moxiu_preview_thumb = 0x7f020019;
+        public static final int moxiu_selector = 0x7f02001a;
+        public static final int moxiu_sense = 0x7f02001b;
+        public static final int moxiu_shortcut_selector = 0x7f02001c;
+        public static final int music = 0x7f02001d;
+        public static final int pattern_carbon_fiber_dark = 0x7f02001e;
+        public static final int phone = 0x7f02001f;
+        public static final int qq = 0x7f020020;
+        public static final int settings = 0x7f020021;
+        public static final int wallpaper = 0x7f020022;
+        public static final int weibo = 0x7f020023;
+        public static final int weixin = 0x7f020024;
+    }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
+        try {
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
+                }
+            }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
         } catch (Exception e) {
             e.printStackTrace();
-            realApplication = null;
         }
-        if (realApplication != null) {
-            ACall p = ACall.getACall();
-            p.at1(realApplication, getBaseContext());
-            p.set2(this, realApplication, this.cl, getBaseContext());
-            try {
-                if (Float.parseFloat(Build.VERSION.RELEASE.substring(0, 3)) <= 2.1f) {
-                    p.set3(realApplication);
-                }
-            } catch (Exception e2) {
-            }
-            Util.doProvider();
-            realApplication.onCreate();
-        }
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
     }
 
-Package Path:com.secapk.wrapper.Util.checkX86
-Class Name:Util
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onActivityResult
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
 
-    private static void checkX86(Context ctx) {
-        String cpuinfo = Build.CPU_ABI;
-        if (cpuinfo.equals("x86")) {
-            isX86 = true;
-        }
-        if (isX86) {
-            String libfileName = "/data/data/" + ctx.getPackageName() + "/.cache/" + ctx.getPackageName();
-            File libFile = new File(libfileName);
-            if (!libFile.exists()) {
-                CopyLib(ctx);
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        if (i == MOXIU_LAUNCHER_INSTALL_SUCCESS && i2 == 0) {
+            if (isInstalled() && this.ver > 310) {
+                OpenThemeDetail();
+            } else {
+                OpenMoxiuTheme();
             }
         }
     }
 
-Package Path:com.secapk.wrapper.ApplicationWrapper.onLowMemory
-Class Name:ApplicationWrapper
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.R.calendar
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
 
-    public void onLowMemory() {
-        super.onLowMemory();
-        if (realApplication != null) {
-            realApplication.onLowMemory();
-        }
-    }
+        public static final int calendar = 0x7f020003;
 
-Package Path:com.secapk.wrapper.Util.createChildProcess
-Class Name:Util
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.R.moxiu_all_apps_button_focused
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
 
-    private static void createChildProcess(Context ctx) {
-        String apkFilePath = ctx.getApplicationInfo().sourceDir;
-        ACall.getACall().r1(ctx.getPackageName().getBytes(), apkFilePath.getBytes());
-    }
+        public static final int moxiu_all_apps_button_focused = 0x7f02000e;
 
-Package Path:com.secapk.wrapper.Util.addProvider
-Class Name:Util
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.isZhiJieYingYong
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
 
-    public static void addProvider(ContentProvider p) {
-        synchronized (ps) {
-            x86Ctx = p.getContext();
-            ACall.getACall().set5(p);
-        }
-    }
+    public Boolean isZhiJieYingYong = true;
 
-Package Path:com.secapk.wrapper.ACall.c3
-Class Name:ACall
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.R.alarm_clock
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
 
-    public native Object c3(Object obj, Object obj2);
+        public static final int alarm_clock = 0x7f020000;
 
-Package Path:com.secapk.wrapper.ACall.a1
-Class Name:ACall
-Content: package com.secapk.wrapper;
+Package Path:aimoxiu.theme.carbqagp.R.icon
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
 
-    public native void a1(byte[] bArr, byte[] bArr2);
+        public static final int icon = 0x7f02000a;
