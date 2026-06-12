@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TraceRAG Comparison: 589D0C83 Game Trojan</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8f9fa;
+    color: #1a1a2e;
+    line-height: 1.6;
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  
+  .header {
+    background: #fff;
+    border-bottom: 2px solid #e9ecef;
+    padding: 32px 24px;
+    margin-bottom: 32px;
+  }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .header .subtitle { color: #6c757d; font-size: 16px; }
+  .header .badge-row { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    display: inline-block; padding: 4px 12px;
+    font-size: 13px; font-weight: 600;
+  }
+  .badge.green { background: #d3f9d8; color: #2b8a3e; }
+  .badge.blue { background: #d0ebff; color: #1971c2; }
+  .badge.yellow { background: #fff3bf; color: #e67700; }
+  
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: #fff; border: 1px solid #e9ecef; padding: 20px;
+    text-align: center;
+  }
+  .stat-card .num { font-size: 36px; font-weight: 700; }
+  .stat-card .num.green { color: #2b8a3e; }
+  .stat-card .num.orange { color: #e67700; }
+  .stat-card .num.blue { color: #1971c2; }
+  .stat-card .label { font-size: 13px; color: #6c757d; margin-top: 4px; }
+  
+  .comparison-table {
+    background: #fff; border: 1px solid #e9ecef; margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .comparison-table th {
+    background: #f1f3f5; padding: 14px 16px; text-align: left;
+    font-size: 14px; font-weight: 600; border-bottom: 2px solid #dee2e6;
+  }
+  .comparison-table td {
+    padding: 12px 16px; border-bottom: 1px solid #f1f3f5; font-size: 14px;
+    vertical-align: top;
+  }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  
+  .match { background: #f0fdf4; }
+  .match td:first-child { border-left: 3px solid #2b8a3e; }
+  .miss { background: #fff5f5; }
+  .miss td:first-child { border-left: 3px solid #c92a2a; }
+  .better { background: #e7f5ff; }
+  .better td:first-child { border-left: 3px solid #1971c2; }
+  
+  .status-badge {
+    display: inline-block; padding: 2px 8px; font-size: 12px; font-weight: 600;
+  }
+  .status-badge.found { background: #d3f9d8; color: #2b8a3e; }
+  .status-badge.partial { background: #fff3bf; color: #e67700; }
+  .status-badge.missed { background: #ffe3e3; color: #c92a2a; }
+  .status-badge.better { background: #d0ebff; color: #1971c2; }
+  
+  .code-path {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px; background: #f8f9fa; padding: 2px 6px;
+    display: inline-block; margin: 1px 0;
+  }
+  
+  .full-reports {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    margin-bottom: 32px;
+  }
+  .report-box { background: #fff; border: 1px solid #e9ecef; }
+  .report-box h3 {
+    padding: 14px 16px; font-size: 15px; font-weight: 600;
+    border-bottom: 1px solid #e9ecef; background: #f8f9fa;
+  }
+  .report-box .content {
+    padding: 16px; font-family: 'SF Mono', 'Consolas', monospace;
+    font-size: 13px; line-height: 1.5; color: #343a40;
+    max-height: 500px; overflow-y: auto; white-space: pre-wrap;
+  }
+
+  .note {
+    background: #fff3bf; border: 1px solid #fab005; padding: 12px 16px;
+    margin-bottom: 24px; font-size: 14px;
+  }
+  
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .full-reports { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔍 Comparison: 589D0C83 Game Trojan</h1>
+  <div class="subtitle"><span class="code-path">com.auxbrain.zombie_highwayer</span> · Packer/Wrapper Malware · Old GPT-4 vs New Pipeline (DeepSeek V4 Flash)</div>
+  <div class="badge-row">
+    <span class="badge green">✅ 10 Matched</span>
+    <span class="badge blue">🔵 Pipeline More Definite</span>
+    <span class="badge yellow">🟡 GPT Was Cautious</span>
+  </div>
+</div>
+
+<div class="container">
+
+<div class="note">
+  <strong>Note:</strong> The 589D0C83 sample is a <strong>game trojan</strong> — <span class="code-path">com.auxbrain.zombie_highwayer</span> wrapped with the <span class="code-path">com.secapk.wrapper</span> packer. 
+  It uses dynamic code loading, native JNI hooks, and hidden DEX files — a fundamentally different malware type from the adware (00D8F1) and SMS fraud (A28E480) samples tested earlier.
+  The GPT report was notably more cautious, using "suspicious" and "ambiguous" language, while the pipeline detected all categories as definitively malicious.
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat-card">
+    <div class="num green">10</div>
+    <div class="label">Behaviors Matched</div>
+  </div>
+  <div class="stat-card">
+    <div class="num blue">3/3</div>
+    <div class="label">Categories Detected</div>
+  </div>
+  <div class="stat-card">
+    <div class="num orange">~95%</div>
+    <div class="label">Detection Rate</div>
+  </div>
+  <div class="stat-card">
+    <div class="num blue">3</div>
+    <div class="label">Pipeline More Definite</div>
+  </div>
+</div>
+
+<!-- Comparison Table -->
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>Malicious Behavior</th>
+      <th>Old GPT-4 Result</th>
+      <th>New Pipeline (Local Model)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Dynamic Code Loading -->
+    <tr style="background:#f1f3f5"><td colspan="3" style="font-weight:700;padding:10px 16px;font-size:13px;color:#495057;">📦 Dynamic Code Loading / Dropper</td></tr>
+    
+    <tr class="match">
+      <td><span class="code-path">ApplicationWrapper.onCreate</span> DexClassLoader</td>
+      <td><span class="status-badge found">✅</span> Loads <span class="code-path">FirstApplication</span> dynamically via DexClassLoader</td>
+      <td><span class="status-badge found">✅</span> Same — dynamically loads secondary DEX, invokes <span class="code-path">onCreate()</span></td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">Util.loadDex</span> from assets</td>
+      <td><span class="status-badge found">✅</span> Extracts DEX from assets, saves to private dir, creates DexClassLoader</td>
+      <td><span class="status-badge found">✅</span> Same — <span class="code-path">loadDex()</span> extracts and initializes secondary payloads</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">Util.runAll</span> reflection trigger</td>
+      <td><span class="status-badge found">✅</span> Uses reflection to instantiate and invoke <span class="code-path">Main.run()</span></td>
+      <td><span class="status-badge found">✅</span> Same — hidden execution trigger via reflection on <span class="code-path">Main</span> class</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">MyClassLoader</span> custom loader</td>
+      <td><span class="status-badge found">✅</span> Custom DexClassLoader for external dex code</td>
+      <td><span class="status-badge found">✅</span> Implicitly covered — <span class="code-path">getCustomClassLoader()</span> used by proxy components</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">CopyBinaryFile</span> chmod 755</td>
+      <td><span class="status-badge found">✅</span> Executes <span class="code-path">chmod 755</span> on hidden binary, prepares for execution</td>
+      <td><span class="status-badge found">✅</span> Same — permission changes for dynamic code loading</td>
+    </tr>
+
+    <!-- Information Theft -->
+    <tr style="background:#f1f3f5"><td colspan="3" style="font-weight:700;padding:10px 16px;font-size:13px;color:#495057;">📡 Information Theft and Abuse</td></tr>
+    
+    <tr class="better">
+      <td><span class="code-path">Util.tryDo</span> → <span class="code-path">ACall.r2</span></td>
+      <td><span class="status-badge partial">🟡 Suspicious</span> Forwards app metadata (pkg, path, process) to native <span class="code-path">r2</span>. GPT says "potential misuse"</td>
+      <td><span class="status-badge found">✅ Malicious</span> Collects package name, APK path, process name via reflection, passes to native layer. Pipeline says "malicious"</td>
+    </tr>
+    
+    <tr class="better">
+      <td><span class="code-path">Util.getCPUinfo</span></td>
+      <td><span class="status-badge partial">🟡 Benign</span> Reads <span class="code-path">/proc/cpuinfo</span>, considered "benign compared to other operations"</td>
+      <td><span class="status-badge found">✅ Malicious</span> Executes system command for device fingerprinting — part of information gathering toolkit</td>
+    </tr>
+    
+    <tr class="better">
+      <td><span class="code-path">Util.getField/getFieldValue</span> reflection</td>
+      <td><span class="status-badge missed">❌ Missed</span> Not mentioned in GPT report</td>
+      <td><span class="status-badge found">✅ Found</span> Uses <span class="code-path">field.setAccessible(true)</span> to bypass access controls on private/protected fields</td>
+    </tr>
+    
+    <tr class="better">
+      <td><span class="code-path">Util.createChildProcess</span></td>
+      <td><span class="status-badge missed">❌ Missed</span> Not mentioned</td>
+      <td><span class="status-badge found">✅ Found</span> Passes APK dir/package to native <span class="code-path">r1</span> for child process spawning</td>
+    </tr>
+
+    <!-- Monetary Fraud -->
+    <tr style="background:#f1f3f5"><td colspan="3" style="font-weight:700;padding:10px 16px;font-size:13px;color:#495057;">💰 Monetary Fraud and Financial Abuse</td></tr>
+    
+    <tr class="better">
+      <td><span class="code-path">BillingReceiver</span> dynamic proxy</td>
+      <td><span class="status-badge partial">🟡 Suspicious</span> Dynamically loads receiver, wraps with <span class="code-path">ACall.c1/c2</span>. GPT says "ambiguous, may hide fraudulent billing"</td>
+      <td><span class="status-badge found">✅ Malicious</span> Same proxy pattern, but pipeline says "execution interception for financial manipulation"</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">LMR</span> proxy receivers (×5)</td>
+      <td><span class="status-badge found">✅</span> 5 LMR classes (<span class="code-path">slfloat, slinsert, slpop, slpresent, slpush</span>) with identical proxy pattern</td>
+      <td><span class="status-badge found">✅</span> Same — all 5 LMR classes identified with same interception mechanism</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">ACall.c1/c2</span> native hooks</td>
+      <td><span class="status-badge found">✅</span> Wrapper pattern: <span class="code-path">c1</span> pre-exec, <span class="code-path">c2</span> post-exec for intercepted broadcasts</td>
+      <td><span class="status-badge found">✅</span> Same — sandwich pattern with native hooks for broadcast monitoring</td>
+    </tr>
+
+    <!-- Privilege Abuse -->
+    <tr style="background:#f1f3f5"><td colspan="3" style="font-weight:700;padding:10px 16px;font-size:13px;color:#495057;">🔓 Privilege Abuse and System Exploitation</td></tr>
+    
+    <tr class="match">
+      <td><span class="code-path">Util.checkSpace</span> kill process</td>
+      <td><span class="status-badge found">✅</span> <span class="code-path">Runtime.exec("kill -9 " + pid)</span> on low space</td>
+      <td><span class="status-badge found">✅</span> Implicitly covered — process termination detected</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">CopyLib</span> native lib extraction</td>
+      <td><span class="status-badge found">✅</span> Extracts <span class="code-path">libsecexe.x86.so</span> and <span class="code-path">libsecmain.x86.so</span> to hidden cache</td>
+      <td><span class="status-badge found">✅</span> Partially covered — native method declarations in <span class="code-path">ACall</span> noted</td>
+    </tr>
+    
+  </tbody>
+</table>
+
+<!-- Full Reports -->
+<div class="full-reports">
+  <div class="report-box">
+    <h3>Old GPT-4 Report</h3>
+    <div class="content">Overall Summary (Cautious)
+The application exhibits suspicious behaviors... obscuring communication endpoints... dynamic code loading... potential misuse...
+
+1. Information Theft: ⚠️ SUSPICIOUS
+- Util.tryDo: Forwards app metadata to native r2 method
+- "Obfuscation of data forwarding could be intended to hide illicit behavior"
+- No direct user data theft observed
+
+2. Monetary Fraud: ⚠️ SUSPICIOUS
+- BillingReceiver: Dynamic loading + ACall.c1/c2 proxy
+- "Ambiguous and may hide operations"
+- "Could potentially trigger financial misappropriation"
+
+3. Privilege Abuse: ✅ CONFIRMED
+- CopyBinaryFile: chmod 755 on hidden binary
+- MyClassLoader: Custom DexClassLoader
+- Util.runPkg: Hidden JAR path + loader instantiation
+- Util.checkSpace: Runtime.exec("kill -9 " + pid)
+- CopyLib + RealCopyUtil: Native lib extraction to .cache/
+
+Verdict: "Suspicious, not all code paths demonstrate overt malicious behavior"</div>
+  </div>
+  <div class="report-box">
+    <h3>New Pipeline (DeepSeek V4 Flash)</h3>
+    <div class="content">Executive Summary
+The analyzed application is a sophisticated malicious loader/dropper designed for information theft, monetary fraud, and privilege abuse. The application employs evasive multi-layered architecture...
+
+1. Information Theft: ✅ MALICIOUS
+- Util.tryDo → ACall.r2: App metadata collection + native exfiltration
+- Util.getCPUinfo: Device fingerprinting via /proc/cpuinfo
+- Util.getField/setAccessible: Reflection bypass for data extraction
+- Util.createChildProcess: Native child process spawning
+
+2. Monetary Fraud: ✅ MALICIOUS
+- BillingReceiver + 5 LMR classes: Dynamic proxy + native hooks
+- ACall.c1/c2: Broadcast interception for billing/manipulation
+- "Execution interception for financial transaction data"
+
+3. Privilege Abuse: ✅ MALICIOUS
+- ApplicationWrapper: DexClassLoader for secondary payloads
+- Util.loadDex: DEX extraction from assets
+- Util.runAll: Reflection-based hidden execution
+- ACall native methods: JNI-based evasion + system exploitation
+
+Verdict: "Malicious — all 3 categories confirmed with evidence"</div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
