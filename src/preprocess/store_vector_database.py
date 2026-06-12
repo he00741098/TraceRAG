@@ -90,15 +90,26 @@ def process_java_summaries(
                 with open(code_path, 'r', encoding='utf-8') as java_file:
                     original_code = java_file.read()
 
+                # Read the CLEANED code for embedding. Cleaned code has bloat
+                # removed but API calls and package names preserved (per the
+                # updated cleaning prompt). This avoids polluting embeddings
+                # with decompiler artifacts from raw code.
+                if os.path.exists(cleaned_java_path):
+                    with open(cleaned_java_path, 'r', encoding='utf-8') as f:
+                        cleaned_code = f.read()
+                else:
+                    cleaned_code = original_code
+
                 # 提取 class 名称（Java 文件所在的文件夹名）
                 class_name = os.path.basename(os.path.dirname(full_java_file_path))
 
                 # 创建 TextNode，并存储 metadata
-                # Embed both the LLM summary AND a truncated copy of the raw code.
-                # The summary gives semantic understanding; the raw code provides
-                # exact API keywords (TelephonyManager.getDeviceId, etc.) that
-                # are critical for vector search to match category queries.
-                embedded_text = summary_content + "\n\n" + original_code[:800]
+                # Embed both the LLM summary AND a truncated copy of the CLEANED code.
+                # Summary gives semantic understanding; cleaned code provides exact
+                # API keywords (TelephonyManager.getDeviceId, etc.) while avoiding
+                # decompiler bloat that pollutes the embeddings.
+                # Full raw code is kept in metadata for Phase 2 analysis display.
+                embedded_text = summary_content + "\n\n" + cleaned_code[:800]
                 node = TextNode(
                     text=embedded_text,  # 存入摘要 + raw code keywords
                     metadata={
