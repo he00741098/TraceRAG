@@ -281,7 +281,7 @@ def back_or_output(state: MessagesState):
     prompt = [SystemMessage(system_message_content)] + conversation_messages
 
     # Run
-    llm_with_tools = llm.bind_tools([retrieve])
+    llm_with_tools = llm_toolcall.bind_tools([retrieve])
     response = llm_with_tools.invoke(prompt)
     _check_truncation(response, "back_or_output")
     return {"messages": [response]}
@@ -453,16 +453,22 @@ def model_conversation(input_message,code_snippet):
     config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
     
     all_messages = []
+    last_step_name = None
     for step in graph1.stream(
         {"messages": [{"role": "user", "content": input_message}]},
         stream_mode="values",
         config=config,
     ):
         step["messages"][-1].pretty_print()
+        # Track which node produced this step — the LangGraph keys
+        # don't directly tell us, but we can infer from the step content.
         all_messages.append(step["messages"][-1].content)
 
-    # Return ALL accumulated messages, not just the last.
-    # The last message alone is just the report_generator output, which
-    # is often truncated. The intermediate generate steps contain the
-    # actual analysis and are essential for downstream report generation.
-    return "\n\n".join(msg for msg in all_messages if msg)
+    # Return ONLY the final report_generator output, not every intermediate
+    # message. Concatenating all messages (generate + reorder + report + ...)
+    # produces enormous (>500K char) output that overwhelms downstream
+    # report generation and hits token limits.
+    # The intermediate analysis is already saved to Detail.txt by the
+    # report_generator node.
+    final_content = all_messages[-1] if all_messages else ""
+    return final_content if final_content else "\n\n".join(msg for msg in all_messages if msg)

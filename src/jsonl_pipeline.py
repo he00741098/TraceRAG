@@ -285,7 +285,8 @@ def main():
 
     # Clean out any previous run (unless resuming)
     if not resume:
-        for d in [split_dir, cleaned_dir, summarized_dir]:
+        llm_output = config["conversation_directories"]["LLM_output"]
+        for d in [split_dir, cleaned_dir, summarized_dir, llm_output]:
             if os.path.exists(d):
                 shutil.rmtree(d)
 
