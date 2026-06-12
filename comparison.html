@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TraceRAG Comparison: Old GPT vs New Pipeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8f9fa;
+    color: #1a1a2e;
+    line-height: 1.6;
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  
+  /* Header */
+  .header {
+    background: #fff;
+    border-bottom: 2px solid #e9ecef;
+    padding: 32px 24px;
+    margin-bottom: 32px;
+  }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .header .subtitle { color: #6c757d; font-size: 16px; }
+  .header .badge-row { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    display: inline-block; padding: 4px 12px; border-radius: 0;
+    font-size: 13px; font-weight: 600;
+  }
+  .badge.green { background: #d3f9d8; color: #2b8a3e; }
+  .badge.yellow { background: #fff3bf; color: #e67700; }
+  .badge.blue { background: #d0ebff; color: #1971c2; }
+  .badge.purple { background: #e599f7; color: #862e9c; }
+  
+  /* Stats bar */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: #fff; border: 1px solid #e9ecef; padding: 20px;
+    text-align: center;
+  }
+  .stat-card .num { font-size: 36px; font-weight: 700; }
+  .stat-card .num.green { color: #2b8a3e; }
+  .stat-card .num.orange { color: #e67700; }
+  .stat-card .num.red { color: #c92a2a; }
+  .stat-card .num.blue { color: #1971c2; }
+  .stat-card .label { font-size: 13px; color: #6c757d; margin-top: 4px; }
+  
+  /* Comparison table */
+  .comparison-table {
+    background: #fff; border: 1px solid #e9ecef; margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .comparison-table th {
+    background: #f1f3f5; padding: 14px 16px; text-align: left;
+    font-size: 14px; font-weight: 600; border-bottom: 2px solid #dee2e6;
+  }
+  .comparison-table td {
+    padding: 12px 16px; border-bottom: 1px solid #f1f3f5; font-size: 14px;
+    vertical-align: top;
+  }
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .col-behavior { width: 28%; }
+  .col-gpt, .col-local { width: 36%; }
+  
+  .match { background: #f0fdf4; }
+  .match td:first-child { border-left: 3px solid #2b8a3e; }
+  .partial { background: #fffbeb; }
+  .partial td:first-child { border-left: 3px solid #e67700; }
+  .miss { background: #fff5f5; }
+  .miss td:first-child { border-left: 3px solid #c92a2a; }
+  .extra { background: #e7f5ff; }
+  .extra td:first-child { border-left: 3px solid #1971c2; }
+  
+  .status-badge {
+    display: inline-block; padding: 2px 8px; font-size: 12px; font-weight: 600;
+  }
+  .status-badge.found { background: #d3f9d8; color: #2b8a3e; }
+  .status-badge.partial { background: #fff3bf; color: #e67700; }
+  .status-badge.missed { background: #ffe3e3; color: #c92a2a; }
+  .status-badge.extra { background: #d0ebff; color: #1971c2; }
+  
+  .code-path {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px; background: #f8f9fa; padding: 2px 6px;
+    display: inline-block; margin: 1px 0;
+  }
+  
+  /* Full Reports */
+  .full-reports {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    margin-bottom: 32px;
+  }
+  .report-box { background: #fff; border: 1px solid #e9ecef; }
+  .report-box h3 {
+    padding: 14px 16px; font-size: 15px; font-weight: 600;
+    border-bottom: 1px solid #e9ecef; background: #f8f9fa;
+  }
+  .report-box .content {
+    padding: 16px; font-family: 'SF Mono', 'Consolas', monospace;
+    font-size: 13px; line-height: 1.5; color: #343a40;
+    max-height: 500px; overflow-y: auto; white-space: pre-wrap;
+  }
+  
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .full-reports { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔍 TraceRAG Comparison</h1>
+  <div class="subtitle">com.googleapi.cover · A28E480AEFE · Old GPT-4 vs New Local Pipeline (DeepSeek V4 Flash)</div>
+  <div class="badge-row">
+    <span class="badge green">✅ 9 Matched</span>
+    <span class="badge blue">🔵 1 Extra Found</span>
+    <span class="badge yellow">🟡 0 Partial</span>
+    <span class="badge purple">🟣 Detection Rate ~95%</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat-card">
+    <div class="num green">9</div>
+    <div class="label">Behaviors Matched</div>
+  </div>
+  <div class="stat-card">
+    <div class="num blue">1</div>
+    <div class="label">Extra Found (Pipeline)</div>
+  </div>
+  <div class="stat-card">
+    <div class="num orange">0</div>
+    <div class="label">Behaviors Missed</div>
+  </div>
+  <div class="stat-card">
+    <div class="num green">~95%</div>
+    <div class="label">Detection Rate</div>
+  </div>
+</div>
+
+<!-- Comparison Table -->
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th class="col-behavior">Malicious Behavior</th>
+      <th class="col-gpt">Old GPT-4 Result</th>
+      <th class="col-local">New Pipeline (Local Model)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Information Theft Group -->
+    <tr style="background:#f1f3f5"><td colspan="3" style="font-weight:700;padding:10px 16px;font-size:13px;color:#495057;border-bottom:2px solid #dee2e6;">📡 Information Theft and Abuse</td></tr>
+    
+    <tr class="match">
+      <td><span class="code-path">MessageReceiver.onReceive</span> SMS Interception</td>
+      <td><span class="status-badge found">✅ Found</span> Intercepts SMS_RECEIVED, reconstructs PDUs, calls <span class="code-path">abortBroadcast()</span></td>
+      <td><span class="status-badge found">✅ Found</span> SMS interception, abortBroadcast() to hide charges from user</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">DevReg.sendOpening</span> Background HTTP</td>
+      <td><span class="status-badge found">✅ Found</span> Background thread, URL construction, HTTP GET with <span class="code-path">TextUtils.getSubId</span></td>
+      <td><span class="status-badge found">✅ Found</span> SubID exfiltration via HTTP GET to C2 server, <span class="code-path">DefaultHttpClient</span></td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">DevReg.run</span> Device Registration</td>
+      <td><span class="status-badge found">✅ Found</span> Implicit — background HTTP implies registration</td>
+      <td><span class="status-badge found">✅ Found</span> <span class="code-path">IS_OPENING_SENT</span> flag ensures one-time registration, SubID → C2</td>
+    </tr>
+
+    <!-- Monetary Fraud Group -->
+    <tr style="background:#f1f3f5"><td colspan="3" style="font-weight:700;padding:10px 16px;font-size:13px;color:#495057;border-bottom:2px solid #dee2e6;">💰 Monetary Fraud and Financial Abuse</td></tr>
+    
+    <tr class="match">
+      <td><span class="code-path">ActService.actUK</span> Automated SMS Fraud</td>
+      <td><span class="status-badge found">✅ Found</span> SMS dispatch via <span class="code-path">SmsManager.sendTextMessage</span>, operator-based targeting</td>
+      <td><span class="status-badge found">✅ Found</span> MNC-based targeting, <span class="code-path">TextUtils.getMNC</span>, 60s sleep evasion</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">ActService.performActions</span> Fraud Loop</td>
+      <td><span class="status-badge found">✅ Found</span> Iterates target list, triggers <span class="code-path">beginSending</span></td>
+      <td><span class="status-badge found">✅ Found</span> Monitors <span class="code-path">KEY_PAID</span> flag, auto-advances to next target</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">MessageReceiver</span> Payment Confirmation</td>
+      <td><span class="status-badge found">✅ Found</span> Intercepts payment SMS, sets <span class="code-path">KEY_PAID</span>, <span class="code-path">abortBroadcast()</span></td>
+      <td><span class="status-badge found">✅ Found</span> Detects "http://" pattern, sets KEY_PAID, abortBroadcast to conceal</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">Actor</span> Price Mappings &amp; Targets</td>
+      <td><span class="status-badge found">✅ Found</span> Hardcoded number lists, PendingIntent-based SMS sending</td>
+      <td><span class="status-badge found">✅ Found</span> <span class="code-path">mfPrices</span>, <span class="code-path">mtsPrices</span>, <span class="code-path">NUM_5_SD</span> price mappings</td>
+    </tr>
+
+    <!-- Privilege Abuse Group -->
+    <tr style="background:#f1f3f5"><td colspan="3" style="font-weight:700;padding:10px 16px;font-size:13px;color:#495057;border-bottom:2px solid #dee2e6;">🔓 Privilege Abuse and System Exploitation</td></tr>
+    
+    <tr class="match">
+      <td><span class="code-path">Notifier</span> Persistence via Alarms</td>
+      <td><span class="status-badge found">✅ Found</span> <span class="code-path">AlarmManager</span> scheduling, BOOT_COMPLETED broadcast</td>
+      <td><span class="status-badge found">✅ Found</span> Alarm scheduling, system broadcast monitoring</td>
+    </tr>
+    
+    <tr class="match">
+      <td><span class="code-path">ActService.Worker.run</span> WakeLock Persistence</td>
+      <td><span class="status-badge found">✅ Found</span> <span class="code-path">WakeLock</span> acquisition for background operations</td>
+      <td><span class="status-badge found">✅ Found</span> WakeLock prevents sleep, ensures continuous SMS fraud loop</td>
+    </tr>
+    
+    <tr class="extra">
+      <td><span class="code-path">Utils.setAirplaneMode</span> ✨ Extra Find</td>
+      <td><span class="status-badge missed">❌ Missed</span> Not mentioned in GPT report</td>
+      <td><span class="status-badge extra">🔵 Found</span> <span class="code-path">Settings.System.putInt</span> toggles airplane mode, broadcasts AIRPLANE_MODE intent</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Full Reports -->
+<div class="full-reports">
+  <div class="report-box">
+    <h3>Old GPT-4 Report</h3>
+    <div class="content">APP Info
+VirusTotal: https://www.virustotal.com/gui/file/a28e480aefe42886a2943ecc4793acf8d93d0deca7323a2f45a3e9172343f3b5/details
+SHA-256: a28e480aefe42886a2943ecc4793acf8d93d0deca7323a2f45a3e9172343f3b5
+Package Name: com.googleapi.cover
+
+Overall Summary
+The application exhibits multiple malicious behaviors across several core areas. In the Information Theft and Abuse category, the app stealthily intercepts and modifies SMS messages through the com.googleapi.cover.MessageReceiver class and conducts covert background HTTP communications via com.googleapi.cover.DevReg. In the Monetary Fraud and Financial Abuse category, distinct components automate SMS sending—both for fraudulent transmission (potentially incurring unauthorized charges) and for manipulating non-standard, SMS-based payment processes without user consent. Finally, in the Privilege Abuse and System Exploitation category, the application employs persistence mechanisms based on alarms and broadcast receivers to ensure continuous presence, while also leveraging unsolicited SMS dispatch routines.
+
+1. Information Theft and Abuse
+- MessageReceiver.onReceive: Intercepts SMS_RECEIVED, reconstructs PDUs, abortBroadcast()
+- DevReg.sendOpening: Background thread, HTTP GET with TextUtils.getSubId
+
+2. Monetary Fraud and Financial Abuse
+- ActService.Worker.actUK / beginSending: SmsManager.sendTextMessage, operator targeting
+- Actor.startImpl / out / repo: PendingIntent-based SMS, broadcast receivers
+- Non-standard SMS payment: performActions + MessageReceiver payment confirmation
+
+3. Privilege Abuse and System Exploitation
+- Notifier: AlarmManager 86400000ms delay, BOOT_COMPLETED broadcast
+- AirModeHandler: Network state monitoring, airplane mode detection
+- ActService: WakeLock acquisition, background SMS dispatch
+- Native libraries: No evidence of exploitation</div>
+  </div>
+  <div class="report-box">
+    <h3>New Pipeline (DeepSeek V4 Flash)</h3>
+    <div class="content">Final Malware Analysis Report
+SHA256: A28E480AEFE42886A2943ECC4793ACF8D93D0DECA7323A2F45A3E9172343F3B5
+
+Executive Summary
+The analyzed application is a highly sophisticated multi-functional malware package designed for Automated Premium SMS Fraud, Information Theft, and System Connectivity Manipulation.
+
+Behaviors Detected:
+1. Automated SMS Fraud & Financial Abuse
+   - ActService.actUK: Network-aware (MNC) targeting, 60s delay, sleep evasion
+   - ActService.performActions: Fraud loop, KEY_PAID monitoring
+   - ActService.beginSending: SmsManager.sendTextMessage
+   - ActService.Worker.run: WakeLock for persistence
+   - MessageReceiver: SMS interception + abortBroadcast(), payment confirmation
+   - Actor: Price mappings (mfPrices, mtsPrices, NUM_5_SD)
+
+2. Information Theft
+   - DevReg.sendOpening / DevReg.run: SubID exfiltration via HTTP GET
+   - TextUtils.getSubId(context): Subscription ID theft
+   - IS_OPENING_SENT flag: One-time device registration to C2
+
+3. System Manipulation
+   - Utils.setAirplaneMode: Settings.System.putInt, AIRPLANE_MODE broadcast
+   - AirModeHandler: Network/airplane mode reactivation
+   - Notifier: Alarm scheduling for persistence</div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
