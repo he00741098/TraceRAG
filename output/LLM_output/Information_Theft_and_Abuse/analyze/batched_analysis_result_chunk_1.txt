@@ -1,63 +1,38 @@
+# Malware Analysis Report
 
+## Summary
+The analyzed code snippets reveal malicious behaviors related to **Information Theft** and **SMS Fraud/Spam**. The application is designed to exfiltrate unique device identifiers to a remote server and perform unauthorized SMS transmissions to specific phone numbers based on the user's mobile network operator.
 
-**Call Chain:**
-The following call chain is identified for the malicious behavior:
-
-`net.crazymedia.iad.a.c.doInBackground()` -> `HttpGet(this.e.h)` -> `this.h.execute(httpGet, basicHttpContext)` -> `[MyTaskFetchAndInstallApk]`
-
-**Explanation of Call Chain:**
-1.  `net.crazymedia.iad.a.c.doInBackground()`: This is a background task that initiates the malicious process.
-2.  `HttpGet(this.e.h)`: The task creates an HTTP GET request using a URL stored in `this.e.h`.
-3.  `this.h.execute(httpGet, basicHttpContext)`: The task executes the HTTP request to fetch the content from the remote URL.
-4.  `[MyTaskFetchAndInstallApk]`: The logs within the code explicitly identify this process as a task to fetch and install an APK.
+**Identified Malicious Behaviors:**
+*   **Information Theft (Device Identifier Exfiltration):** `com.googleapi.cover.DevReg.sendOpening` - Exfiltrates the device's Subscription ID (SubID) to a remote server via HTTP.
+*   **SMS Fraud/Spam:** `com.googleapi.cover.ActService.actUK` - Sends unauthorized SMS messages to hardcoded numbers using data retrieved from internal settings, with logic to vary targets based on the Mobile Network Code (MNC).
 
 ---
 
-**Detailed Description of Suspicious Code:**
+## Detailed Analysis
 
-`net.crazymedia.iad.a.c.doInBackground(Void... voidArr)`: This method performs an HTTP GET request to a URL (`this.e.h`) to download a file. The code includes logging that explicitly identifies the operation as `[MyTaskFetchAndInstallApk]`, which indicates the intent to download and install an APK file. The method handles the HTTP response and, upon a successful status code (200), proceeds to process the downloaded content.
+### Information Theft
+**com.googleapi.cover.DevReg.sendOpening**
+The code in this method initiates a background thread to perform a network request. It constructs a URL by appending a task parameter (`task=update&Opening`) and the device's unique Subscription ID (`TextUtils.getSubId(context)`) to a base path retrieved from the application's resources. This sensitive identifier is then transmitted to a remote server via an `HttpGet` request. This is a clear attempt to track and identify specific devices remotely.
 
----
-
-**Summary of Findings:**
-
-The analysis of the provided code snippets reveals a mechanism for downloading an APK file from a remote server via an HTTP request. The presence of the identifier `[MyTaskFetchAndInstallApk]` strongly suggests that the application is designed to facilitate the downloading and subsequent installation of external software, which is a common technique for distributing unwanted or malicious applications.
-
-**Identified Suspicious Behaviors:**
-
-*   `net.crazymedia.iad.a.c.doInBackground(Void... voidArr)`: This code is responsible for fetching an APK from a remote URL, as indicated by the log `[MyTaskFetchAndInstallApk]`.
+### SMS Fraud/Spam
+**com.googleapi.cover.ActService.actUK**
+This method implements logic to perform unauthorized SMS operations. It first identifies the user's mobile network operator using `TextUtils.getMNC`. Depending on the operator code, it selects a list of target phone numbers (constructed via string concatenation, e.g., `"3161"`, `"2855"`). It then retrieves a message payload from `SharedPreferences` (`Actor.KEY_MSG_DATA_TEXT`) and uses `SmsManager.sendTextMessage` to send the message to the selected numbers. The code includes a delay (`sleep(60000L)`) between messages to potentially evade detection or rate-limiting.
 
 ---
 
-**Detailed Description of Identified Suspicious Code:**
+## Malicious Call Chain
 
-`net.crazymedia.iad.a.c.doInBackground(Void... voidArr)`: This method performs an HTTP GET request to a URL (`this.e.h`) to download a file. The code includes logging that explicitly identifies the operation as `[MyTaskFetchAndInstallApk]`, which indicates the intent to download and install an APK file. The method handles the HTTP response and, upon a successful status code (200), proceeds to process the downloaded content.
+The following call chain illustrates how the application initializes its malicious configuration and proceeds to exfiltrate data and perform SMS fraud:
 
----
+**[Configuration Initialization]**
+`com.googleapi.cover.Actor.initConfigs()`
+*   *Explanation:* This method initializes the malicious configuration by reading sensitive data (like message text and schemes) from the device's resources and `SharedPreferences`.
 
-**Call Chain:**
+**[Device Identification & C2 Communication]**
+`com.googleapi.cover.DevReg.sendOpening()`
+*   *Explanation:* Once the app is running, this method is called to send the device's unique Subscription ID to a remote server to register the infected device.
 
-`net.crazymedia.iad.a.c.doInBackground()` -> `HttpGet(this.e.h)` -> `this.h.execute(httpGet, basicHttpContext)` -> `[MyTaskFetchAndInstallApk]`
-
-**Explanation of Call Chain:**
-
-`net.crazymedia.iad.a.c.doInBackground()`: This is a background task that initiates the malicious process.
-`HttpGet(this.e.h)`: The task creates an HTTP GET request using a URL stored in `this.e.h`.
-`this.h.execute(httpGet, basicHttpContext)`: The task executes the HTTP request to fetch the content from the remote URL.
-`[MyTaskFetchAndInstallApk]`: The logs within the code explicitly identify this process as a task to fetch and install an APK.
-
----
-
-**Detailed Description of Identified Suspicious Code:**
-
-`net.crazymedia.iad.a.c.doInBackground(Void... voidArr)`: This method performs an HTTP GET request to a URL (`this.e.h`) to download a file. The code includes logging that explicitly identifies the operation as `[MyTaskFetchAndInstallApk]`, which indicates the intent to download and install an APK file. The method handles the HTTP response and, upon a successful status code (200), proceeds to process the downloaded content.
-
----
-
-**Summary of Findings:**
-
-The analysis of the provided code snippets reveals a mechanism for downloading an APK file from a remote server via an HTTP request. The presence of the identifier `[MyTaskFetchAndInstallApk]` strongly suggests that the application is designed to facilitate the downloading and subsequent installation of external software, which is a common technique for distributing unwanted or malicious applications.
-
-**Identified Suspicious Behaviors:**
-
-*   `net.crazymedia.iad.a.c.doInBackground(Void... voidArr)`: This code is responsible for fetching an APK from a remote URL, as indicated by the log `[MyTaskFetchAnd
+**[Unauthorized SMS Execution]**
+`com.googleapi.cover.ActService.actUK()`
+*   *Explanation:* Using the configuration and data previously loaded/stolen, this method executes the final stage of the attack by sending unauthorized SMS messages to premium or specific numbers based on the detected network operator.

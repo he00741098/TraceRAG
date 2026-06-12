@@ -1,4 +1,4 @@
-# Final Malicious Behavior Analysis Report
+# Final Malware Analysis Report
 
 
 ## 1. Basic Information
@@ -7,95 +7,77 @@
 
 ## 2. Executive Summary
 
-The analyzed application exhibits highly malicious behaviors categorized into **Remote Payload Delivery**, **Information Theft**, and **Privilege Abuse**. A total of three distinct types of malicious behaviors were identified:
-
-
-1.  **Remote Payload Delivery**: The application downloads and facilitates the installation of external APK files via background tasks.
-
-
-2.  **Information Theft**: The application performs extensive data harvesting, collecting sensitive hardware identifiers (IMEI, IMSI, MAC Address), personal information (phone number), and real-time geographic location.
-
-
-3.  **Privilege Abuse**: The application attempts to bypass Android security sandboxing by executing shell commands to grant full permissions to downloaded files.
+The analyzed application is a highly sophisticated and multi-functional malware package designed for **Automated Premium SMS Fraud**, **Information Theft**, and **System Connectivity Manipulation**.
 
 
 
 
-Specific malicious code paths identified include:
+The application exhibits several distinct malicious behaviors:
 
-*   `net.crazymedia.iad.a.c.doInBackground()`: Facilitates remote APK fetching.
-*   `net.crazymedia.iad.d.q.a()` and `net.crazymedia.iad.d.q.c()`: Performs comprehensive identity and location tracking.
-*   `com.kuguo.ad.br.a()`: Executes unauthorized permission modifications via `chmod 777`.
+*   **Automated SMS Fraud & Financial Abuse:** The application uses network-aware logic (via Mobile Network Code identification) to target specific high-cost service numbers. It implements an automated loop to send unauthorized messages, monitors incoming responses to confirm successful financial charges, and uses `abortBroadcast()` to hide these transactions from the user.
+*   **Information Theft:** The application exfiltrates the device's unique **Subscription ID** to a remote Command and Control (C2) server to track and register infected devices.
+*   **System Manipulation:** The application contains functionality to programmatically toggle **Airplane Mode**, allowing it to disrupt network connectivity.
+*   **Persistence and Evasion:** The malware utilizes `WakeLock` to ensure background processes are not interrupted by system power management and implements `sleep()` timers to evade SMS rate-limiting detection.
 
 
 
-No modules were identified as having non-malicious intent within the scope of the provided reports.
+The following fully qualified class paths are central to these activities: `com.googleapi.cover.ActService`, `com.googleapi.cover.DevReg`, `com.googleapi.cover.MessageReceiver`, and `com.googleapi.cover.Utils`.
 
 
 
 ## 3. Detailed Analysis
 
 
-### Remote Payload Delivery
-**Malicious Behavior Detected**
+### Automated Premium SMS Fraud and Financial Abuse
+**Detected: Yes**
 
 
-**Class Path:** `net.crazymedia.iad.a.c` (Package name: `net.crazymedia.iad`)
+**com.googleapi.cover.ActService.actUK**
 
-
-
-The class implements a background task specifically designed to download an external APK file from a remote URL. The code contains explicit logging that identifies the intent of this operation as an APK installation task.
-
-
-
-**Call Chain:**
-
-`net.crazymedia.iad.a.c.doInBackground()` $\rightarrow$ `HttpGet(this.e.h)` $\rightarrow$ `this.h.execute(httpGet, basicHttpContext)` $\rightarrow$ `[MyTaskFetchAndInstallApk]`
+This method automates the dispatch of fraudulent SMS messages. It identifies the user's mobile network operator using `TextUtils.getMNC` to select specific target phone number fragments (e.g., `"3161"`, `"2855"`). The message content is retrieved from `SharedPreferences` using the key `Actor.KEY_MSG_DATA_TEXT`. To evade detection by mobile network security systems, the method implements a 60-second delay (`sleep(60000L)`) between transmissions.
 
 
 
-**Evidence and Explanation:**
-*   **`net.crazymedia.iad.a.c.doInBackground(Void... voidArr)`**: This method initiates an HTTP GET request using a URL stored in the variable `this.e.h`.
-*   **`[MyTaskFetchAndInstallApk]`**: Internal logs within this method explicitly label the process as `[MyTaskFetchAndInstallApk]`. This confirms that the purpose of the HTTP request and the subsequent handling of the response (upon receiving a 200 OK status) is to fetch and facilitate the installation of an external Android package.
+**com.googleapi.cover.ActService.performActions**
 
-
----
-
-
-### Information Theft and Location Tracking
-**Malicious Behavior Detected**
-
-
-**Class Path:** `net.crazymedia.iad.d.q` (Package name: `net.crazymedia.iad`)
+This method serves as the central decision-making hub and automated fraud loop. It iterates through a predefined list of target phone numbers. After an SMS is dispatched, it monitors the `Actor.KEY_PAID` flag. If the flag is set to `true` (indicating a successful transaction), the method automatically proceeds to the next target in the list to facilitate large-scale financial extraction.
 
 
 
-This class is dedicated to harvesting sensitive user data and hardware identifiers to create a comprehensive profile of the user.
+**com.googleapi.cover.ActService.beginSending**
+
+This method is the final execution point for the fraud mechanism, utilizing `SmsManager.sendTextMessage` to deliver the unauthorized payloads to the identified targets.
 
 
 
-**Call Chain:**
+**com.googleapi.cover.ActService.Worker.run / com.googleapi.cover.ActService.run**
 
-`net.crazymedia.iad.d.q.a(Context context)` $\rightarrow$ `net.crazymedia.iad.d.q.c(Context context)`
-
-
-
-**Evidence and Explanation:**
-*   **`net.crazymedia.iad.d.q.a(Context context)`**: This method aggregates multiple sensitive data points into class members. It collects:
-*   **Hardware Model**: via `Build.MODEL`.
-*   **Device ID/IMEI**: via `telephonyManager.getDeviceId()`.
-*   **Wi-Fi MAC Address**: via `WifiManager.getConnectionInfo().getMacAddress()` (used as a fallback).
-*   **IMSI (Subscriber ID)**: via `telephonyManager.getSubscriberId()`.
-*   **Mobile Phone Number**: via `telephonyManager.getLine1Number()`.
-*   **SIM Operator**: via `telephonyManager.getSimOperator()`.
-*   **`net.crazymedia.iad.d.q.c(Context context)`**: This method is invoked during the data collection process in `a(Context context)`. It checks for `android.permission.ACCESS_FINE_LOCATION` and utilizes `locationManager.getLastKnownLocation` to capture the device's precise geographic coordinates.
+These methods ensure the continuous operation of the fraud module by acquiring a `WakeLock`. This prevents the Android system from entering sleep mode, guaranteeing that background SMS-sending tasks and network communications remain uninterrupted.
 
 
----
+
+**com.googleapi.cover.ActService**
+
+This class acts as a repository for the fraud kit, containing extensive hardcoded data, including phone number lists and specific price mappings (e.g., `mfPrices`, `mtsPrices`, `NUM_5_SD`) used to target specific high-cost mobile operators.
 
 
-### Privilege Abuse and System Exploitation
-**Malicious Behavior Detected**
+
+**com.googleapi.cover.MessageReceiver**
+
+This class functions as a hidden listener to manage the feedback loop and conceal fraud from the victim. It intercepts incoming SMS messages from `Actor.EXPECT_NUM`. If the message contains patterns indicating a successful transaction (e.g., `"http://"`), it sets `Actor.KEY_PAID` to `true`. Crucially, it calls `abortBroadcast()` to prevent the SMS from being delivered to the user's messaging application, ensuring the victim remains unaware of the unauthorized charges.
 
 
-**Class Path:** `com.kuguo.ad
+
+**com.googleapi.cover.Main.setListeners**
+
+This class provides the entry point for the malicious activity via the user interface. Interaction with the application triggers the `start()` method, which initiates the background `ActService` to begin the fraud loop.
+
+
+
+### Information Theft (Device Identifier Exfiltration)
+**Detected: Yes**
+
+
+**com.googleapi.cover.DevReg.sendOpening / com.googleapi.cover.DevReg.run**
+
+The application performs unauthorized exfiltration of sensitive device metadata. It retrieves the device's unique **Subscription ID** via `TextUtils.getSubId
