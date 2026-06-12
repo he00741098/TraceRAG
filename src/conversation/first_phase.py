@@ -7,6 +7,16 @@ config = load_config()
 
 from langchain_openai import ChatOpenAI
 llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
+# Tool-call nodes only need a short response (~500 tokens for JSON tool call)
+llm_toolcall = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=2048)
+
+
+def _check_truncation(response, node_name: str):
+    """Log a warning if the LLM response was truncated due to token limits."""
+    finish_reason = response.response_metadata.get('finish_reason', '')
+    if finish_reason == 'length':
+        print(f"  [WARN] {node_name}: output TRUNCATED (finish_reason='length'). "
+              f"Response may be incomplete.")
 
 from langchain_openai import OpenAIEmbeddings
 
@@ -57,8 +67,9 @@ from typing import Optional
 def query_or_respond(state: MessagesState):
     """Generate tool call for retrieval"""
 
-    llm_with_tools = llm.bind_tools([retrieve], tool_choice="any")
+    llm_with_tools = llm_toolcall.bind_tools([retrieve], tool_choice="any")
     response = llm_with_tools.invoke(state["messages"])
+    _check_truncation(response, "query_or_respond")
     return {"messages": [response]}
 
 from langchain_core.tools import tool
@@ -164,6 +175,7 @@ def reorder(state: MessagesState):
 
     # Run
     response = llm.invoke(prompt)
+    _check_truncation(response, "reorder")
     
 
     # 获取目标文件路径
