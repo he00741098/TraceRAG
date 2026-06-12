@@ -1,39 +1,58 @@
-<h1>Malicious Behavior Analysis Report</h1>
+<h1>Malware Analysis Report</h1>
 <h2>Overall Summary</h2>
-<p>The analyzed code snippets reveal a sophisticated multi-layered approach to hiding malicious logic through <strong>Dynamic Code Loading (DCL)</strong> and <strong>Class Loader Manipulation</strong>. The application utilizes a centralized utility class (<code>com.secapk.wrapper.Util</code>) to implement a custom class loader mechanism (<code>getCustomClassLoader</code>) and a routine to execute code (<code>runAll</code>). This infrastructure is designed to load and execute arbitrary code—likely downloaded from a remote server or extracted from hidden assets—at runtime. This technique is a primary method used by advanced malware to bypass static analysis, as the actual malicious payloads are never present in the application's primary DEX files.</p>
+<p>The analyzed application is a highly sophisticated malware framework designed for <strong>Monetary Fraud and Financial Abuse</strong>, specifically targeting users through <strong>Automated Premium SMS Subscription Scams</strong>. The application employs a multi-stage attack pattern: it uses social engineering to trick users into "consenting" to services via deceptive UIs, automates the sending of premium-rate SMS messages to maximize financial extraction within a defined budget, and implements advanced concealment techniques by intercepting and suppressing incoming SMS messages to hide transaction alerts from the victim.</p>
+<hr />
 <h2>Behavior Analysis Sections</h2>
-<h3>Dynamic Code Loading and Custom Class Loader Implementation</h3>
-<p><strong>Path:</strong> <code>com.secapk.wrapper.Util.getCustomClassLoader</code></p>
-<p><strong>Description:</strong></p>
-<p>The application contains a utility class, <code>com.secapk.wrapper.Util</code>, which explicitly provides a method for retrieving a custom class loader. The repeated presence of <code>getCustomClassLoader</code> in the execution traces suggests that the application does not rely on the standard Android system class loader for its core operations. Instead, it builds its own environment to load external bytecode.</p>
-<p><strong>Evidence of Malicious Intent:</strong></p>
-<ol>
-<li>
-<p><strong>Custom Class Loader:</strong> The use of <code>getCustomClassLoader</code> is a high-confidence indicator of Dynamic Code Loading. By using a custom loader, the application can load classes from non-standard locations (such as the app's private data directory or memory) that are not subject to standard Android security scanning of the APK.</p>
-</li>
-<li>
-<p><strong>Execution Orchestration:</strong> The existence of a <code>runAll</code> method in conjunction with the custom class loader indicates a structured way to trigger the loaded payloads. This allows the malware to maintain a "stub" or "dropper" appearance while the actual malicious logic remains dormant until the custom loader is invoked.</p>
-</li>
-<li>
-<p><strong>Obfuscated Control Flow:</strong> The traces show the application repeatedly calling these utility methods, suggesting an automated loop or a scheduled task used to manage and execute dynamic payloads.</p>
-</li>
-</ol>
-<p><strong>Call Chain:</strong></p>
-<p><code>com.secapk.wrapper.Main.run()</code> $\rightarrow$ <code>com.secapk.wrapper.Util.runAll()</code> $\rightarrow$ <code>com.secapk.wrapper.Util.getCustomClassLoader()</code> $\rightarrow$ <code>[Loaded Malicious Payload]</code></p>
-<h3>Hidden Execution via Singleton Wrappers</h3>
-<p><strong>Path:</strong> <code>com.secapk.wrapper.ACall.c1</code> and <code>com.secapk.wrapper.ACall.c2</code></p>
-<p><strong>Description:</strong></p>
-<p>The application utilizes a singleton pattern within the <code>com.secapk.wrapper.ACall</code> class. This class provides methods (<code>c1</code>, <code>c2</code>) that accept a <code>Context</code> and a <code>BroadcastReceiver</code>.</p>
-<p><strong>Evidence of Malicious Intent:</strong></p>
-<ol>
-<li>
-<p><strong>Receiver Interception/Triggering:</strong> The method signatures <code>c1(Context ctx, BroadcastReceiver receiver)</code> are highly suspicious in the context of the previously identified dynamic loading. These methods are likely designed to register or trigger <code>BroadcastReceivers</code> that have been loaded dynamically. This allows the malware to respond to system events (like <code>BOOT_COMPLETED</code>, <code>SMS_RECEIVED</code>, or <code>TIME_SET</code>) to execute its hidden payload without user intervention.</p>
-</li>
-<li>
-<p><strong>Obfuscated Singleton Entry Point:</strong> The use of <code>getACall()</code> to access these methods provides a single, obfuscated entry point for the application to transition from the legitimate "wrapper" code into the dynamically loaded malicious routines.</p>
-</li>
-</ol>
-<p><strong>Call Chain:</strong></p>
-<p><code>com.secapk.wrapper.Util.runAll()</code> $\rightarrow$ <code>com.secapk.wrapper.ACall.getACall()</code> $\rightarrow$ <code>com.secapk.wrapper.ACall.c1/c2()</code> $\rightarrow$ <code>[Dynamically Loaded BroadcastReceiver]</code></p>
+<h3>Automated Premium SMS Subscription (Fraudulent Charging)</h3>
+<ul>
+<li><strong><code>com.googleapi.cover.ActService.performActions</code></strong> and <strong><code>com.googleapi.cover.ActService.Worker.performActions</code></strong></li>
+</ul>
+<p>These methods implement a "budget-aware" fraudulent engine. The application identifies the user's mobile carrier (e.g., Beeline, MTS) and selects target short-codes or phone numbers. It maintains a <code>restAllowedSum</code> (e.g., 350.0) and tracks the "price" of each successful subscription via <code>mfPrices</code> or <code>mtsPrices</code>. If a subscription is successful (detected via the <code>Actor.KEY_PAID</code> flag), the code automatically proceeds to the next number in the sequence to continue extracting funds until the monetary threshold is reached.</p>
+<ul>
+<li><strong><code>com.googleapi.cover.ActService.beginSending</code></strong></li>
+</ul>
+<p>This method acts as the execution trigger. It prepares the environment by resetting status flags in <code>SharedPreferences</code> (e.g., <code>MESSAGE_IS_RECEIVED_KEY</code> and <code>KEY_PAID</code>) and then calls <code>Utils.start</code> to physically transmit the SMS message to the target number.</p>
+<ul>
+<li><strong><code>com.googleapi.cover.Utils.start</code></strong></li>
+</ul>
+<p>The core execution component that uses <code>android.telephony.SmsManager.sendTextMessage</code> to iterate through a list of target numbers and send the payload. This is the primary mechanism for triggering unauthorized premium charges.</p>
+<ul>
+<li><strong><code>com.googleapi.cover.ActService.actUK</code></strong></li>
+</ul>
+<p>A specialized module targeting Ukrainian mobile networks. It uses <code>TextUtils.getMNC</code> to identify the user's network and sends formatted SMS messages to hardcoded numbers (e.g., <code>3161</code>, <code>2855</code>) to trigger unauthorized services, including a <code>sleep(60000L)</code> delay to evade rate-limiting detection.</p>
+<p><strong>Malicious Call Chain:</strong></p>
+<p><code>com.googleapi.cover.ActService.onStartCommand</code> $\rightarrow$ <code>com.googleapi.cover.ActService.Worker.run</code> $\rightarrow$ <code>com.googleapi.cover.ActService.Worker.performActions</code> $\rightarrow$ <code>com.googleapi.cover.ActService.beginSending</code> $\rightarrow$ <code>com.googleapi.cover.Utils.start</code> $\rightarrow$ <code>android.telephony.SmsManager.sendTextMessage</code></p>
+<hr />
+<h3>SMS Interception and Concealment</h3>
+<ul>
+<li><strong><code>com.googleapi.cover.MessageReceiver.onReceive</code></strong></li>
+</ul>
+<p>This component is critical for the success of the fraud by hiding evidence. It intercepts the <code>android.provider.Telephony.SMS_RECEIVED</code> broadcast. When a message arrives from an expected number (<code>Actor.EXPECT_NUM</code>), it processes the body and then calls <strong><code>abortBroadcast()</code></strong>. This prevents the intercepted SMS (which often contains transaction confirmations or subscription alerts) from being delivered to the user's legitimate messaging app, ensuring the victim remains unaware of the ongoing charges.</p>
+<hr />
+<h3>Deceptive User Interface and Social Engineering</h3>
+<ul>
+<li><strong><code>com.googleapi.cover.Main.setListeners</code></strong> and <strong><code>com.googleapi.cover.RelatedContent.setListeners</code></strong></li>
+</ul>
+<p>These methods implement social engineering tactics. The app dynamically displays subscription prices (e.g., in Rubles) and uses <code>SpannableString</code> to underline text, mimicking a formal legal agreement. It manipulates UI visibility (e.g., <code>setVisibility(8)</code>) to hide "exit" or "cancel" options, guiding the user toward clicking a "Yes" button to trigger the subscription.</p>
+<ul>
+<li><strong><code>com.googleapi.cover.AgActivity.initAgr</code></strong></li>
+</ul>
+<p>Used to populate deceptive subscription offers tailored to the detected carrier (e.g., "beeline_subscription_offert"), presenting them as legitimate service options.</p>
+<ul>
+<li><strong><code>com.googleapi.cover.ShowURL.onCreate</code></strong> and <strong><code>com.googleapi.cover.Notifier.showNotification</code></strong></li>
+</ul>
+<p>These components manage the post-fraud phase. They use notifications and "Thank you" screens to redirect users to external URLs, potentially to provide a fake landing page or to complete the fraudulent cycle.</p>
+<hr />
 <h2>Conclusion</h2>
-<p>The application is architected as a <strong>Malware Dropper/Loader</strong>. The combination of <code>com.secapk.wrapper.Util.getCustomClassLoader</code> for loading external code and <code>com.secapk.wrapper.ACcall</code> for managing event-based execution via <code>BroadcastReceivers</code> confirms a highly intentional design to hide malicious behavior. The core functionality is decoupled from the static APK, relying on dynamic runtime loading to evade detection and execute unauthorized actions.</p>
+<p>The application's functionality is centered around a coordinated effort to commit financial fraud:</p>
+<ol>
+<li>
+<p><strong>Deception</strong>: Using <code>com.googleapi.cover.Main</code> and <code>com.googleapi.cover.RelatedContent</code> to trick users into "accepting" paid services.</p>
+</li>
+<li>
+<p><strong>Execution</strong>: Using <code>com.googleapi.cover.ActService</code> and <code>com.googleapi.cover.Utils</code> to automate high-frequency, budget-limited premium SMS subscriptions.</p>
+</li>
+<li>
+<p><strong>Concealment</strong>: Using <code>com.googleapi.cover.MessageReceiver</code> to suppress incoming SMS alerts, preventing the user from noticing the unauthorized activity.</p>
+</li>
+</ol>

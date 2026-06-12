@@ -1,5 +1,14 @@
-Package Path:com.secapk.wrapper.ACall.r1
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
+Package Path:com.googleapi.cover.Main.finishInstallation
+Class Name:Main
+Java Code: package com.googleapi.cover;
 
-    public native void r1(byte[] bArr, byte[] bArr2);
+    void finishInstallation(String result) {
+        this.wasProgressDone = true;
+        this.installedURL = this.actor.getContentToBeActed();
+        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean(IS_LOADED, true);
+        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
+        editor.commit();
+        updateGUI();
+    }

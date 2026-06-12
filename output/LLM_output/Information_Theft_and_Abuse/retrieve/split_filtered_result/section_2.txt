@@ -1,5 +1,13 @@
-Package Path:com.secapk.wrapper.ACall.r2
-Class Name:ACall
-Java Code: package com.secapk.wrapper;
+Package Path:com.googleapi.cover.TextUtils.read
+Class Name:TextUtils
+Java Code: package com.googleapi.cover;
 
-    public native void r2(byte[] bArr, byte[] bArr2, byte[] bArr3);
+    public static String read(int lineNum, Context context) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.act_schemes)));
+        String line = null;
+        for (int i = 0; i < lineNum; i++) {
+            line = reader.readLine();
+        }
+        reader.close();
+        return line;
+    }

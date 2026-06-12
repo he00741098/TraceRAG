@@ -1,26 +1,50 @@
-# Malicious Behavior Analysis Report
+# Malware Analysis Report
 
 ## Overall Summary
-The analyzed code snippets reveal a highly suspicious pattern of obfuscated native method declarations within the `com.secapk.wrapper` package. The application utilizes a massive array of wrapper classes (e.g., `SSSCall`, `TTTCall`, `RRRCall`, etc.), each containing a single `native` method with nonsensical, short-form names (e.g., `j4`, `k4`, `i5`, `a6`). This structure is a classic indicator of **JNI (Java Native Interface) Obfuscation**, designed to hide the actual functional logic of the application within compiled native libraries (`.so` files). By spreading native calls across dozens of different classes and using randomized method names, the developer aims to frustrate static analysis and manual reverse engineering, effectively masking the true intent of the underlying native code.
+The analyzed application exhibits highly sophisticated and coordinated malicious behaviors primarily focused on **Information Theft (SMS Exfiltration)**, **Device Tracking**, and **Social Engineering**. The application is designed to intercept sensitive SMS data and exfiltrate it to remote attackers via unauthorized SMS messages. Furthermore, it performs reconnaissance by collecting unique device identifiers (Subscription ID) and network metadata (MCC/MNC) to track users. To facilitate these activities and manipulate users, the app employs dynamic resource loading to trigger deceptive notifications and social engineering UI components (such as fraudulent "support" calls and web redirects).
+
+---
 
 ## Behavior Analysis Sections
 
-### Native Method Obfuscation via Wrapper Classes
-**Path:** `com.secapk.wrapper.*` (Multiple classes including `SSSCall`, `TTTCall`, `UUUCall`, `VVVCall`, `WWWCall`, `XXXCall`, `YYYCall`, `ZZZCall`, `AAAACall`, `BBBBCall`, `CCCCCall`, `DDDDCall`, `EEEECall`, `FFFFCall`, `GGGGCall`, `HHHHCall`, `IIIICall`, `JJJJCall`, `KKKKCall`, `LLLLCall`, `MMMMCall`, `NNNNCall`, `OOOOCall`, `PPPPCall`, `QQQCall`, `RRRCall`, `SSSCall`, `TTTCall`, `UUUCall`, `VVVCall`, `WWWCall`, `XXXCall`, `YYYCall`, `ZZZCall`, `AAAACall`, `BBBBCall`, `CCCCCall`, `DDDDCall`, `EEEECall`, `FFFFCall`, `GGGGCall`, `HHHHCall`, `IIIICall`, `JJJJCall`, `KKKKCall`, `LLLLCall`, `MMMMCall`, `NNNNCall`, `OOOOCall`, `PPPPCall`, `QQQCall`, `RRRCall`, `SSSCall`, `TTTCall`, `UUUCall`, `VVVCall`, `WWWCall`, `XXXCall`, `YYYCall`, `ZZZCall`, `AAAACall`, `BBBBCCall`, `CCCCCall`, `DDDDCall`, `EEEECall`, `FFFFCall`, `GGGGCall`)
+### SMS Data Exfiltration via SMS
+*   **`com.googleapi.cover.Utils.start`**
+    This method serves as the core exfiltration engine. It iterates through a list of target phone numbers contained within a `Sch` object (`actScheme.list`) and utilizes `android.telephony.SmsManager.sendTextMessage` to programmatically send messages. The payload consists of a prefix concatenated with the `data` parameter, which has been identified as stolen sensitive content. This allows the attacker to receive stolen data directly via the cellular network.
 
-**Description:**
-The application implements an extensive collection of wrapper classes in the `com.secapk.wrapper` package. Each class serves as a gateway to a native function. The method names are non-descriptive and follow a pattern of a single letter followed by a digit (e.g., `j4`, `k4`, `i5`, `a6`). 
+*   **`com.googleapi.cover.MessageHandler.onReceive`**
+    This component acts as the trigger for the exfiltration process. Upon receiving a specific intent, it retrieves sensitive SMS data stored in `SharedPreferences` under the key `Actor.KEY_MSG_DATA_TEXT`. It then prepares a list of destination phone numbers and calls `Utils.start` to initiate the unauthorized transmission of the stolen data.
 
-**Evidence of Malicious Intent:**
-1.  **Extreme Fragmentation:** Instead of grouping related native functions into a single logical class, the code fragments them into dozens of unique classes (e.g., `RRRCall`, `SSSCall`, `TTTCall`). This is a deliberate attempt to break the call chain during static analysis.
-2.  **Nonsensical Naming Convention:** The method names provide zero semantic context regarding their purpose. For example:
-    *   `com.secapk.wrapper.SSSCall.j4(char c, float f)`
-    *   `com.secapk.wrapper.TTTCall.k4(String str, boolean b)`
-    *   `com.secapk.wrapper.RRRCall.i6(long l, byte b)`
-3.  **Native Implementation:** Every single method is declared as `native`. This confirms that the actual execution logic—which could involve data exfiltration, unauthorized access, or payload execution—is hidden in a compiled binary that cannot be inspected through Java decompilation.
+**Malicious Call Chain:**
+`com.googleapi.cover.MessageHandler.onReceive` $\rightarrow$ `com.googleapi.cover.Utils.start` $\rightarrow$ `android.telephony.SmsManager.sendTextMessage`
 
-**Call Chain/Pattern:**
-`Application Logic` $\rightarrow$ `com.secapk.wrapper.[ObfuscatedClass]. [ObfuscatedMethod]()` $\rightarrow$ `[Hidden Native Library (.so)]`
+---
+
+### Exfiltration of Device Identifiers and Reconnaissance
+*   **`com.googleapi.cover.DevReg.sendOpening`** and **`com.googleapi.cover.DevReg.run`**
+    These methods implement a background thread that exfiltrates the device's unique Subscription ID (SubId). The code constructs a malicious URL by appending `?task=update&Opening&s=` followed by the result of `TextUtils.getSubId(context)`. It then executes an `HttpGet` request via `HttpClient` to a remote server. This allows the attacker to uniquely identify and track the user's SIM/network identity.
+
+*   **`com.googleapi.cover.TextUtils`**
+    This class provides various utilities for reconnaissance. Methods such as `getMCC`, `getMNC`, and `getOperatorString` are used to extract the Mobile Country Code and Mobile Network Code from the SIM card, enabling the attacker to determine the user's geographic location and service provider.
+
+---
+
+### Deceptive Notifications and Social Engineering
+*   **`com.googleapi.cover.Notifier.showNotification`**
+    The application uses dynamic resource loading to display deceptive notifications. It retrieves a notification title, body, and a redirection URL from a raw resource file (`R.raw.act_schemes`) using `TextUtils.read`. The notification is configured with a `PendingIntent` that opens a web browser to the retrieved URL, allowing the attacker to remotely control the content and destination of the user's redirection.
+
+*   **`com.googleapi.cover.ShowURL.onCreate`**
+    This activity presents a user interface designed for social engineering. It displays a "support number" that, when clicked, triggers an `android.intent.action.CALL` intent. This is a common tactic used in technical support scams to direct users toward fraudulent services.
+
+*   **`com.googleapi.cover.Main.finishInstallation`**
+    This method saves a URL retrieved from a remote `Actor` object into `SharedPreferences` under the key `INSTALL_URL`. This indicates the application is designed to receive and persist remote instructions or secondary payload URLs for future execution.
+
+---
 
 ## Conclusion
-The application exhibits strong indicators of malicious intent through the use of **JNI-based code hiding**. By employing a massive, fragmented set of wrapper classes in `com.secapk.wrapper` with highly obfuscated method signatures, the application is architected to prevent security researchers from identifying its true behavior. The actual malicious functionality is almost certainly contained within the native libraries invoked by these classes.
+
+The application demonstrates a clear pattern of malicious activity:
+1.  **Information Theft**: Stolen SMS content is exfiltrated via `com.googleapi.cover.Utils.start` following retrieval in `com.googleapi.cover.MessageHandler.onReceive`.
+2.  **Device Tracking**: Unique Subscription IDs are leaked via `com.googleapi.cover.DevReg.sendOpening` and network metadata is gathered via `com.googleapi.cover.TextUtils`.
+3.  **Social Engineering**: Users are manipulated through deceptive notifications (`com.googleapi.cover.Notifier.showNotification`) and fraudulent support interfaces (`com.googleapi.cover.ShowURL.onCreate`).
+
+The integration of these behaviors suggests a highly organized malware framework designed for data theft and user exploitation.

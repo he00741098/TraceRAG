@@ -1,13 +1,48 @@
-Package Path:com.secapk.wrapper.Util.toASC
-Class Name:Util
-Java Code: package com.secapk.wrapper;
+Package Path:com.googleapi.cover.Actor.initConfigs
+Class Name:Actor
+Java Code: package com.googleapi.cover;
 
-    public static byte[] toASC(byte[] bts) {
-        byte[] ret = new byte[bts.length * 2];
-        for (int i = 0; i < bts.length; i++) {
-            byte b = bts[i];
-            ret[i * 2] = hexDigits[(b >> 4) & 15];
-            ret[(i * 2) + 1] = hexDigits[b & 15];
+    private void initConfigs() {
+        try {
+            this.schemes = TextUtils.getScheme(this.mContext);
+            SCHEME_TO_USE = (String) this.schemes.first;
+            Utils.putStringValue(this.mContext, KEY_MSG_DATA_TEXT, (String) this.schemes.second, this.settings);
+        } catch (IOException e) {
         }
-        return ret;
+        try {
+            this.texts = TextUtils.getTexts(this.mContext.getResources().getXml(R.xml.texts));
+        } catch (IOException e2) {
+        }
+        this.app_name = new String();
+        try {
+            this.app_name = TextUtils.read(1, this.mContext);
+        } catch (IOException e3) {
+        }
+        try {
+            this.sendImmediately = TextUtils.read(3, this.mContext).equalsIgnoreCase(PRIVATE);
+        } catch (IOException e4) {
+        }
+        this.content = new String();
+        try {
+            this.content = TextUtils.read(2, this.mContext);
+        } catch (IOException e5) {
+        }
+        int relatedContentBaseline = 13;
+        while (true) {
+            try {
+                String name = TextUtils.read(relatedContentBaseline, this.mContext);
+                String link = TextUtils.read(relatedContentBaseline + 1, this.mContext);
+                String data = TextUtils.read(relatedContentBaseline + 2, this.mContext);
+                if (name != null && link != null && data != null) {
+                    this.relatedContentNames.add(name);
+                    this.relatedContentLinks.add(link);
+                    this.relatedData.add(data);
+                    relatedContentBaseline += 3;
+                } else {
+                    return;
+                }
+            } catch (Exception e6) {
+                return;
+            }
+        }
     }
