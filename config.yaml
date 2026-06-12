@@ -29,7 +29,7 @@ openai:
 qdrant:
   api_key: dummy
   collection_name: A28E480AEFE42886A2943ECC4793ACF8D93D0DECA7323A2F45A3E9172343F3B5
-  retrieve_num_limit: 20
+  retrieve_num_limit: 10
   url: http://localhost:6333
 weaviate:
   api_key: dummy

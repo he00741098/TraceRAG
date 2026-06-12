@@ -177,30 +177,49 @@ def run_conversation_pipeline(config):
             snippet_list = sorted(all_category_snippets)
             total_chunks = (len(snippet_list) + batch_size - 1) // batch_size
 
-            for i in range(0, len(snippet_list), batch_size):
-                batch = snippet_list[i:i + batch_size]
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            
+            def process_batch(chunk_idx, batch_start, batch):
+                """Process a single batch: runs the conversation graph and writes output."""
                 combined_snippets = ""
                 for j, code in enumerate(batch):
-                    combined_snippets += f"\n\n--- Start of snippet {i+j+1} ---\n"
+                    combined_snippets += f"\n\n--- Start of snippet {batch_start + j + 1} ---\n"
                     combined_snippets += code
-                    combined_snippets += f"\n--- End of snippet {i+j+1} ---\n"
-
-                if combined_snippets.strip():
-                    analyze_question = (
-                        "Here is a batch of Android app java code snippets about "
-                        + question_name
-                        + ". Please analyze them together to identify any potential malicious behavior."
-                    )
-                    chunk_num = (i // batch_size) + 1
-                    print(f"  [Phase 2] Batch {chunk_num}/{total_chunks}")
-
-                    result = model_conversation(analyze_question, combined_snippets)
-                    file_contents.append(
-                        f"Batched conversation history (Chunk {chunk_num})\n{str(result)}"
-                    )
-                    chunk_output_file = os.path.join(output_dir, f'batched_analysis_result_chunk_{chunk_num}.txt')
-                    with open(chunk_output_file, 'w', encoding='utf-8') as out_f:
-                        out_f.write(str(result))
+                    combined_snippets += f"\n--- End of snippet {batch_start + j + 1} ---\n"
+                
+                analyze_question = (
+                    "Here is a batch of Android app java code snippets about "
+                    + question_name
+                    + ". Please analyze them together to identify any potential malicious behavior."
+                )
+                chunk_num = chunk_idx + 1
+                print(f"  [Phase 2] Batch {chunk_num}/{total_chunks} (started)")
+                result = model_conversation(analyze_question, combined_snippets)
+                
+                # Write individual chunk output
+                chunk_output_file = os.path.join(output_dir, f'batched_analysis_result_chunk_{chunk_num}.txt')
+                with open(chunk_output_file, 'w', encoding='utf-8') as out_f:
+                    out_f.write(str(result))
+                
+                print(f"  [Phase 2] Batch {chunk_num}/{total_chunks} (done)")
+                return (chunk_num, f"Batched conversation history (Chunk {chunk_num})\n{str(result)}")
+            
+            # Run up to 3 batches in parallel
+            chunk_results = {}
+            with ThreadPoolExecutor(max_workers=3) as executor:
+                futures = {}
+                for i in range(0, len(snippet_list), batch_size):
+                    batch = snippet_list[i:i + batch_size]
+                    chunk_idx = i // batch_size
+                    futures[executor.submit(process_batch, chunk_idx, i, batch)] = chunk_idx
+                
+                for future in as_completed(futures):
+                    chunk_num, text = future.result()
+                    chunk_results[chunk_num] = text
+            
+            # Assemble in order
+            for chunk_num in sorted(chunk_results.keys()):
+                file_contents.append(chunk_results[chunk_num])
 
             # Combined report
             combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
