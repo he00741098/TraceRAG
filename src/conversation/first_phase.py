@@ -6,7 +6,7 @@ from src.config import load_config,set_env_variables
 config = load_config()
 
 from langchain_openai import ChatOpenAI
-llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
+llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
 
 from langchain_openai import OpenAIEmbeddings
 
