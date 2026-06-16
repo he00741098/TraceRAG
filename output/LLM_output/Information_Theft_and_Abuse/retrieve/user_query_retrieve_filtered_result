@@ -1,77 +1,56 @@
-Package Path:com.googleapi.cover.Actor.initConfigs
-Class Name:Actor
-Java Code: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    private void initConfigs() {
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
         try {
-            this.schemes = TextUtils.getScheme(this.mContext);
-            SCHEME_TO_USE = (String) this.schemes.first;
-            Utils.putStringValue(this.mContext, KEY_MSG_DATA_TEXT, (String) this.schemes.second, this.settings);
-        } catch (IOException e) {
-        }
-        try {
-            this.texts = TextUtils.getTexts(this.mContext.getResources().getXml(R.xml.texts));
-        } catch (IOException e2) {
-        }
-        this.app_name = new String();
-        try {
-            this.app_name = TextUtils.read(1, this.mContext);
-        } catch (IOException e3) {
-        }
-        try {
-            this.sendImmediately = TextUtils.read(3, this.mContext).equalsIgnoreCase(PRIVATE);
-        } catch (IOException e4) {
-        }
-        this.content = new String();
-        try {
-            this.content = TextUtils.read(2, this.mContext);
-        } catch (IOException e5) {
-        }
-        int relatedContentBaseline = 13;
-        while (true) {
-            try {
-                String name = TextUtils.read(relatedContentBaseline, this.mContext);
-                String link = TextUtils.read(relatedContentBaseline + 1, this.mContext);
-                String data = TextUtils.read(relatedContentBaseline + 2, this.mContext);
-                if (name != null && link != null && data != null) {
-                    this.relatedContentNames.add(name);
-                    this.relatedContentLinks.add(link);
-                    this.relatedData.add(data);
-                    relatedContentBaseline += 3;
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
                 } else {
-                    return;
+                    openFileOutput.write(bArr, 0, read);
                 }
-            } catch (Exception e6) {
-                return;
             }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
     }
-===
-Package Path:com.googleapi.cover.TextUtils.read
-Class Name:TextUtils
-Java Code: package com.googleapi.cover;
 
-    public static String read(int lineNum, Context context) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(context.getResources().openRawResource(R.raw.act_schemes)));
-        String line = null;
-        for (int i = 0; i < lineNum; i++) {
-            line = reader.readLine();
+===
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
+
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
-        reader.close();
-        return line;
-    }
-===
-Package Path:com.googleapi.cover.Main.finishInstallation
-Class Name:Main
-Java Code: package com.googleapi.cover;
-
-    void finishInstallation(String result) {
-        this.wasProgressDone = true;
-        this.installedURL = this.actor.getContentToBeActed();
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(IS_LOADED, true);
-        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
-        editor.commit();
-        updateGUI();
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
     }

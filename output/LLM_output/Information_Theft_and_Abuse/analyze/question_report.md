@@ -3,7 +3,7 @@
 
 ## Overall Summary
 
-The analyzed application exhibits highly sophisticated and coordinated malicious behaviors primarily focused on **Information Theft (SMS Exfiltration)**, **Device Tracking**, and **Social Engineering**. The application is designed to intercept sensitive SMS data and exfiltrate it to remote attackers via unauthorized SMS messages. Furthermore, it performs reconnaissance by collecting unique device identifiers (Subscription ID) and network metadata (MCC/MNC) to track users. To facilitate these activities and manipulate users, the app employs dynamic resource loading to trigger deceptive notifications and social engineering UI components (such as fraudulent "support" calls and web redirects).
+The analyzed application functions as a **Dropper**, specifically designed to facilitate the side-loading of an additional application (`com.moxiu.launcher`). The application contains an embedded APK file within its internal assets, which it extracts to the local file system at runtime. It then leverages system intents to trigger the Android package installer, prompting the user to install the secondary payload.
 
 
 
@@ -13,60 +13,31 @@ The analyzed application exhibits highly sophisticated and coordinated malicious
 ## Behavior Analysis Sections
 
 
-### SMS Data Exfiltration via SMS
-*   **`com.googleapi.cover.Utils.start`**
+### aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk
+**Description:**
 
-This method serves as the core exfiltration engine. It iterates through a list of target phone numbers contained within a `Sch` object (`actScheme.list`) and utilizes `android.telephony.SmsManager.sendTextMessage` to programmatically send messages. The payload consists of a prefix concatenated with the `data` parameter, which has been identified as stolen sensitive content. This allows the attacker to receive stolen data directly via the cellular network.
-
-
-
-*   **`com.googleapi.cover.MessageHandler.onReceive`**
-
-This component acts as the trigger for the exfiltration process. Upon receiving a specific intent, it retrieves sensitive SMS data stored in `SharedPreferences` under the key `Actor.KEY_MSG_DATA_TEXT`. It then prepares a list of destination phone numbers and calls `Utils.start` to initiate the unauthorized transmission of the stolen data.
+This method implements the core dropper logic by extracting a hidden APK from the application's assets and preparing it for installation.
 
 
 
-**Malicious Call Chain:**
+**Evidence and Technical Details:**
 
-`com.googleapi.cover.MessageHandler.onReceive` $\rightarrow$ `com.googleapi.cover.Utils.start` $\rightarrow$ `android.telephony.SmsManager.sendTextMessage`
-
-
-
----
+1.  **Asset Extraction**: The code uses `getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk")` to access an embedded APK file stored within the app's assets.
 
 
-### Exfiltration of Device Identifiers and Reconnaissance
-*   **`com.googleapi.cover.DevReg.sendOpening`** and **`com.googleapi.cover.DevReg.run`**
-
-These methods implement a background thread that exfiltrates the device's unique Subscription ID (SubId). The code constructs a malicious URL by appending `?task=update&Opening&s=` followed by the result of `TextUtils.getSubId(context)`. It then executes an `HttpGet` request via `HttpClient` to a remote server. This allows the attacker to uniquely identify and track the user's SIM/network identity.
+2.  **File Dropping**: It creates a local file named `MoXiuLauncher_alone.apk` in the application's internal storage using `openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS)` and writes the byte stream from the asset into this file.
 
 
+3.  **Installation Trigger**: After the file is written, the method constructs an `Intent` with the action `android.intent.action.VIEW` and the MIME type `application/vnd.android.package-archive`.
 
-*   **`com.googleapi.cover.TextUtils`**
 
-This class provides various utilities for reconnaissance. Methods such as `getMCC`, `getMNC`, and `getOperatorString` are used to extract the Mobile Country Code and Mobile Network Code from the SIM card, enabling the attacker to determine the user's geographic location and service provider.
+4.  **Execution**: The method calls `startActivityForResult` using the URI of the newly dropped file (`getFilesDir().getPath() + "/MoXiuLauncher_alone.apk"`), which instructs the Android OS to open the system package installer for the unauthorized APK.
 
 
 
----
+**Call Chain:**
 
-
-### Deceptive Notifications and Social Engineering
-*   **`com.googleapi.cover.Notifier.showNotification`**
-
-The application uses dynamic resource loading to display deceptive notifications. It retrieves a notification title, body, and a redirection URL from a raw resource file (`R.raw.act_schemes`) using `TextUtils.read`. The notification is configured with a `PendingIntent` that opens a web browser to the retrieved URL, allowing the attacker to remotely control the content and destination of the user's redirection.
-
-
-
-*   **`com.googleapi.cover.ShowURL.onCreate`**
-
-This activity presents a user interface designed for social engineering. It displays a "support number" that, when clicked, triggers an `android.intent.action.CALL` intent. This is a common tactic used in technical support scams to direct users toward fraudulent services.
-
-
-
-*   **`com.googleapi.cover.Main.finishInstallation`**
-
-This method saves a URL retrieved from a remote `Actor` object into `SharedPreferences` under the key `INSTALL_URL`. This indicates the application is designed to receive and persist remote instructions or secondary payload URLs for future execution.
+`aimoxiu.theme.carbqagp.carbqagp.onCreate()` $\rightarrow$ (User interaction with `AlertDialog`) $\rightarrow$ `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()` $\rightarrow$ **System Package Installer**
 
 
 
@@ -75,20 +46,4 @@ This method saves a URL retrieved from a remote `Actor` object into `SharedPrefe
 
 ## Conclusion
 
-
-
-The application demonstrates a clear pattern of malicious activity:
-
-
-1.  **Information Theft**: Stolen SMS content is exfiltrated via `com.googleapi.cover.Utils.start` following retrieval in `com.googleapi.cover.MessageHandler.onReceive`.
-
-
-2.  **Device Tracking**: Unique Subscription IDs are leaked via `com.googleapi.cover.DevReg.sendOpening` and network metadata is gathered via `com.googleapi.cover.TextUtils`.
-
-
-3.  **Social Engineering**: Users are manipulated through deceptive notifications (`com.googleapi.cover.Notifier.showNotification`) and fraudulent support interfaces (`com.googleapi.cover.ShowURL.onCreate`).
-
-
-
-
-The integration of these behaviors suggests a highly organized malware framework designed for data theft and user exploitation.
+The application is identified as a delivery mechanism for unauthorized software. By embedding a secondary APK (`MoXiuLauncher_alone.apk`) within its own assets and using `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk` to drop and trigger its installation, the app bypasses standard application installation flows to side-load the `com.moxiu.launcher` package.

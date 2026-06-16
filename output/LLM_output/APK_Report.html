@@ -1,48 +1,36 @@
 <h1>Final Malware Analysis Report</h1>
 <h2>1. Basic Information</h2>
-<p><strong>SHA256:</strong> A28E480AEFE42886A2943ECC4793ACF8D93D0DECA7323A2F45A3E9172343F3B5</p>
+<p><strong>SHA256:</strong> 0246B52CDFF33386AE5AE4891BE94DEE927737404D04435FB11F8ABC1FD3B05C</p>
 <h2>2. Executive Summary</h2>
-<p>The analyzed application is a sophisticated and highly coordinated malware framework designed for multi-stage attacks, primarily focusing on <strong>Monetary Fraud (Premium SMS Scams)</strong>, <strong>Information Theft</strong>, <strong>Device Tracking</strong>, and <strong>System Exploitation</strong>.</p>
-<p>The application exhibits several distinct types of malicious behaviors:</p>
-<ul>
-<li><strong>Monetary Fraud &amp; Financial Abuse:</strong> Automated premium SMS subscription scams using budget-aware engines and deceptive UIs.</li>
-<li><strong>Information Theft:</strong> Exfiltration of sensitive SMS content and device identifiers (Subscription ID).</li>
-<li><strong>System Exploitation &amp; Privilege Abuse:</strong> Unauthorized manipulation of system settings (Airplane Mode) and use of <code>WakeLock</code> for persistence.</li>
-<li><strong>Concealment &amp; Social Engineering:</strong> Interception of SMS alerts to hide transaction evidence and the use of deceptive notifications and "support" interfaces to manipulate users.</li>
-<li><strong>Command-and-Control (C2) Communication:</strong> Remote registration of infected devices via HTTP requests containing unique device metadata.</li>
-</ul>
-<p>All analyzed modules show clear malicious intent, working in concert to maximize financial extraction and data theft while evading user detection.</p>
+<p>The analyzed application functions as a <strong>Dropper</strong>, specifically designed to facilitate the unauthorized side-loading and installation of a secondary application (<code>com.moxiu.launcher</code>). Across all analyzed reports, three distinct types of malicious behaviors were identified:</p>
+<ol>
+<li>
+<p><strong>Information Theft and Abuse / Privilege Abuse</strong>: The application employs a dropper mechanism to extract an embedded APK from its internal assets and trigger the Android system package installer.</p>
+</li>
+<li>
+<p><strong>Monetary Fraud and Financial Abuse</strong>: The application utilizes social engineering via deceptive <code>AlertDialog</code> components to trick users into initiating the installation of the secondary payload.</p>
+</li>
+<li>
+<p><strong>System Exploitation</strong>: The application implements coordinated inter-app communication, using custom intents to interact with the dropped payload, indicating a multi-component malicious ecosystem.</p>
+</li>
+</ol>
+<p>The primary delivery mechanism is centered within the <code>aimoxiu.theme.carbqagp.carbqagp</code> package.</p>
 <h2>3. Detailed Analysis</h2>
-<h3>Monetary Fraud and Financial Abuse</h3>
-<p><strong>Malicious behavior detected.</strong></p>
+<h3>Dropper and Side-loading Behavior</h3>
+<p><strong>Malicious Behavior Detected</strong></p>
+<p><code>aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk</code></p>
+<p>The application implements core dropper logic to bypass standard installation flows. It accesses an embedded APK file (<code>/assets/MoXiuLauncher_alone.apk</code>) using <code>getClass().getResourceAsStream()</code>. This file is then extracted to the application's internal storage as <code>MoXiuLauncher_alone.apk</code> via <code>openFileOutput</code>. Following extraction, the method constructs an <code>Intent</code> with the action <code>android.intent.action.VIEW</code> and the MIME type <code>application/vnd.android.package-archive</code>. It executes <code>startActivityForResult</code> using the URI of the dropped file, which instructs the Android OS to launch the system package installer for the unauthorized APK.</p>
+<p><strong>Call Chain:</strong></p>
+<p><code>aimoxiu.theme.carbqagp.carbqagp.onCreate()</code> $\rightarrow$ (User interaction with <code>AlertDialog</code>) $\rightarrow$ <code>aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()</code> $\rightarrow$ <strong>System Package Installer</strong></p>
+<h3>Social Engineering</h3>
+<p><strong>Malicious Behavior Detected</strong></p>
+<p><code>aimoxiu.theme.carbqagp.carbqagp.onCreate</code></p>
+<p>The application uses deceptive tactics to prompt users to install the secondary payload. Upon startup, the <code>onCreate</code> method checks if the target package (<code>com.moxiu.launcher</code>) is missing or outdated. If so, it displays an <code>AlertDialog</code> using strings <code>R.string.moxiu_install_info</code> or <code>R.string.moxiu_version_info</code>. When the user clicks the positive button (<code>R.string.moxiu_ok</code>), the <code>installMoXiuLauncherApk()</code> method is directly invoked, leading to the side-loading process.</p>
+<h3>Inter-App Communication and Ecosystem Coordination</h3>
+<p><strong>Malicious Behavior Detected</strong></p>
+<p><code>aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme</code> / <code>aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail</code></p>
+<p>The application demonstrates coordinated communication with the dropped payload to act as a single ecosystem.</p>
 <ul>
-<li><strong><code>com.googleapi.cover.ActService.performActions</code></strong> and <strong><code>com.googleapi.cover.ActService.Worker.performActions</code></strong> (Package name: <code>com.googleapi.cover</code>): These methods implement a "budget-aware" fraudulent engine. The application identifies the user's mobile carrier and selects target short-codes. It tracks a <code>restAllowedSum</code> (e.g., 350.0) and monitors successful subscriptions via the <code>Actor.KEY_PAID</code> flag, automatically proceeding to the next target number to maximize funds until the monetary threshold is reached.</li>
-<li><strong><code>com.googleapi.cover.ActService.beginSending</code></strong> (Package name: <code>com.googleapi.cover</code>): Acts as the execution trigger by resetting status flags in <code>SharedPreferences</code> (e.g., <code>MESSAGE_IS_RECEIVED_KEY</code>) and calling <code>Utils.start</code> to transmit the SMS.</li>
-<li><strong><code>com.googleapi.cover.Utils.start</code></strong> (Package name: <code>com.googleapi.cover</code>): The core execution component that uses <code>android.telephony.SmsManager.sendTextMessage</code> to iterate through target numbers and send the payload.</li>
-<li><strong><code>com.googleapi.cover.ActService.actUK</code></strong> (Package name: <code>com.googleapi.cover</code>): A specialized module for Ukrainian networks that uses <code>TextUtils.getMNC</code> to identify the network and sends formatted SMS to hardcoded numbers (e.g., <code>3161</code>, <code>2855</code>), utilizing <code>sleep(60000L)</code> to evade rate-limiting detection.</li>
-<li><strong><code>com.googleapi.cover.Main.setListeners</code></strong> and <strong><code>com.googleapi.cover.RelatedContent.setListeners</code></strong> (Package name: <code>com.googleapi.cover</code>): Implements social engineering by dynamically displaying subscription prices and using <code>SpannableString</code> to mimic legal agreements. It manipulates UI visibility (e.g., <code>setVisibility(8)</code>) to hide exit or cancel options.</li>
-<li><strong><code>com.googleapi.cover.AgActivity.initAgr</code></strong> (Package name: <code>com.googleapi.cover</code>): Populates deceptive subscription offers tailored to the detected carrier (e.g., <code>beeline_subscription_offert</code>).</li>
-</ul>
-<h3>Information Theft and Abuse</h3>
-<p><strong>Malicious behavior detected.</strong></p>
-<ul>
-<li><strong><code>com.googleapi.cover.Utils.start</code></strong> (Package name: <code>com.googleapi.cover</code>): Serves as the exfiltration engine for stolen SMS data. It iterates through target phone numbers in <code>actScheme.list</code> and uses <code>android.telephony.SmsManager.sendTextMessage</code> to send a payload consisting of stolen sensitive content.</li>
-<li><strong><code>com.googleapi.cover.MessageHandler.onReceive</code></strong> (Package name: <code>com.googleapi.cover</code>): The trigger for SMS exfiltration. It retrieves sensitive data from <code>SharedPreferences</code> under <code>Actor.KEY_MSG_DATA_TEXT</code> and initiates the unauthorized transmission via <code>Utils.start</code>.</li>
-<li><strong><code>com.googleapi.cover.DevReg.sendOpening</code></strong> and <strong><code>com.googleapi.cover.DevReg.run</code></strong> (Package name: <code>com.googleapi.cover</code>): Implements a background thread that exfiltrates the device's unique Subscription ID (SubId). It constructs a URL with <code>?task=update&amp;Opening&amp;s=</code> followed by <code>TextUtils.getSubId(context)</code> and executes an <code>HttpGet</code> request via <code>HttpClient</code>.</li>
-<li><strong><code>com.googleapi.cover.TextUtils</code></strong> (Package name: <code>com.googleapi.cover</code>): Provides reconnaissance utilities including <code>getMCC</code>, <code>getMNC</code>, and <code>getOperatorString</code> to extract geographic and service provider metadata from the SIM card.</li>
-<li><strong><code>com.googleapi.cover.Notifier.showNotification</code></strong> (Package name: <code>com.googleapi.cover</code>): Uses dynamic resource loading from <code>R.raw.act_schemes</code> to display deceptive notifications that redirect users to external URLs via a <code>PendingIntent</code>.</li>
-<li><strong><code>com.googleapi.cover.ShowURL.onCreate</code></strong> (Package name: <code>com.googleapi.cover</code>): Displays a "support number" that triggers an <code>android.intent.action.CALL</code> intent, facilitating technical support scams.</li>
-<li><strong><code>com.googleapi.cover.Main.finishInstallation</code></strong> (Package name: <code>com.googleapi.cover</code>): Persists remote instruction URLs into <code>SharedPreferences</code> under the key <code>INSTALL_URL</code>.</li>
-</ul>
-<h3>Privilege Abuse and System Exploitation</h3>
-<p><strong>Malicious behavior detected.</strong></p>
-<ul>
-<li><strong><code>com.googleapi.cover.Main.showAirplaneDialog</code></strong> and <strong><code>com.googleapi.cover.Utils.setAirplaneMode</code></strong> (Package name: <code>com.googleapi.cover</code>): Implements a mechanism to manipulate the device's radio state. The app presents a non-cancelable <code>AlertDialog</code> mimicking a system prompt. Upon user interaction, <code>Utils.setAirplaneMode</code> uses <code>Settings.System.putInt</code> to programmatically disable Airplane Mode.</li>
-<li><strong><code>com.googleapi.cover.AirModeHandler.onReceive</code></strong> (Package name: <code>com.googleapi.cover</code>): A <code>BroadcastReceiver</code> that monitors system state. If the device regains connectivity after Airplane Mode was previously enabled, it automatically launches the <code>Main</code> activity to re-trigger malicious logic.</li>
-<li><strong><code>com.googleapi.cover.ActService.run</code></strong> (Package name: <code>com.googleapi.cover</code>): Utilizes a <code>WakeLock</code> via <code>PowerManager</code> to ensure persistence, preventing the system from suspending the CPU during fraudulent or exfiltration tasks.</li>
-</ul>
-<h3>SMS Interception and Concealment</h3>
-<p><strong>Malicious behavior detected.</strong></p>
-<ul>
-<li><strong><code>com.googleapi.cover.MessageReceiver.onReceive</code></strong> (Package name: <code>com.googleapi.cover</code>): Intercepts the <code>android.provider.Telephony.SMS_RECEIVED</code> broadcast. If a message arrives from an expected number (<code>Actor.EXPECT_NUM</code>), it calls <code>abortBroadcast()</code>. This prevents transaction confirmations or subscription alerts from reaching the user's legitimate messaging app, concealing the ongoing fraud.</li>
+<li><strong>OpenMoxiuTheme</strong>: Targets the specific component <code>com.moxiu.market.activity.ActivityMarket_main</code> within the <code>com.moxiu.launcher</code> package.</li>
+<li><strong>OpenThemeDetail</strong>: Dispatches a custom intent with the action <code>com.moxiu.launcher.theme.MYACTION</code>. This intent includes a <code>Bundle</code> containing metadata, such as the original application's package name and its installation path (<code>apkpath</code>), to facilitate interaction with the secondary application.</li>
 </ul>
