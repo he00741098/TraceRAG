@@ -362,8 +362,7 @@ graph_builder1.add_node(report_generator)
 
 
 graph_builder1.set_entry_point("generate")
-graph_builder1.add_edge("tools", "reorder_for_graph_2")
-graph_builder1.add_edge("reorder_for_graph_2", "generate")
+graph_builder1.add_edge("tools", "generate")
 graph_builder1.add_edge("generate", "back_or_output")
 # graph_builder.add_edge("back_or_output", "report_generator")
 
