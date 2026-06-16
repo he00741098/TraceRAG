@@ -32,6 +32,7 @@ import json
 import shutil
 import yaml
 import argparse
+import time
 from pathlib import Path
 
 from src.config import load_config, set_env_variables
@@ -302,6 +303,7 @@ def main():
         sys.exit(1)
 
     print(f"\n{'='*60}")
+    t_start = time.time()
 
     # Determine which phases need to run
     ingest_needed = not os.path.exists(split_dir) or any(not os.listdir(split_dir) for _ in [1])
@@ -327,6 +329,7 @@ def main():
 
         print(f"\nTotal: {total_entries} code entries from {len(jsonl_files)} file(s)")
         print(f"Output directory: {split_dir}")
+        print(f"  [Timing] Ingest: {time.time() - t_start:.1f}s")
 
     # ── Step 2: Code cleaning via LLM ──────────
     cleaning_done = os.path.exists(cleaned_dir) and any(os.scandir(cleaned_dir))
@@ -339,6 +342,7 @@ def main():
         if os.path.exists(cleaned_dir):
             shutil.rmtree(cleaned_dir)
         clean_java_files(split_dir, cleaned_dir, max_workers=2)
+        print(f"  [Timing] Cleaning: {time.time() - t_start:.1f}s")
 
     # ── Step 3: Code summarization via LLM ──────────
     # In resume mode, summarization skips files that already have output
@@ -347,6 +351,7 @@ def main():
     print(f"{'='*60}")
     os.makedirs(summarized_dir, exist_ok=True)
     summarize_java_files(cleaned_dir, summarized_dir)
+    print(f"  [Timing] Summarization: {time.time() - t_start:.1f}s")
 
     # ── Step 4: Store in Qdrant ──────────
     print(f"\n{'='*60}")
@@ -360,15 +365,18 @@ def main():
         index_name=index_name,
         openai_api_key=config["openai"]["api_key"]
     )
+    print(f"  [Timing] Qdrant storage: {time.time() - t_start:.1f}s")
 
     # ── Step 5: Conversation analysis pipeline ──────────
     print(f"\n{'='*60}")
     print("Phase: Question-based Retrieval & Analysis")
     print(f"{'='*60}")
     run_conversation_pipeline(config)
+    print(f"  [Timing] Conversation analysis: {time.time() - t_start:.1f}s")
 
     print(f"\n{'='*60}")
     print(f"[Done] Pipeline complete. Results in: {config['conversation_directories']['LLM_output']}")
+    print(f"[Timing] TOTAL: {time.time() - t_start:.1f}s ({((time.time() - t_start)/60):.1f} min)")
     print(f"{'='*60}")
 
 

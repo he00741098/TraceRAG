@@ -7,6 +7,8 @@ config = load_config()
 
 from langchain_openai import ChatOpenAI
 llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
+# Smaller token limit for tool-calling nodes (just need to produce a short JSON call)
+llm_tools = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=512)
 # Tool-call nodes only need a short response (~500 tokens for JSON tool call)
 llm_toolcall = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=2048)
 
