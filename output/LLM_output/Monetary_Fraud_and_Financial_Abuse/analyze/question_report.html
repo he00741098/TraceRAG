@@ -1,36 +1,32 @@
-<h1>Malware Analysis Report</h1>
-<h2>Overall Summary</h2>
-<p>The analyzed application functions as a <strong>Dropper</strong>, specifically designed to facilitate the side-loading and installation of a secondary application (<code>com.moxiu.launcher</code>). The application employs several deceptive and high-risk techniques, including embedding a payload within its internal assets, using social engineering via dialog boxes to trick users into installation, and implementing inter-app communication to coordinate behavior with the dropped payload.</p>
-<hr />
-<h2>Behavior Analysis Sections</h2>
-<h3>aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk</h3>
-<p><strong>Description:</strong></p>
-<p>This method performs the core dropper functionality by extracting a hidden APK from the application's assets and preparing it for installation.</p>
-<p><strong>Evidence and Technical Details:</strong></p>
+<h1>Overall Summary</h1>
+<p>The application demonstrates behavior indicative of monetary fraud through programmatic SMS transmission. The identified logic allows the application to send SMS messages to dynamically retrieved destinations and monitor their delivery status using custom broadcast intents. This mechanism can be exploited to facilitate unauthorized premium SMS subscriptions or hidden financial transactions without direct user intervention for each message.</p>
+<h1>Behavior Analysis Sections</h1>
+<h3>Programmatic SMS Transmission and Status Monitoring</h3>
+<p><strong>Package Path:</strong> <code>mm.sms.purchasesdk.sms.a.a</code><br />
+<strong>Class Name:</strong> <code>a</code></p>
+<p>The method <code>a(String str, Message message)</code> in this class is designed to programmatically dispatch SMS messages. This behavior is a key component in unauthorized financial abuse via SMS-based billing.</p>
+<p><strong>Malicious Behavior Explanation:</strong></p>
+<p>The method utilizes the <code>SmsManager</code> API to send text messages automatically. The recipient's phone number is not hardcoded but is dynamically retrieved from <code>c.v()</code>, allowing the application to target specific numbers (such as premium rate services). The application also implements a mechanism to track whether the message was successfully sent or delivered, which is essential for verifying the success of a fraudulent transaction.</p>
+<p><strong>Evidence:</strong><br />
+*   <strong>SMS Dispatch:</strong> <code>SmsManager.getDefault().sendTextMessage(v, null, str, ...)</code> where <code>v</code> is the dynamically retrieved address and <code>str</code> is the message content.<br />
+*   <strong>Delivery Tracking:</strong> The method uses <code>PendingIntent.getBroadcast</code> to trigger custom intent actions:<br />
+*   <code>aspire.iap.SMS_SEND_ACTIOIN</code> (defined in <code>mm.sms.purchasesdk.sms.SMSReceiver.i</code>)<br />
+*   <code>aspire.iap.SMS_DELIVERED_ACTION</code> (defined in <code>mm.sms.purchasesdk.sms.SMSReceiver.j</code>)<br />
+*   <strong>Status Interception:</strong> The <code>mm.sms.purchasesdk.sms.SMSReceiver.SMSReceiver</code> class listens for these specific actions in its <code>onReceive</code> method to process the result of the SMS transmission.</p>
+<p><strong>Call Chain:</strong></p>
 <ol>
 <li>
-<p><strong>Extraction of Embedded APK</strong>: The method accesses an internal asset named <code>/assets/MoXiuLauncher_alone.apk</code> using <code>getClass().getResourceAsStream()</code>. It then writes this byte stream to the application's internal storage as a file named <code>MoXiuLauncher_alone.apk</code> via <code>openFileOutput</code>.</p>
+<p><code>mm.sms.purchasesdk.sms.a.a.a(String str, Message message)</code></p>
 </li>
 <li>
-<p><strong>Triggering Side-loading via Intent</strong>: After the file is written, the method creates an <code>Intent</code> with the action <code>android.intent.action.VIEW</code> and sets the MIME type to <code>application/vnd.android.package-archive</code>. It then calls <code>startActivityForResult</code> with the URI of the extracted file, which triggers the Android system package installer to initiate the installation of the unauthorized APK.</p>
+<p><code>android.telephony.SmsManager.sendTextMessage(destination, sc, text, sentIntent, deliveryIntent)</code></p>
+</li>
+<li>
+<p><code>android.app.PendingIntent.getBroadcast(...)</code> (targeting <code>SMSReceiver</code> actions)</p>
+</li>
+<li>
+<p><code>mm.sms.purchasesdk.sms.SMSReceiver.onReceive(Context context, Intent intent)</code></p>
 </li>
 </ol>
-<p><strong>Call Chain:</strong></p>
-<p><code>aimoxiu.theme.carbqagp.carbqagp.onCreate()</code> $\rightarrow$ (User clicks "OK" on <code>AlertDialog</code>) $\rightarrow$ <code>aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()</code> $\rightarrow$ <strong>System Package Installer</strong></p>
-<h3>aimoxiu.theme.carbqagp.carbqagp.onCreate / onClick</h3>
-<p><strong>Description:</strong></p>
-<p>The application utilizes social engineering tactics to deceive users into triggering the payload installation.</p>
-<p><strong>Evidence and Technical Details:</strong></p>
-<p>The application displays <code>AlertDialog</code> components to prompt the user to proceed with an installation. Depending on whether the target package (<code>com.moxiu.launcher</code>) is missing or outdated, it displays messages (referencing <code>R.string.moxiu_install_info</code> or <code>R.string.moxiu_version_info</code>) to encourage the user to click "OK". This click event directly invokes the <code>installMoXiuLauncherApk()</code> method.</p>
-<h3>aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme / OpenThemeDetail</h3>
-<p><strong>Description:</strong></p>
-<p>These methods demonstrate coordinated inter-app communication, suggesting the primary app and the dropped payload act as a single ecosystem.</p>
-<p><strong>Evidence and Technical Details:</strong></p>
-<p>Once the secondary application is detected, the primary application attempts to communicate with it using specific custom intents and component names:</p>
-<ul>
-<li><strong>OpenMoxiuTheme</strong>: Targets <code>com.moxiu.market.activity.ActivityMarket_main</code>.</li>
-<li><strong>OpenThemeDetail</strong>: Sends a custom intent <code>com.moxiu.launcher.theme.MYACTION</code> containing a bundle of metadata (including the original app's package name and APK path) to the secondary application.</li>
-</ul>
-<hr />
-<h2>Conclusion</h2>
-<p>The application is a delivery mechanism designed to bypass standard installation processes. It hides a secondary payload within its assets, uses social engineering via <code>aimoxiu.theme.carbqagp.carbqagp.onCreate</code> to deceive users, and executes the side-loading process through <code>aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk</code>. The presence of coordinated communication via <code>OpenMoxiuTheme</code> and <code>OpenThemeDetail</code> confirms that the application is part of a multi-component system designed to control the user experience or facilitate unauthorized activities.</p>
+<h1>Conclusion</h1>
+<p>The analysis identifies a functional implementation for programmatic SMS sending and monitoring, which is highly consistent with monetary fraud patterns. The core malicious logic is located in <code>mm.sms.purchasesdk.sms.a.a</code>, which dispatches messages to dynamic addresses and uses <code>mm.sms.purchasesdk.sms.SMSReceiver</code> to intercept the delivery status via custom intent actions <code>aspire.iap.SMS_SEND_ACTIOIN</code> and <code>aspire.iap.SMS_DELIVERED_ACTION</code>.</p>

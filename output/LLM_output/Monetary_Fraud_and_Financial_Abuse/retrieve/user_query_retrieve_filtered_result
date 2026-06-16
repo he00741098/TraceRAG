@@ -1,1 +1,23 @@
-no related code found
+Package Path:mm.sms.purchasesdk.OnSMSPurchaseListener.PAYCODE
+Class Name:OnSMSPurchaseListener
+Java Code: package mm.sms.purchasesdk;
+
+    public static final String PAYCODE = "Paycode";
+===
+Package Path:mm.sms.purchasesdk.sms.SMSReceiver.i
+Class Name:SMSReceiver
+Java Code: package mm.sms.purchasesdk.sms;
+
+    public static String i = "aspire.iap.SMS_SEND_ACTIOIN";
+===
+Package Path:mm.sms.purchasesdk.sms.SMSReceiver.j
+Class Name:SMSReceiver
+Java Code: package mm.sms.purchasesdk.sms;
+
+    public static String j = "aspire.iap.SMS_DELIVERED_ACTION";
+===
+Package Path:mm.sms.purchasesdk.sms.purchasesdk.sms.SMSReceiver.j
+Class Name:SMSReceiver
+Java Code: package mm.sms.purchasesdk.sms;
+
+    public static String j = "aspire.iap.SMS_DELIVERED_ACTION";

@@ -1,38 +1,41 @@
-# Final Malware Analysis Report
+1. Basic Information
+SHA256: 66691A935F5813D697A8D776D4A0D4439F425A8E2F2903568FD5C1A10C575154
 
-## 1. Basic Information
-**SHA256:** 0246B52CDFF33386AE5AE4891BE94DEE927737404D04435FB11F8ABC1FD3B05C
+2. Executive Summary
+The analysis of the provided Android application code reveals significant malicious behaviors categorized under Monetary Fraud, Privilege Abuse, and System Exploitation. Specifically, the application implements programmatic SMS transmission to facilitate potential financial fraud through `mm.sms.purchasesdk.sms.a.a`. Furthermore, the application utilizes advanced techniques to evade detection and execute unauthorized code via Dynamic Code Loading (DCL) and native-level obfuscation within `com.unicom.dcLoader.Utils`. 
 
-## 2. Executive Summary
-The analyzed application functions as a **Dropper**, specifically designed to facilitate the unauthorized side-loading and installation of a secondary application (`com.moxiu.launcher`). Across all analyzed reports, three distinct types of malicious behaviors were identified:
+No malicious intent was identified in the `com.umeng.common.net` module, which appears limited to standard internal object assignments. While the `mm.sms.purchasesdk` package contains a functional SMS-based In-App Purchase (IAP) mechanism, specific components within this package are utilized for unauthorized programmatic message dispatching.
 
-1.  **Information Theft and Abuse / Privilege Abuse**: The application employs a dropper mechanism to extract an embedded APK from its internal assets and trigger the Android system package installer.
-2.  **Monetary Fraud and Financial Abuse**: The application utilizes social engineering via deceptive `AlertDialog` components to trick users into initiating the installation of the secondary payload.
-3.  **System Exploitation**: The application implements coordinated inter-app communication, using custom intents to interact with the dropped payload, indicating a multi-component malicious ecosystem.
+3. Detailed Analysis
 
-The primary delivery mechanism is centered within the `aimoxiu.theme.carbqagp.carbqagp` package.
+### Monetary Fraud and Financial Abuse
+**Status:** Detected
+**Package Name:** `mm.sms.purchasesdk.sms.a.a`
 
-## 3. Detailed Analysis
+The application demonstrates behavior indicative of monetary fraud through programmatic SMS transmission and delivery monitoring. 
 
-### Dropper and Side-loading Behavior
-**Malicious Behavior Detected**
+In the class `mm.sms.purchasesdk.sms.a.a`, the method `a(String str, Message message)` is designed to automatically dispatch SMS messages using the `SmsManager` API. The recipient's phone number is not hardcoded; instead, it is dynamically retrieved from `c.v()`, allowing the application to target premium-rate services or other specific destinations without explicit user input for each transaction.
 
-`aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk`
-The application implements core dropper logic to bypass standard installation flows. It accesses an embedded APK file (`/assets/MoXiuLauncher_alone.apk`) using `getClass().getResourceAsStream()`. This file is then extracted to the application's internal storage as `MoXiuLauncher_alone.apk` via `openFileOutput`. Following extraction, the method constructs an `Intent` with the action `android.intent.action.VIEW` and the MIME type `application/vnd.android.package-archive`. It executes `startActivityForResult` using the URI of the dropped file, which instructs the Android OS to launch the system package installer for the unauthorized APK.
+The application also implements a mechanism to monitor the status of these messages. It utilizes `PendingIntent.getBroadcast` to trigger custom intent actions:
+* `aspire.iap.SMS_SEND_ACTIOIN` (defined in `mm.sms.purchasesdk.sms.SMSReceiver.i`)
+* `aspire.iap.SMS_DELIVERED_ACTION` (defined in `mm.sms.purchasesdk.sms.SMSReceiver.j`)
 
-**Call Chain:**
-`aimoxiu.theme.carbqagp.carbqagp.onCreate()` $\rightarrow$ (User interaction with `AlertDialog`) $\rightarrow$ `aimoxiu.theme.carbqagp.carbqagp.installMoXiuLauncherApk()` $\rightarrow$ **System Package Installer**
+The `mm.sms.purchasesdk.sms.SMSReceiver.SMSReceiver` class intercepts these actions in its `onReceive` method to track whether fraudulent transactions were successfully sent or delivered.
 
-### Social Engineering
-**Malicious Behavior Detected**
+### Privilege Abuse and System Exploitation
+**Status:** Detected
+**Package Name:** `com.unicom.dcLoader.Utils`
 
-`aimoxiu.theme.carbqagp.carbqagp.onCreate`
-The application uses deceptive tactics to prompt users to install the secondary payload. Upon startup, the `onCreate` method checks if the target package (`com.moxiu.launcher`) is missing or outdated. If so, it displays an `AlertDialog` using strings `R.string.moxiu_install_info` or `R.string.moxiu_version_info`. When the user clicks the positive button (`R.string.moxiu_ok`), the `installMoXiuLauncherApk()` method is directly invoked, leading to the side-loading process.
+The application employs Dynamic Code Loading (DCL) via the Java Native Interface (JNI) to execute unauthorized code and evade security scanning.
 
-### Inter-App Communication and Ecosystem Coordination
-**Malicious Behavior Detected**
+The class `com.unicom.dcLoader.Utils` contains a native method `loadclass(Context context, byte[] bArr, String str, String str2, String str3, ClassLoader classLoader)`. This method allows the application to load and execute DEX files directly from memory by passing a decrypted byte array, thereby bypassing standard disk-based static analysis. The presence of the string `"dex_init"` in `com.unicom.dcLoader.Utils._$15` indicates that this method is specifically used for DEX file initialization.
 
-`aimoxiu.theme.carbqagp.carbqagp.OpenMoxiuTheme` / `aimoxiu.theme.carbqagp.carbqagp.OpenThemeDetail`
-The application demonstrates coordinated communication with the dropped payload to act as a single ecosystem.
-*   **OpenMoxiuTheme**: Targets the specific component `com.moxiu.market.activity.ActivityMarket_main` within the `com.moxiu.launcher` package.
-*   **OpenThemeDetail**: Dispatches a custom intent with the action `com.moxiu.launcher.theme.MYACTION`. This intent includes a `Bundle` containing metadata, such as the original application's package name and its installation path (`apkpath`), to facilitate interaction with the secondary application.
+Additionally, the application uses native-level obfuscation and Java Reflection to hide its core logic:
+* **Native De-obfuscation:** The native method `a(byte[])` in `com.unicom.dcLoader.Utils` acts as a decryption routine to hide sensitive strings and configuration data.
+* **Reflection-based Execution:** The method `b(...)` in `com.unicom.dcLoader.Utils` utilizes Java Reflection to manipulate class structures and invoke methods within the dynamically loaded code, facilitating the execution of hidden payloads while bypassing system restrictions.
+
+### Information Theft and Abuse
+**Status:** No Malicious Behavior Detected
+**Package Name:** `com.umeng.common.net`
+
+The analyzed code segments in `com.umeng.common.net` consist of standard internal object assignments and show no evidence of unauthorized data collection or information theft. Similarly, the SMS-related activities in `mm.sms.purchasesdk` were found to follow a functional implementation of an SMS-based IAP workflow, though they were noted for fraud potential in the Monetary Fraud section.
