@@ -70,7 +70,18 @@ def _check_truncation(response, node_name: str):
 #     raise RuntimeError(f"Failed to connect to Weaviate after {max_retries} attempts. Please check your configuration.")
 
         
-# Tool. Retrieve using query from Weaviate Vector DataBase
+def _dedup_tail_ai(messages: list):
+    """Drop consecutive AI messages at the tail of the list.
+
+    llama.cpp (unlike OpenAI) rejects prompts ending with 2+ consecutive
+    assistant messages.  We keep only the most recent one.
+    """
+    while len(messages) >= 2 and messages[-1].type == "ai" and messages[-2].type == "ai":
+        messages.pop(-2)
+    return messages
+
+
+# Tool.  Retrieve using query from Qdrant Vector Database.
 @tool(response_format="content_and_artifact")
 @retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(Exception))
 def retrieve(query: str, method_name: Optional[str]=None, class_name: Optional[str]=None):
@@ -244,7 +255,7 @@ def generate(state: MessagesState):
         if message.type in ("human", "system")
         or (message.type == "ai" and not message.tool_calls)
     ]
-    prompt = [SystemMessage(system_message_content)] + conversation_messages
+    prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
 
     # Run
     # response = llm.invoke(prompt)
@@ -321,7 +332,7 @@ def report_generator(state: MessagesState):
         or (message.type == "ai" and not message.tool_calls)
     ]
 
-    prompt = [SystemMessage(system_message_content)] + conversation_messages
+    prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
 
     #
     # # output_dir = "output/LLM_answer"
