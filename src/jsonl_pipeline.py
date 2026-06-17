@@ -323,6 +323,12 @@ def main():
 
     print(f"\n{'='*60}")
     t_start = time.time()
+    total_entries = 0          # populated by ingest phase
+    stats = {
+        "index_name": index_name,
+        "jsonl_files": len(jsonl_files),
+        "start_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
 
     # Determine which phases need to run
     ingest_needed = not os.path.exists(split_dir) or any(not os.listdir(split_dir) for _ in [1])
@@ -334,7 +340,6 @@ def main():
         print(f"Ingesting {len(jsonl_files)} JSONL file(s) into: {split_dir}")
         print(f"{'='*60}")
 
-        total_entries = 0
         os.makedirs(split_dir, exist_ok=True)
         for jf in jsonl_files:
             sha256 = Path(jf).stem.upper()
@@ -348,6 +353,7 @@ def main():
 
         print(f"\nTotal: {total_entries} code entries from {len(jsonl_files)} file(s)")
         print(f"Output directory: {split_dir}")
+        stats["entries_ingested"] = total_entries
         print(f"  [Timing] Ingest: {time.time() - t_start:.1f}s")
 
     # ── Step 2: Code cleaning via LLM ──────────
@@ -361,6 +367,7 @@ def main():
         if os.path.exists(cleaned_dir):
             shutil.rmtree(cleaned_dir)
         clean_java_files(split_dir, cleaned_dir, max_workers=2)
+        stats["cleaning_done"] = True
         print(f"  [Timing] Cleaning: {time.time() - t_start:.1f}s")
 
     # ── Step 3: Code summarization via LLM ──────────
@@ -370,6 +377,7 @@ def main():
     print(f"{'='*60}")
     os.makedirs(summarized_dir, exist_ok=True)
     summarize_java_files(cleaned_dir, summarized_dir)
+    stats["summarization_done"] = True
     print(f"  [Timing] Summarization: {time.time() - t_start:.1f}s")
 
     # ── Step 4: Store in Qdrant ──────────
@@ -391,11 +399,26 @@ def main():
     print("Phase: Question-based Retrieval & Analysis")
     print(f"{'='*60}")
     run_conversation_pipeline(config)
+    stats["conversation_done"] = True
     print(f"  [Timing] Conversation analysis: {time.time() - t_start:.1f}s")
 
+    total_s = time.time() - t_start
+    stats["total_seconds"] = round(total_s, 1)
+    stats["total_minutes"] = round(total_s / 60, 1)
+    stats["end_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
+
+    # Write timings file
+    llm_out = config["conversation_directories"]["LLM_output"]
+    os.makedirs(llm_out, exist_ok=True)
+    timing_path = os.path.join(llm_out, "timings.txt")
+    with open(timing_path, "w", encoding="utf-8") as tf:
+        for k, v in stats.items():
+            tf.write(f"{k}: {v}\n")
+
     print(f"\n{'='*60}")
-    print(f"[Done] Pipeline complete. Results in: {config['conversation_directories']['LLM_output']}")
-    print(f"[Timing] TOTAL: {time.time() - t_start:.1f}s ({((time.time() - t_start)/60):.1f} min)")
+    print(f"[Done] Pipeline complete. Results in: {llm_out}")
+    print(f"[Timing] TOTAL: {total_s:.1f}s ({stats['total_minutes']} min)")
+    print(f"[Timing] Stats written to: {timing_path}")
     print(f"{'='*60}")
 
 
