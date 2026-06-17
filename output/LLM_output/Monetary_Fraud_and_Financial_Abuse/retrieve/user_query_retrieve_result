@@ -1,59 +1,153 @@
-Package Path:mm.sms.purchasesdk.sms.purchasesdk.sms.SMSReceiver.i
-Class Name:SMSReceiver
-Content: package mm.sms.purchasesdk.sms;
+Package Path:anywheresoftware.b4a.IOnActivityResult.ResultArrived
+Class Name:IOnActivityResult
+Content: package anywheresoftware.b4a;
 
-    public static String i = "aspire.iap.SMS_SEND_ACTIOIN";
+    void ResultArrived(int i, Intent intent);
 
-Package Path:mm.sms.purchasesdk.sms.purchasesdk.sms.SMSReceiver.i
-Class Name:SMSReceiver
-Content: package mm.sms.purchasesdk.sms;
+Package Path:anywheresoftware.b4a.IOnActivityResult.ResultArrived
+Class Name:IOnActivityResult
+Content: package anywheresoftware.b4a;
 
-    public static String i = "aspire.iap.SMS_SEND_ACTIOIN";
+    void ResultArrived(int i, Intent intent);
 
-Package Path:mm.sms.purchasesdk.sms.SMSReceiver.i
-Class Name:SMSReceiver
-Content: package mm.sms.purchasesdk.sms;
+Package Path:anywheresoftware.b4a.phone.PackageManagerWrapper.GetInstalledPackages
+Class Name:PackageManagerWrapper
+Content: package anywheresoftware.b4a.phone;
 
-    public static String i = "aspire.iap.SMS_SEND_ACTIOIN";
+    public List GetInstalledPackages() {
+        List l = new List();
+        java.util.List<PackageInfo> list = this.pm.getInstalledPackages(0);
+        l.Initialize();
+        for (PackageInfo pi : list) {
+            l.Add(pi.packageName);
+        }
+        return l;
+    }
 
-Package Path:mm.sms.purchasesdk.sms.SMSReceiver.i
-Class Name:SMSReceiver
-Content: package mm.sms.purchasesdk.sms;
+Package Path:anywheresoftware.b4a.phone.PackageManagerWrapper.GetInstalledPackages
+Class Name:PackageManagerWrapper
+Content: package anywheresoftware.b4a.phone;
 
-    public static String i = "aspire.iap.SMS_SEND_ACTIOIN";
+    public List GetInstalledPackages() {
+        List l = new List();
+        java.util.List<PackageInfo> list = this.pm.getInstalledPackages(0);
+        l.Initialize();
+        for (PackageInfo pi : list) {
+            l.Add(pi.packageName);
+        }
+        return l;
+    }
 
-Package Path:mm.sms.purchasesdk.sms.SMSReceiver.j
-Class Name:SMSReceiver
-Content: package mm.sms.purchasesdk.sms;
+Package Path:anywheresoftware.b4a.phone.Phone.ion
+Class Name:Phone
+Content: package anywheresoftware.b4a.phone;
 
-    public static String j = "aspire.iap.SMS_DELIVERED_ACTION";
+        private IOnActivityResult ion;
 
-Package Path:mm.sms.purchasesdk.sms.SMSReceiver.j
-Class Name:SMSReceiver
-Content: package mm.sms.purchasesdk.sms;
+Package Path:anywheresoftware.b4a.phone.Phone.ion
+Class Name:Phone
+Content: package anywheresoftware.b4a.phone;
 
-    public static String j = "aspire.iap.SMS_DELIVERED_ACTION";
+        private IOnActivityResult ion;
 
-Package Path:mm.sms.purchasesdk.sms.purchasesdk.sms.SMSReceiver.j
-Class Name:SMSReceiver
-Content: package mm.sms.purchasesdk.sms;
+Package Path:com.dijlah.sh_khotaba.settings.onActivityResult
+Class Name:settings
+Content: package com.dijlah.sh_khotaba;
 
-    public static String j = "aspire.iap.SMS_DELIVERED_ACTION";
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        processBA.onActivityResult(i, i2, intent);
+        processBA.runHook("onactivityresult", this, new Object[]{Integer.valueOf(i), Integer.valueOf(i2)});
+    }
 
-Package Path:mm.sms.purchasesdk.sms.purchasesdk.sms.SMSReceiver.j
-Class Name:SMSReceiver
-Content: package mm.sms.purchasesdk.sms;
+Package Path:com.dijlah.sh_khotaba.settings.onActivityResult
+Class Name:settings
+Content: package com.dijlah.sh_khotaba;
 
-    public static String j = "aspire.iap.SMS_DELIVERED_ACTION";
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        processBA.onActivityResult(i, i2, intent);
+        processBA.runHook("onactivityresult", this, new Object[]{Integer.valueOf(i), Integer.valueOf(i2)});
+    }
 
-Package Path:mm.sms.purchasesdk.OnSMSPurchaseListener.PAYCODE
-Class Name:OnSMSPurchaseListener
-Content: package mm.sms.purchasesdk;
+Package Path:anywheresoftware.b4a.objects.IntentWrapper.ACTION_PICK
+Class Name:IntentWrapper
+Content: package anywheresoftware.b4a.objects;
 
-    public static final String PAYCODE = "Paycode";
+    public static final String ACTION_PICK = "android.intent.action.PICK";
 
-Package Path:mm.sms.purchasesdk.OnSMSPurchaseListener.PAYCODE
-Class Name:OnSMSPurchaseListener
-Content: package mm.sms.purchasesdk;
+Package Path:anywheresoftware.b4a.objects.IntentWrapper.ACTION_PICK
+Class Name:IntentWrapper
+Content: package anywheresoftware.b4a.objects;
 
-    public static final String PAYCODE = "Paycode";
+    public static final String ACTION_PICK = "android.intent.action.PICK";
+
+Package Path:com.dijlah.sh_khotaba.main.onActivityResult
+Class Name:main
+Content: package com.dijlah.sh_khotaba;
+
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        processBA.onActivityResult(i, i2, intent);
+        processBA.runHook("onactivityresult", this, new Object[]{Integer.valueOf(i), Integer.valueOf(i2)});
+    }
+
+Package Path:com.dijlah.sh_khotaba.main.onActivityResult
+Class Name:main
+Content: package com.dijlah.sh_khotaba;
+
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        processBA.onActivityResult(i, i2, intent);
+        processBA.runHook("onactivityresult", this, new Object[]{Integer.valueOf(i), Integer.valueOf(i2)});
+    }
+
+Package Path:anywheresoftware.b4a.objects.Base64.numSigBytes
+Class Name:Base64
+Content: package anywheresoftware.b4a.objects;
+
+        private int numSigBytes;
+
+Package Path:anywheresoftware.b4a.objects.Base64.numSigBytes
+Class Name:Base64
+Content: package anywheresoftware.b4a.objects;
+
+        private int numSigBytes;
+
+Package Path:com.dijlah.sh_khotaba.taghdir.onActivityResult
+Class Name:taghdir
+Content: package com.dijlah.sh_khotaba;
+
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        processBA.onActivityResult(i, i2, intent);
+        processBA.runHook("onactivityresult", this, new Object[]{Integer.valueOf(i), Integer.valueOf(i2)});
+    }
+
+Package Path:com.dijlah.sh_khotaba.taghdir.onActivityResult
+Class Name:taghdir
+Content: package com.dijlah.sh_khotaba;
+
+    protected void onActivityResult(int i, int i2, Intent intent) {
+        processBA.onActivityResult(i, i2, intent);
+        processBA.runHook("onactivityresult", this, new Object[]{Integer.valueOf(i), Integer.valueOf(i2)});
+    }
+
+Package Path:anywheresoftware.b4a.phone.PackageManagerWrapper.pm
+Class Name:PackageManagerWrapper
+Content: package anywheresoftware.b4a.phone;
+
+    private PackageManager pm = BA.applicationContext.getPackageManager();
+
+Package Path:anywheresoftware.b4a.phone.PackageManagerWrapper.pm
+Class Name:PackageManagerWrapper
+Content: package anywheresoftware.b4a.phone;
+
+    private PackageManager pm = BA.applicationContext.getPackageManager();
+
+Package Path:anywheresoftware.b4a.phone.SmsWrapper.Id
+Class Name:SmsWrapper
+Content: package anywheresoftware.b4a.phone;
+
+        public int Id;
+
+Package Path:anywheresoftware.b4a.phone.SmsWrapper.Id
+Class Name:SmsWrapper
+Content: package anywheresoftware.b4a.phone;
+
+        public int Id;

@@ -1,37 +1,67 @@
-<ol>
-<li>Basic Information</li>
-</ol>
-<p>SHA256: 66691A935F5813D697A8D776D4A0D4439F425A8E2F2903568FD5C1A10C575154</p>
-<ol>
-<li>Executive Summary</li>
-</ol>
-<p>The analysis of the provided Android application code reveals significant malicious behaviors categorized under Monetary Fraud, Privilege Abuse, and System Exploitation. Specifically, the application implements programmatic SMS transmission to facilitate potential financial fraud through <code>mm.sms.purchasesdk.sms.a.a</code>. Furthermore, the application utilizes advanced techniques to evade detection and execute unauthorized code via Dynamic Code Loading (DCL) and native-level obfuscation within <code>com.unicom.dcLoader.Utils</code>.</p>
-<p>No malicious intent was identified in the <code>com.umeng.common.net</code> module, which appears limited to standard internal object assignments. While the <code>mm.sms.purchasesdk</code> package contains a functional SMS-based In-App Purchase (IAP) mechanism, specific components within this package are utilized for unauthorized programmatic message dispatching.</p>
-<ol>
-<li>Detailed Analysis</li>
-</ol>
-<h3>Monetary Fraud and Financial Abuse</h3>
-<p><strong>Status:</strong> Detected<br />
-<strong>Package Name:</strong> <code>mm.sms.purchasesdk.sms.a.a</code></p>
-<p>The application demonstrates behavior indicative of monetary fraud through programmatic SMS transmission and delivery monitoring.</p>
-<p>In the class <code>mm.sms.purchasesdk.sms.a.a</code>, the method <code>a(String str, Message message)</code> is designed to automatically dispatch SMS messages using the <code>SmsManager</code> API. The recipient's phone number is not hardcoded; instead, it is dynamically retrieved from <code>c.v()</code>, allowing the application to target premium-rate services or other specific destinations without explicit user input for each transaction.</p>
-<p>The application also implements a mechanism to monitor the status of these messages. It utilizes <code>PendingIntent.getBroadcast</code> to trigger custom intent actions:</p>
+<p><strong>1. Basic Information</strong></p>
+<p><strong>SHA256:</strong> 4288DA26BF6218515B89F60DB3A92040D3E5203C99B05282C464E144C4B4BAFD</p>
+<p><strong>2. Executive Summary</strong></p>
+<p>Based on the analysis of the provided reports, no malicious behaviors were identified in the application. The analyzed code paths are related to standard UI component management, Android lifecycle event handling, and development framework environment checks.</p>
+<p>Specifically:</p>
 <ul>
-<li><code>aspire.iap.SMS_SEND_ACTIOIN</code> (defined in <code>mm.sms.purchasesdk.sms.SMSReceiver.i</code>)</li>
-<li><code>aspire.iap.SMS_DELIVERED_ACTION</code> (defined in <code>mm.sms.purchasesdk.sms.SMSReceiver.j</code>)</li>
+<li><strong>Information Theft and Abuse:</strong> No malicious behavior was detected in <code>anywheresoftware.b4a.objects.WebViewWrapper.CaptureBitmap</code>.</li>
+<li><strong>Monetary Fraud and Financial Abuse:</strong> No malicious behavior was detected in <code>com.dijlah.sh_khotaba.gallery.onWindowFocusChanged</code>.</li>
+<li><strong>Privilege Abuse and System Exploitation:</strong> No malicious behavior was detected in <code>anywheresoftware.b4a.BA.isShellModeRuntimeCheck</code>.</li>
 </ul>
-<p>The <code>mm.sms.purchasesdk.sms.SMSReceiver.SMSReceiver</code> class intercepts these actions in its <code>onReceive</code> method to track whether fraudulent transactions were successfully sent or delivered.</p>
-<h3>Privilege Abuse and System Exploitation</h3>
-<p><strong>Status:</strong> Detected<br />
-<strong>Package Name:</strong> <code>com.unicom.dcLoader.Utils</code></p>
-<p>The application employs Dynamic Code Loading (DCL) via the Java Native Interface (JNI) to execute unauthorized code and evade security scanning.</p>
-<p>The class <code>com.unicom.dcLoader.Utils</code> contains a native method <code>loadclass(Context context, byte[] bArr, String str, String str2, String str3, ClassLoader classLoader)</code>. This method allows the application to load and execute DEX files directly from memory by passing a decrypted byte array, thereby bypassing standard disk-based static analysis. The presence of the string <code>"dex_init"</code> in <code>com.unicom.dcLoader.Utils._$15</code> indicates that this method is specifically used for DEX file initialization.</p>
-<p>Additionally, the application uses native-level obfuscation and Java Reflection to hide its core logic:</p>
-<ul>
-<li><strong>Native De-obfuscation:</strong> The native method <code>a(byte[])</code> in <code>com.unicom.dcLoader.Utils</code> acts as a decryption routine to hide sensitive strings and configuration data.</li>
-<li><strong>Reflection-based Execution:</strong> The method <code>b(...)</code> in <code>com.unicom.dcLoader.Utils</code> utilizes Java Reflection to manipulate class structures and invoke methods within the dynamically loaded code, facilitating the execution of hidden payloads while bypassing system restrictions.</li>
-</ul>
+<p><strong>3. Detailed Analysis</strong></p>
 <h3>Information Theft and Abuse</h3>
-<p><strong>Status:</strong> No Malicious Behavior Detected<br />
-<strong>Package Name:</strong> <code>com.umeng.common.net</code></p>
-<p>The analyzed code segments in <code>com.umeng.common.net</code> consist of standard internal object assignments and show no evidence of unauthorized data collection or information theft. Similarly, the SMS-related activities in <code>mm.sms.purchasesdk</code> were found to follow a functional implementation of an SMS-based IAP workflow, though they were noted for fraud potential in the Monetary Fraud section.</p>
+<p><strong>No Malicious Behavior Detected</strong></p>
+<p><strong>Package name: <code>anywheresoftware.b4a.objects.WebViewWrapper.CaptureBitmap</code></strong></p>
+<p>The method <code>CaptureBitmap</code> in the class <code>anywheresoftware.b4a.objects.WebViewWrapper</code> performs a standard functional operation to capture the visual content of a <code>WebView</code> component.</p>
+<p><strong>Technical Analysis:</strong></p>
+<p>The code follows this execution flow:</p>
+<ol>
+<li>
+<p>It retrieves the <code>WebView</code> object and invokes <code>capturePicture()</code>, a standard Android API method used to generate a <code>Picture</code> object of the current view state.</p>
+</li>
+<li>
+<p>It initializes a <code>BitmapWrapper</code> to hold the visual data.</p>
+</li>
+<li>
+<p>It utilizes a <code>CanvasWrapper</code> to provide a <code>Canvas</code> onto which the <code>Picture</code> is drawn.</p>
+</li>
+</ol>
+<p>This mechanism is used to allow applications to save, share, or manipulate the visual content displayed within a web view. There is no evidence of unauthorized data exfiltration or hidden background activity.</p>
+<hr />
+<h3>Monetary Fraud and Financial Abuse</h3>
+<p><strong>No Malicious Behavior Detected</strong></p>
+<p><strong>Package name: <code>com.dijlah.sh_khotaba.gallery.onWindowFocusChanged</code></strong></p>
+<p>The <code>onWindowFocusChanged</code> method in the <code>gallery</code> class is an override of the standard Android lifecycle method used to monitor changes in window focus.</p>
+<p><strong>Technical Analysis:</strong></p>
+<p>The code follows this execution flow:</p>
+<ol>
+<li>
+<p>It calls <code>super.onWindowFocusChanged(z)</code> to ensure the base class correctly handles the focus change.</p>
+</li>
+<li>
+<p>It invokes <code>processBA.subExists("activity_windowfocuschanged")</code> to check if a specific event listener or subscription is active.</p>
+</li>
+<li>
+<p>If the subscription exists, it calls <code>processBA.raiseEvent2</code> to propagate the current window focus state (<code>z</code>) to the application's internal event processing system.</p>
+</li>
+</ol>
+<p>The observed logic is consistent with standard Android UI event management and does not demonstrate intent for unauthorized data access or financial fraud.</p>
+<hr />
+<h3>Privilege Abuse and System Exploitation</h3>
+<p><strong>No Malicious Behavior Detected</strong></p>
+<p><strong>Package name: <code>anywheresoftware.b4a.BA.isShellModeRuntimeCheck</code></strong></p>
+<p>The method <code>isShellModeRuntimeCheck</code> in the class <code>anywheresoftware.b4a.BA</code> is a utility designed to determine if the current runtime environment is operating in "Shell Mode."</p>
+<p><strong>Technical Analysis:</strong></p>
+<p>The method implements the following logic:</p>
+<ol>
+<li>
+<p>It checks if the <code>processBA</code> object within the provided <code>BA</code> instance is non-null.</p>
+</li>
+<li>
+<p>If <code>processBA</code> exists, the method calls itself recursively using <code>ba.processBA</code>.</p>
+</li>
+<li>
+<p>If <code>processBA</code> is null, it performs a string comparison on the class name of the current <code>BA</code> instance to see if it ends with <code>"ShellBA"</code>.</p>
+</li>
+</ol>
+<p>This mechanism is used in development frameworks (such as B4A) to distinguish between standard production execution and a shell-based debugging or development session. The code does not attempt to escalate privileges or exploit system vulnerabilities.</p>

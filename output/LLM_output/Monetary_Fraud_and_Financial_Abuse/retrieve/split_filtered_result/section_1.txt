@@ -1,5 +1,0 @@
-Package Path:mm.sms.purchasesdk.OnSMSPurchaseListener.PAYCODE
-Class Name:OnSMSPurchaseListener
-Java Code: package mm.sms.purchasesdk;
-
-    public static final String PAYCODE = "Paycode";

@@ -28,7 +28,7 @@ openai:
   api_key: sk-local
 qdrant:
   api_key: dummy
-  collection_name: 66691A935F5813D697A8D776D4A0D4439F425A8E2F2903568FD5C1A10C575154
+  collection_name: 4288DA26BF6218515B89F60DB3A92040D3E5203C99B05282C464E144C4B4BAFD
   retrieve_num_limit: 20
   url: http://localhost:6333
 weaviate:

@@ -1,5 +1,0 @@
-Package Path:mm.sms.purchasesdk.sms.SMSReceiver.i
-Class Name:SMSReceiver
-Java Code: package mm.sms.purchasesdk.sms;
-
-    public static String i = "aspire.iap.SMS_SEND_ACTIOIN";
