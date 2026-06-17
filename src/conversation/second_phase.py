@@ -291,7 +291,7 @@ def back_or_output(state: MessagesState):
         if message.type == "ai"
     ][0:3]  # Use last 3 AI messages for context, not just the most recent
 
-    prompt = [SystemMessage(system_message_content)] + conversation_messages
+    prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
 
     # Run
     llm_with_tools = llm_tools.bind_tools([retrieve])
