@@ -49,6 +49,9 @@ from src.postprocess.combine_single_question_report import quesiton_report_gener
 from src.postprocess.txt2markwon_and_html import convert_txt_to_md_and_html
 from src.postprocess.Final_report_Generation import apk_report_generation
 
+# Verification
+from src.verify_report import verify_report
+
 CONFIG_PATH = r"config.yaml"
 
 
@@ -127,7 +130,7 @@ def create_minimal_apk_info(sha256, output_path):
     print(f"  [APK Info] SHA256: {sha256} → {output_path}")
 
 
-def run_conversation_pipeline(config):
+def run_conversation_pipeline(config, jsonl_path=None):
     """Run the multi-question retrieval, analysis, and report generation."""
     # Load questions
     try:
@@ -276,6 +279,10 @@ def run_conversation_pipeline(config):
             f.write(apk_result)
         convert_txt_to_md_and_html(output_path)
         print(f"\n[Final Report] {output_path}")
+
+        # Verify claims against source JSONL
+        if jsonl_path:
+            verify_report(output_path, jsonl_path, llm_output_base)
     else:
         print("\n[Final Report] No question reports found to aggregate.")
 
@@ -417,7 +424,7 @@ def main():
     print(f"\n{'='*60}")
     print("Phase: Question-based Retrieval & Analysis")
     print(f"{'='*60}")
-    run_conversation_pipeline(config)
+    run_conversation_pipeline(config, jsonl_path=jsonl_path)
     stats["conversation_done"] = True
     print(f"  [Timing] Conversation analysis: {time.time() - t_start:.1f}s")
 
