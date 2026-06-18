@@ -229,14 +229,16 @@ graph = graph_builder.compile(checkpointer=memory)
 # 运行流程
 def execute_query(input_message: str):
     """执行查询流程，并将结果保存至文件。"""
+    global config
+    config = load_config()  # Re-read config at runtime (collection name may have changed)
     current_time = "Experiment_" + datetime.now().strftime("%Y%m%d_%H%M%S")
-    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
+    thread_config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
     final_result = ""
     
     for step in graph.stream(
         {"messages": [{"role": "user", "content": input_message}]},
         stream_mode="values",
-        config=config,
+        config=thread_config,
     ):
         step["messages"][-1].pretty_print()
         final_result += str(step["messages"][-1]) + "\n"
