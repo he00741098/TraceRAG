@@ -45,16 +45,31 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run APK analysis pipeline.")
     parser.add_argument("apk_directory", type=str, help="Path to the APK file or directory containing APKs.")
     parser.add_argument("index_name", type=str, help="Index name for the vector database.")
+    parser.add_argument("--output-dir", type=str, default="output",
+                        help="Base output directory (default: output).")
 
     args = parser.parse_args()
     apk_directory = args.apk_directory
     index_name = args.index_name
+    output_dir = args.output_dir
 
     # 更新 YAML 文件中的 index_name
     update_config_index_name(index_name)
 
     # 读取更新后的配置
     config = load_config()
+
+    # Scope all output to --output-dir
+    config["directories"]["java_dir"] = f"{output_dir}/reversedAPK/sources"
+    config["directories"]["apk_info_dir"] = f"{output_dir}/APK_info.txt"
+    config["directories"]["reversed_apk_dir"] = f"{output_dir}/reversedAPK"
+    config["conversation_directories"]["LLM_output"] = f"{output_dir}/LLM_output"
+    config["conversation_directories"]["user_query_analyze_path"] = f"{output_dir}/LLM_output/analyze"
+    config["conversation_directories"]["user_query_retrieval_filtered_path"] = f"{output_dir}/LLM_output/retrieve/user_query_retrieve_filtered_result"
+    config["conversation_directories"]["user_query_retrieval_filtered_split_path"] = f"{output_dir}/LLM_output/retrieve/split_filtered_result"
+    config["conversation_directories"]["user_query_retrieval_save_path"] = f"{output_dir}/LLM_output/retrieve/user_query_retrieve_result"
+
+    os.makedirs(output_dir, exist_ok=True)
 
 
     # # accept a apk file as input

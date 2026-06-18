@@ -288,17 +288,33 @@ def main():
     parser.add_argument("jsonl_path", type=str, help="Path to a .jsonl file or directory of .jsonl files.")
     parser.add_argument("index_name", type=str, help="Index name for the Qdrant vector database.")
     parser.add_argument("--resume", action="store_true", help="Resume from the last completed phase.")
+    parser.add_argument("--output-dir", type=str, default="output",
+                        help="Base output directory (default: output). "
+                             "Output is scoped to <output-dir>/LLM_output/, "
+                             "<output-dir>/APK_info.txt, etc.")
     args = parser.parse_args()
 
     jsonl_path = args.jsonl_path
     index_name = args.index_name
     resume = args.resume
+    output_dir = args.output_dir  # e.g., "output/55152EE8..."
 
     # Update config with the new index name
     update_config_index_name(index_name)
     config = load_config()
 
-    java_dir = config["directories"]["java_dir"]                    # output/reversedAPK/sources
+    # Scope all output to --output-dir so parallel runs isolate cleanly
+    config["directories"]["java_dir"] = f"{output_dir}/reversedAPK/sources"
+    config["directories"]["apk_info_dir"] = f"{output_dir}/APK_info.txt"
+    config["conversation_directories"]["LLM_output"] = f"{output_dir}/LLM_output"
+    # Propagate LLM_output to the derived directory paths used by
+    # run_conversation_pipeline / execute_query / split_and_store_java_code
+    config["conversation_directories"]["user_query_analyze_path"] = f"{output_dir}/LLM_output/analyze"
+    config["conversation_directories"]["user_query_retrieval_filtered_path"] = f"{output_dir}/LLM_output/retrieve/user_query_retrieve_filtered_result"
+    config["conversation_directories"]["user_query_retrieval_filtered_split_path"] = f"{output_dir}/LLM_output/retrieve/split_filtered_result"
+    config["conversation_directories"]["user_query_retrieval_save_path"] = f"{output_dir}/LLM_output/retrieve/user_query_retrieve_result"
+
+    java_dir = config["directories"]["java_dir"]                    # output/<name>/reversedAPK/sources
     split_dir = f"{java_dir}_Split"                                 # output/reversedAPK/sources_Split
     cleaned_dir = f"{java_dir}_Split_Cleaned"                        # output/reversedAPK/sources_Split_Cleaned
     summarized_dir = f"{java_dir}_Split_Cleaned_Summarized"          # output/reversedAPK/sources_Split_Cleaned_Summarized
@@ -308,6 +324,9 @@ def main():
         for d in [split_dir, cleaned_dir, summarized_dir]:
             if os.path.exists(d):
                 shutil.rmtree(d)
+
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
 
     # ── Step 1: Ingest JSONL entries into _Split directory ──────────
     jsonl_files = []
