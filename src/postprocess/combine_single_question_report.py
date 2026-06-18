@@ -124,7 +124,6 @@ config.update({"recursion_limit": 25})
 
 
 
-
 def quesiton_report_generation(file_content):
     config = load_config()
     if isinstance(file_content, list):
@@ -135,14 +134,15 @@ def quesiton_report_generation(file_content):
     with open(apk_info_path, 'r', encoding='utf-8') as file:
         apk_info_content = file.read()
 
-    # 构建输入消息
-    input_message = """
-        \n
-        Here is the app and summary 
-        \n
-        """
-    # input_message += apk_info_content + "\n" + file_content + "\n"
-    input_message +=  file_content + "\n"
+    # 构建输入消息 — include APK info so the report generator has app context
+    input_message = (
+        "Here is the app info and analysis summaries.\n\n"
+        "=== APP INFO ===\n"
+        f"{apk_info_content}\n\n"
+        "=== ANALYSIS SUMMARIES ===\n"
+        f"{file_content}\n"
+    )
+
     # 模型推理并收集结果
     config = {
         "configurable": {
@@ -162,4 +162,3 @@ def quesiton_report_generation(file_content):
         last_message = step["messages"][-1].content
 
     return last_message
-
