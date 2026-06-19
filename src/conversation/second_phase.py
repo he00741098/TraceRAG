@@ -58,6 +58,15 @@ client = QdrantClient(url=config["qdrant"]["url"])
 #     raise RuntimeError(f"Failed to connect to Weaviate after {max_retries} attempts. Please check your configuration.")
 
         
+# ── Consecutive AI message dedup for llama.cpp compatibility ──────
+# llama.cpp rejects prompts ending with 2+ consecutive assistant messages.
+# This strips duplicates from the tail before sending to the LLM.
+def _dedup_tail_ai(messages: list):
+    """Drop consecutive AI messages at the tail of the list."""
+    while len(messages) >= 2 and messages[-1].type == "ai" and messages[-2].type == "ai":
+        messages.pop(-2)
+    return messages
+
 # Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
 @retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(Exception))
@@ -226,7 +235,7 @@ def generate(state: MessagesState):
         if message.type in ("human", "system")
         or (message.type == "ai" and not message.tool_calls)
     ]
-    prompt = [SystemMessage(system_message_content)] + conversation_messages
+    prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
 
     # Run
     # response = llm.invoke(prompt)
@@ -301,7 +310,7 @@ def report_generator(state: MessagesState):
         or (message.type == "ai" and not message.tool_calls)
     ]
 
-    prompt = [SystemMessage(system_message_content)] + conversation_messages
+    prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
 
     #
     # # output_dir = "output/LLM_answer"
