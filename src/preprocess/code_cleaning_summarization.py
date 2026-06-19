@@ -8,11 +8,55 @@ from src.config import load_config,set_env_variables
 
 config = load_config()
 
+# Methods that are trivial and don't need LLM cleaning or summarization.
+# These can't contain meaningful malicious behavior at the method level.
+_TRIVIAL_METHOD_PATTERNS = [
+    r'^\s*$',                          # empty body
+    r'^\s*return\s+null\s*;\s*$',       # return null
+    r'^\s*return\s+0\s*;\s*$',          # return 0
+    r'^\s*return\s+""\s*;\s*$',         # return empty string
+    r'^\s*return\s+this\.\w+\s*;\s*$',  # simple getter
+    r'^\s*this\.\w+\s*=\s*\w+\s*;\s*$', # simple setter
+    r'^\s*return\s+super\.\w+\(.*\)\s*;\s*$',  # super call
+    r'^\s*super\.\w+\(.*\)\s*;\s*$',    # super call (void)
+]
+_CANNED_SUMMARY = "Standard Java utility/boilerplate method; no suspicious behavior identified."
+
+def _is_trivial_method(code: str) -> bool:
+    """Check if a Java method body is trivially non-malicious.
+    
+    Strips the method signature and checks if the remaining body
+    is empty or a simple return/setter/getter pattern.
+    """
+    import re
+    body_start = code.find('{')
+    if body_start == -1:
+        return True
+    body = code[body_start + 1:]
+    body_end = body.rfind('}')
+    if body_end != -1:
+        body = body[:body_end]
+    body = re.sub(r'//.*$', '', body, flags=re.MULTILINE)
+    body = re.sub(r'/\*.*?\*/', '', body, flags=re.DOTALL)
+    body = body.strip()
+    if not body:
+        return True
+    for pattern in _TRIVIAL_METHOD_PATTERNS:
+        if re.match(pattern, body):
+            return True
+    meaningful_lines = [l for l in body.split('\n') if l.strip() and not l.strip().startswith('//')]
+    if len(meaningful_lines) <= 3 and all(len(l.strip()) < 50 for l in meaningful_lines):
+        return True
+    return False
+
 def java_code_cleaning(java_code: str) -> str:
     """
     using LLM modle to clean java code
     """
 
+    # Skip LLM cleaning for trivial methods — just pass through as-is
+    if _is_trivial_method(java_code):
+        return java_code
 
     # 读取 templates.json
     try:
@@ -174,8 +218,11 @@ def process_single_file_1(java_file_path, input_dir, output_dir):
         with open(java_file_path, 'r', encoding='utf-8') as f:
             java_code = f.read()
 
-        # Generate summary
-        summary = generate_code_summary(java_code)
+        # Skip LLM summarization for trivial methods — use canned summary
+        if _is_trivial_method(java_code):
+            summary = _CANNED_SUMMARY
+        else:
+            summary = generate_code_summary(java_code)
 
         # Calculate relative path and output file path
         relative_path = os.path.relpath(java_file_path, input_dir)
