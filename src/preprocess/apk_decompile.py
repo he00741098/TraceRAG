@@ -6,12 +6,14 @@ import yaml
 
 JADX_PATH = config["env"]["jadx_bat"]
 
-def decompile_apk(apk_path):
-    
-    output_path = config["directories"]["reversed_apk_dir"]
+def decompile_apk(apk_path, config_dict=None):
+    runtime_config = config_dict if config_dict is not None else config
+
+    output_path = runtime_config["directories"]["reversed_apk_dir"]
+    jadx_path = runtime_config["env"].get("jadx_bat", JADX_PATH)
 
     """调用 `jadx` 反编译 APK 文件"""
-    cmd = f'"{JADX_PATH}" -d "{output_path}" "{apk_path}"'
+    cmd = f'"{jadx_path}" -d "{output_path}" "{apk_path}"'
     
     subprocess.run(cmd, shell=True, check=False)
     print(f"APK 反编译完成，Java 代码存储在 {output_path}")

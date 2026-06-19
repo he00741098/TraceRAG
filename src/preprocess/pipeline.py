@@ -7,13 +7,13 @@ from src.config import load_config,set_env_variables
 
 
 # def preprocess_pipeline(java_directory):
-def preprocess_pipeline(apk_path,index_name):
+def preprocess_pipeline(apk_path, index_name, config_dict=None):
     """
     Preprocess Java Code: Code Split -> Code Cleaning and summarize -> store to vector database
     
     """
     # set_env_variables()
-    config = load_config()
+    config = config_dict if config_dict is not None else load_config()
     
     openai_api_key = config["openai"]["api_key"]
 
@@ -29,9 +29,9 @@ def preprocess_pipeline(apk_path,index_name):
     input_file_split_cleaned_summarized = f"{java_directory}_Split_Cleaned_Summarized"
 
     # Decompile apk to Java
-    apk_decompile.decompile_apk(apk_path)
+    apk_decompile.decompile_apk(apk_path, config_dict=config)
     print(f"Decomplie Success !!")
-    apk_info_extract.apk_info_extract(apk_path)
+    apk_info_extract.apk_info_extract(apk_path, config_dict=config)
 
     # Split Java codes
     java_code_split.split_java_files(java_directory)

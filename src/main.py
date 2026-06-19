@@ -84,7 +84,7 @@ if __name__ == "__main__":
     # 3. Clean code with LLM
     # 4. Generate summaries with LLM
     # 5. Store in Qdrant vector database
-    preprocess_pipeline(apk_directory, index_name)
+    preprocess_pipeline(apk_directory, index_name, config_dict=config)
 
     # ── Load 5-category question set ────────────────────────────────────
     try:
@@ -105,8 +105,8 @@ if __name__ == "__main__":
 
             try:
                 # Phase 1: retrieve relevant code from Qdrant
-                execute_query(retrieve_question)
-                split_and_store_java_code()
+                execute_query(retrieve_question, config_dict=config)
+                split_and_store_java_code(config_dict=config)
 
                 output_dir_analyze = config["conversation_directories"]["user_query_analyze_path"]
                 os.makedirs(output_dir_analyze, exist_ok=True)
@@ -162,7 +162,7 @@ if __name__ == "__main__":
                     )
                     chunk_num = chunk_idx + 1
                     print(f"  [Phase 2] Batch {chunk_num}/{total_chunks} (started)")
-                    result = model_conversation(analyze_question, combined)
+                    result = model_conversation(analyze_question, combined, config_dict=config)
                     chunk_output = os.path.join(
                         output_dir_analyze, f'batched_analysis_result_chunk_{chunk_num}.txt'
                     )
@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
                 # Generate per-question report
                 try:
-                    final_result = quesiton_report_generation(file_contents)
+                    final_result = quesiton_report_generation(file_contents, config_dict=config)
                     final_report_path = os.path.join(output_dir_analyze, f'{question_name}_report.txt')
                     with open(final_report_path, 'w', encoding='utf-8') as f:
                         f.write(final_result)
@@ -268,7 +268,7 @@ if __name__ == "__main__":
     merged_question_reports = collect_question_reports(llm_output_base)
 
     if merged_question_reports:
-        apk_analyze_result = apk_report_generation(merged_question_reports)
+        apk_analyze_result = apk_report_generation(merged_question_reports, config_dict=config)
         output_path = os.path.join(llm_output_base, "APK_Report.txt")
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(apk_analyze_result)

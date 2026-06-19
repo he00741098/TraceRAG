@@ -108,7 +108,7 @@ def retrieve(query: str, method_name: str, class_name: str):
         ).points
 
         # 格式化结果
-        serialized = "\n\n".join(
+        serialized = "\n===\n".join(
             # f"File Path:{obj.properties['file_path']}\nClass Name:{obj.properties['class']}\nContent: {obj.properties['original_code']}"
             f"Package Path:{obj.payload.get('file_path')}\nClass Name:{obj.payload.get('class')}\nContent: {obj.payload.get('original_code')}"
             for obj in retrieved_docs
@@ -126,7 +126,7 @@ tools = ToolNode([retrieve])
 
 # Step 3: Generate a response using the retrieved content.
 def reorder(state: MessagesState):
-    """Generate answer."""
+    """Persist retrieved snippets in Qdrant rank order."""
 
     # 提取查询内容
     for message in state["messages"]:
@@ -155,43 +155,19 @@ def reorder(state: MessagesState):
         file.write(docs_content_re)
 
 
-    
-    #read json to retrieve prompt 
-    try:
-        with open("src/Prompt_and_Question/prompts.json", "r", encoding="utf-8") as f:
-            prompts = json.load(f)
-    except Exception as e:
-        print(f"Failed to read prompts.json : {str(e)}")
-        return ""
-
-    # read prompt
-    if "reorder" not in prompts:
-        print("prompts.json can not found 'reorder' ")
-        return ""
-    
-    # append java code 
-    system_message_content = prompts["reorder"] + "Here's the query: \n" + query + "\nHere's the code with path\n" + docs_content_re
-
-
-
-    prompt = [SystemMessage(system_message_content)]
-    docs_content_re = "\n\n".join(doc.content for doc in tool_messages)
-
-    # Run
-    response = llm.invoke(prompt)
-    
-
     # 获取目标文件路径
     file_path = _RUNTIME_CONFIG["conversation_directories"]["user_query_retrieval_filtered_path"]
 
     # 确保目标目录存在
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-    # 写入文件
+    # 写入文件. Qdrant already ranks results; avoid an expensive LLM
+    # code-in/code-out pass that usually returns the same snippets.
+    filtered_content = docs_content_re if docs_content_re.strip() else "no related code found"
     with open(file_path, "w", encoding="utf-8") as file:
-        file.write(str(response.content))
-    
-    return {"messages": [response]}
+        file.write(filtered_content)
+
+    return {"messages": [{"role": "assistant", "content": filtered_content}]}
 
 
 from langgraph.graph import MessagesState, StateGraph
@@ -214,16 +190,19 @@ graph_builder.add_edge("tools", "reorder")
 
 graph = graph_builder.compile()
 
-img_data = graph.get_graph().draw_mermaid_png()
+try:
+    img_data = graph.get_graph().draw_mermaid_png()
 
-# 确保output文件夹存在
-output_dir = os.environ.get("HERMES_OUTPUT_DIR", "output")
-os.makedirs(output_dir, exist_ok=True)
+    # 确保output文件夹存在
+    output_dir = os.environ.get("HERMES_OUTPUT_DIR", "output")
+    os.makedirs(output_dir, exist_ok=True)
 
-# 保存图像
-output_path = os.path.join(output_dir, "first_phase_graph.png")
-with open(output_path, "wb") as f:
-    f.write(img_data)
+    # 保存图像
+    output_path = os.path.join(output_dir, "first_phase_graph.png")
+    with open(output_path, "wb") as f:
+        f.write(img_data)
+except Exception as e:
+    print(f"[Warning] Failed to render first phase graph ({type(e).__name__}); continuing without PNG.")
 
 
 from langgraph.checkpoint.memory import MemorySaver

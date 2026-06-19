@@ -52,10 +52,12 @@ def calculate_hash(file_path, hash_type="sha256"):
 
 #     print(f"结果已保存到 {output_path}")
 
-def apk_info_extract(apk_path):
+def apk_info_extract(apk_path, config_dict=None):
+    runtime_config = config_dict if config_dict is not None else config
+
     # 解析 AndroidManifest.xml
-    manifest_path = os.path.join(config["directories"]["reversed_apk_dir"], "resources", "AndroidManifest.xml")
-    output_path = config["directories"]["apk_info_dir"]
+    manifest_path = os.path.join(runtime_config["directories"]["reversed_apk_dir"], "resources", "AndroidManifest.xml")
+    output_path = runtime_config["directories"]["apk_info_dir"]
 
     package_name, version_code, version_name = parse_manifest(manifest_path)
 
@@ -72,6 +74,7 @@ def apk_info_extract(apk_path):
     ]
 
     # 写入结果文件
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n".join(output_content))
 

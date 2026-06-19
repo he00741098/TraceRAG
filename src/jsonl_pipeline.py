@@ -198,7 +198,7 @@ def run_conversation_pipeline(config, jsonl_path=None):
                 )
                 chunk_num = chunk_idx + 1
                 print(f"  [Phase 2] Batch {chunk_num}/{total_chunks} (started)")
-                result = model_conversation(analyze_question, combined_snippets)
+                result = model_conversation(analyze_question, combined_snippets, config_dict=config)
                 
                 # Write individual chunk output
                 chunk_output_file = os.path.join(output_dir, f'batched_analysis_result_chunk_{chunk_num}.txt')

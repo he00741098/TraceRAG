@@ -22,10 +22,10 @@ config = load_config()
 # ── Runtime config refresh ──────────────────────────────────────────
 _RUNTIME_CONFIG = config
 
-def _refresh_config():
-    """Reload config so LangGraph nodes see the latest collection_name."""
+def _refresh_config(config_dict=None):
+    """Reload config so LangGraph nodes see the latest runtime paths."""
     global _RUNTIME_CONFIG
-    _RUNTIME_CONFIG = load_config()
+    _RUNTIME_CONFIG = config_dict if config_dict is not None else load_config()
 
 from langchain_openai import ChatOpenAI
 
@@ -66,6 +66,19 @@ def _dedup_tail_ai(messages: list):
     while len(messages) >= 2 and messages[-1].type == "ai" and messages[-2].type == "ai":
         messages.pop(-2)
     return messages
+
+
+def _analysis_messages(state: MessagesState):
+    """Return assistant analysis messages without raw-code human/tool payloads."""
+    messages = []
+    for message in state["messages"]:
+        if message.type != "ai" or getattr(message, "tool_calls", None):
+            continue
+        content = (message.content or "").strip()
+        if not content or content == "Conversation End":
+            continue
+        messages.append(message)
+    return _dedup_tail_ai(messages)
 
 # Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
@@ -229,12 +242,15 @@ def generate(state: MessagesState):
     system_message_content = prompts["generate"] + "Here's the code: \n" + docs_content
 
 
-    conversation_messages = [
-        message
-        for message in state["messages"]
-        if message.type in ("human", "system")
-        or (message.type == "ai" and not message.tool_calls)
-    ]
+    if docs_content.strip():
+        conversation_messages = _analysis_messages(state)
+    else:
+        conversation_messages = [
+            message
+            for message in state["messages"]
+            if message.type in ("human", "system")
+            or (message.type == "ai" and not message.tool_calls)
+        ]
     prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
 
     # Run
@@ -303,12 +319,7 @@ def report_generator(state: MessagesState):
 
 
 
-    conversation_messages = [
-        message
-        for message in state["messages"]
-        if message.type in ("human", "system")
-        or (message.type == "ai" and not message.tool_calls)
-    ]
+    conversation_messages = _analysis_messages(state)
 
     prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
 
@@ -346,14 +357,12 @@ graph_builder1.add_node(tools)
 graph_builder1.add_node(generate)
 #graph_builder.add_node(reorder_for_graph_2)
 graph_builder1.add_node(back_or_output)
-graph_builder1.add_node(reorder_for_graph_2)######add a new reorder here to prevent same name!!!!!!!!!!!!!!!!!!!!!!!!!
 graph_builder1.add_node(report_generator)
 
 
 
 graph_builder1.set_entry_point("generate")
-graph_builder1.add_edge("tools", "reorder_for_graph_2")
-graph_builder1.add_edge("reorder_for_graph_2", "generate")
+graph_builder1.add_edge("tools", "generate")
 graph_builder1.add_edge("generate", "back_or_output")
 # graph_builder.add_edge("back_or_output", "report_generator")
 
@@ -402,28 +411,31 @@ memory1 = MemorySaver()
 # 编译图并设置检查点
 graph1 = graph_builder1.compile(checkpointer=memory1)
 
-img_data = graph1.get_graph().draw_mermaid_png()
+try:
+    img_data = graph1.get_graph().draw_mermaid_png()
 
-# 确保output文件夹存在 (default; --output-dir overrides are handled by pipeline)
-output_dir = os.environ.get("HERMES_OUTPUT_DIR", "output")
-os.makedirs(output_dir, exist_ok=True)
+    # 确保output文件夹存在 (default; --output-dir overrides are handled by pipeline)
+    output_dir = os.environ.get("HERMES_OUTPUT_DIR", "output")
+    os.makedirs(output_dir, exist_ok=True)
 
-# 保存图像
-output_path = os.path.join(output_dir, "second_phase_graph.png")
-with open(output_path, "wb") as f:
-    f.write(img_data)
+    # 保存图像
+    output_path = os.path.join(output_dir, "second_phase_graph.png")
+    with open(output_path, "wb") as f:
+        f.write(img_data)
+except Exception as e:
+    print(f"[Warning] Failed to render second phase graph ({type(e).__name__}); continuing without PNG.")
 
 
 
 
 
 # 运行流程
-def model_conversation(input_message,code_snippet):
+def model_conversation(input_message, code_snippet, config_dict=None):
 
     input_message += "\n" + code_snippet
 
     """执行查询流程，并将结果保存至文件。"""
-    _refresh_config()  # ensure LangGraph nodes see the latest collection_name
+    _refresh_config(config_dict)
     current_time = "Conversation " + datetime.now().strftime("%Y%m%d_%H%M%S")
     config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
     
