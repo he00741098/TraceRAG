@@ -373,6 +373,13 @@ def back_or_output_condition(state: MessagesState):
     If there is sufficient data to generate the report (i.e., identified malicious behavior),
     proceed to the report generation. Otherwise, return to the tools for further analysis.
     """
+    # Hard cap on retrieval rounds to prevent infinite loops with local models.
+    # Each round is: back_or_output → tools → generate → back_or_output
+    # After MAX rounds, force exit to report_generator regardless of LLM output.
+    MAX_RETRIEVAL_ROUNDS = 16
+    tool_count = sum(1 for m in state["messages"] if hasattr(m, 'type') and m.type == "tool")
+    if tool_count >= MAX_RETRIEVAL_ROUNDS:
+        return "generate_report"
 
     # 获取最新的 AI 消息
     conversation_messages = [
@@ -381,17 +388,17 @@ def back_or_output_condition(state: MessagesState):
         if message.type == "ai"
     ][0:1]
     
-    # 如果没有函数调用，则返回“generate_report”
+    # 如果没有函数调用，则返回"generate_report"
     if not conversation_messages:  # 确保列表不为空
         return "generate_report"
     
     message = conversation_messages[0]  # 获取最新的消息
 
-
     # 检查该消息是否包含 "tool_call"
     if "tool_calls" not in message.additional_kwargs:
         return "generate_report"
     else:
+        return "back_to_retrieve"
         return "back_to_retrieve"
 
 graph_builder1.add_conditional_edges(
