@@ -102,8 +102,8 @@ config.update({"recursion_limit": 25})
 
 
 
-def category_report_generation(file_content):
-    config = load_config()
+def category_report_generation(file_content, config_dict=None):
+    config = config_dict if config_dict is not None else load_config()
     if isinstance(file_content, list):
         file_content = "\n".join(file_content)
 

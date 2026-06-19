@@ -395,8 +395,8 @@ graph1 = graph_builder1.compile(checkpointer=memory1)
 
 img_data = graph1.get_graph().draw_mermaid_png()
 
-# 确保output文件夹存在
-output_dir = "output"
+# 确保output文件夹存在 (default; --output-dir overrides are handled by pipeline)
+output_dir = os.environ.get("HERMES_OUTPUT_DIR", "output")
 os.makedirs(output_dir, exist_ok=True)
 
 # 保存图像

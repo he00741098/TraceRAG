@@ -59,10 +59,16 @@ import tenacity
 # nodes see the updated collection name.
 _RUNTIME_CONFIG = config
 
-def _refresh_config():
-    """Reload config so LangGraph nodes see the latest collection_name."""
+def _refresh_config(config_dict=None):
+    """Reload config so LangGraph nodes see the latest collection_name.
+
+    If *config_dict* is provided it is used directly; otherwise the
+    on-disk config.yaml is read.  Callers that have modified the
+    config in memory (e.g. ``--output-dir``) MUST pass the updated dict
+    so that the LangGraph nodes use the scoped paths.
+    """
     global _RUNTIME_CONFIG
-    _RUNTIME_CONFIG = load_config()
+    _RUNTIME_CONFIG = config_dict if config_dict is not None else load_config()
 def query_or_respond(state: MessagesState):
     """Generate tool call for retrieval"""
 
@@ -211,7 +217,7 @@ graph = graph_builder.compile()
 img_data = graph.get_graph().draw_mermaid_png()
 
 # 确保output文件夹存在
-output_dir = "output"
+output_dir = os.environ.get("HERMES_OUTPUT_DIR", "output")
 os.makedirs(output_dir, exist_ok=True)
 
 # 保存图像
@@ -230,9 +236,9 @@ memory = MemorySaver()
 graph = graph_builder.compile(checkpointer=memory)
 
 # 运行流程
-def execute_query(input_message: str):
+def execute_query(input_message: str, config_dict=None):
     """执行查询流程，并将结果保存至文件。"""
-    _refresh_config()  # ensure LangGraph nodes see the latest collection_name
+    _refresh_config(config_dict)  # ensure LangGraph nodes see the latest collection_name
     current_time = "Experiment_" + datetime.now().strftime("%Y%m%d_%H%M%S")
     config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
     final_result = ""
