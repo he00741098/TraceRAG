@@ -118,32 +118,74 @@ if __name__ == "__main__":
 
                 print(f"[Info] Processing .txt files in: {code_snippet_path}")
 
+                # Read all code snippets into a list first
+                snippet_files = sorted(
+                    [f for f in os.listdir(code_snippet_path) if f.endswith(".txt")]
+                )
+                if not snippet_files:
+                    print(f"[Skip] No snippet files found for {question_name}")
+                    continue
+
+                snippets = []
+                for filename in snippet_files:
+                    file_path = os.path.join(code_snippet_path, filename)
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            snippets.append(f.read())
+                    except Exception as e:
+                        print(f"[Warning] Failed to read {filename}: {e}")
+
+                print(f"[Info] {len(snippets)} snippets loaded. Running batched Phase 2...")
+
+                # ── Batched Phase 2 with parallel execution ────────────
+                # Each batch combines batch_size snippets into one LLM call.
+                # Batches run in parallel via ThreadPoolExecutor.
+                from concurrent.futures import ThreadPoolExecutor, as_completed
+
+                BATCH_SIZE = 5
+                MAX_PARALLEL = 3
                 file_contents = []
+                total_chunks = (len(snippets) + BATCH_SIZE - 1) // BATCH_SIZE
 
-                for file_idx, filename in enumerate(sorted(os.listdir(code_snippet_path)), start=1):
-                    if filename.endswith(".txt"):
-                        file_path = os.path.join(code_snippet_path, filename)
-                        try:
-                            with open(file_path, 'r', encoding='utf-8') as f:
-                                code_snippet = f.read()
+                def process_batch(chunk_idx, batch_start, batch):
+                    combined = ""
+                    for j, code in enumerate(batch):
+                        combined += (
+                            f"\n\n--- Start of snippet {batch_start + j + 1} ---\n"
+                            + code
+                            + f"\n--- End of snippet {batch_start + j + 1} ---\n"
+                        )
+                    analyze_question = (
+                        f"Here is a batch of Android app java code snippets about "
+                        f"{retrieve_question}. Please analyze them together to "
+                        f"identify any potential malicious behavior."
+                    )
+                    chunk_num = chunk_idx + 1
+                    print(f"  [Phase 2] Batch {chunk_num}/{total_chunks} (started)")
+                    result = model_conversation(analyze_question, combined)
+                    chunk_output = os.path.join(
+                        output_dir_analyze, f'batched_analysis_result_chunk_{chunk_num}.txt'
+                    )
+                    with open(chunk_output, 'w', encoding='utf-8') as out_f:
+                        out_f.write(str(result))
+                    print(f"  [Phase 2] Batch {chunk_num}/{total_chunks} (done)")
+                    return (chunk_num, f"Batched conversation history (Chunk {chunk_num})\n{str(result)}")
 
-                            analyze_question = (
-                                f"Here is an Android app's java code about: {retrieve_question} "
-                                f"Please help me to identify the potential malicious behavior."
-                            )
-                            print(f"[Processing] Running model on: {filename}")
+                chunk_results = {}
+                with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as executor:
+                    futures = {}
+                    for i in range(0, len(snippets), BATCH_SIZE):
+                        batch = snippets[i:i + BATCH_SIZE]
+                        chunk_idx = i // BATCH_SIZE
+                        futures[executor.submit(process_batch, chunk_idx, i, batch)] = chunk_idx
+                    for future in as_completed(futures):
+                        chunk_num, text = future.result()
+                        chunk_results[chunk_num] = text
 
-                            # Phase 2: multi-turn LLM analysis of retrieved code
-                            result = model_conversation(analyze_question, code_snippet)
-
-                            output_file = os.path.join(output_dir_analyze, filename)
-                            with open(output_file, 'w', encoding='utf-8') as out_f:
-                                out_f.write(str(result))
-
-                            file_contents.append(f"conversation history {file_idx}\n{str(result)}")
-
-                        except Exception as e:
-                            print(f"[Warning] Failed to process file: {filename}. Error: {e}")
+                # Assemble in order
+                for chunk_num in sorted(chunk_results.keys()):
+                    file_contents.append(chunk_results[chunk_num])
+                print(f"  [Done] {total_chunks} batches processed for {question_name}.")
 
                 # Write combined analysis for this question
                 combined_file_path = os.path.join(output_dir_analyze, f'{question_name}_combined.txt')
