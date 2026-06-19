@@ -444,7 +444,7 @@ def model_conversation(input_message, code_snippet, config_dict=None):
     """执行查询流程，并将结果保存至文件。"""
     _refresh_config(config_dict)
     current_time = "Conversation " + datetime.now().strftime("%Y%m%d_%H%M%S")
-    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
+    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 100}
     
     for step in graph1.stream(
         {"messages": [{"role": "user", "content": input_message}]},
