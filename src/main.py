@@ -3,8 +3,8 @@ import os
 import shutil
 import json
 import argparse
-import yaml  # pyright: ignore[reportMissingModuleSource]
-from src.config import load_config,set_env_variables
+import yaml
+from src.config import load_config, set_env_variables
 
 from src.preprocess.pipeline import preprocess_pipeline
 
@@ -17,49 +17,27 @@ from src.postprocess.txt2markwon_and_html import convert_txt_to_md_and_html
 from src.postprocess.Final_report_Generation import apk_report_generation
 
 
-
-CONFIG_PATH = r"config.yaml"
+CONFIG_PATH = "config.yaml"
 
 def update_config_index_name(new_index_name, config_path=CONFIG_PATH):
     with open(config_path, 'r', encoding='utf-8') as f:
         config = yaml.safe_load(f)
 
-    # 更新 index_name
-    # Replacing Weaviate with qdrant. TODO: add config options to select between vector databases
     config['qdrant']['collection_name'] = new_index_name
 
     with open(config_path, 'w', encoding='utf-8') as f:
         yaml.safe_dump(config, f, allow_unicode=True)
 
 
-
-if __name__ == "__main__":
-
-    set_env_variables()
-
-    # 读取 YAML 配置
-    config = load_config()
+def _clean_output_dir(output_dir):
+    """Remove previous run's output to prevent cross-contamination."""
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
 
-
-    parser = argparse.ArgumentParser(description="Run APK analysis pipeline.")
-    parser.add_argument("apk_directory", type=str, help="Path to the APK file or directory containing APKs.")
-    parser.add_argument("index_name", type=str, help="Index name for the vector database.")
-    parser.add_argument("--output-dir", type=str, default="output",
-                        help="Base output directory (default: output).")
-
-    args = parser.parse_args()
-    apk_directory = args.apk_directory
-    index_name = args.index_name
-    output_dir = args.output_dir
-
-    # 更新 YAML 文件中的 index_name
-    update_config_index_name(index_name)
-
-    # 读取更新后的配置
-    config = load_config()
-
-    # Scope all output to --output-dir
+def _scope_config_to_output(config, output_dir):
+    """Rewrite all config paths to be scoped under output_dir."""
     config["directories"]["java_dir"] = f"{output_dir}/reversedAPK/sources"
     config["directories"]["apk_info_dir"] = f"{output_dir}/APK_info.txt"
     config["directories"]["reversed_apk_dir"] = f"{output_dir}/reversedAPK"
@@ -69,137 +47,144 @@ if __name__ == "__main__":
     config["conversation_directories"]["user_query_retrieval_filtered_split_path"] = f"{output_dir}/LLM_output/retrieve/split_filtered_result"
     config["conversation_directories"]["user_query_retrieval_save_path"] = f"{output_dir}/LLM_output/retrieve/user_query_retrieve_result"
 
-    os.makedirs(output_dir, exist_ok=True)
 
+if __name__ == "__main__":
 
-    # # accept a apk file as input
-    # # 1.decompile it to extract java files ### also extract all the apk info like sha256,package name, version from manifest and other
-    # # 2.spilt these extracted java file into methods
-    # # 3.clean the code to remove obfuscation
-    # # 4.generated code description for split and cleaned code snippets/.
-    # # 5.store these java code and txt description into vector database to construct RAG
+    set_env_variables()
+
+    config = load_config()
+
+    parser = argparse.ArgumentParser(description="Run APK analysis pipeline.")
+    parser.add_argument("apk_directory", type=str, help="Path to the APK file or directory containing APKs.")
+    parser.add_argument("index_name", type=str, help="Index name for the vector database.")
+    parser.add_argument("--output-dir", type=str, default=None,
+                        help="Base output directory (default: output/<index_name>). "
+                             "Output is scoped per-APK so runs never collide.")
+
+    args = parser.parse_args()
+    apk_directory = args.apk_directory
+    index_name = args.index_name
+    output_dir = args.output_dir or f"output/{index_name}"
+
+    # Update YAML file with new collection name
+    update_config_index_name(index_name)
+
+    # Reload config to pick up the index_name change
+    config = load_config()
+
+    # Scope all output to the per-APK directory
+    _scope_config_to_output(config, output_dir)
+
+    # Clean previous run's output to prevent cross-contamination
+    _clean_output_dir(output_dir)
+
+    # ── Preprocessing pipeline ──────────────────────────────────────────
+    # 1. Decompile APK to Java
+    # 2. Split into methods
+    # 3. Clean code with LLM
+    # 4. Generate summaries with LLM
+    # 5. Store in Qdrant vector database
     preprocess_pipeline(apk_directory, index_name)
 
-
-
-    #read json to retrieve prompt 
+    # ── Load 5-category question set ────────────────────────────────────
     try:
-        with open("src/Prompt_and_Question/question_3_category.json", "r", encoding="utf-8") as f:
+        with open("src/Prompt_and_Question/questions.json", "r", encoding="utf-8") as f:
             questions = json.load(f)
     except Exception as e:
-        print(f"Failed to read questions.json : {str(e)}")
+        print(f"Failed to read questions.json: {str(e)}")
+        sys.exit(1)
 
-    # 遍历每个问题并依次执行查询与代码处理
-    for question_name, retrieve_q in questions.items():
-        for retrieve_question in retrieve_q.get("questions", []):
+    # ── Phase 1 + Phase 2: iterate over all 22 questions ────────────────
+    for category_name, category_info in questions.items():
+        for idx, retrieve_question in enumerate(category_info["questions"]):
+            question_name = f"{category_name}_{idx + 1}"
+            print(f"\n{'='*50}")
             print(f"Processing: {question_name}")
+            print(f"  Query: {retrieve_question}")
+            print(f"{'='*50}")
+
             try:
+                # Phase 1: retrieve relevant code from Qdrant
+                execute_query(retrieve_question)
+                split_and_store_java_code()
+
+                output_dir_analyze = config["conversation_directories"]["user_query_analyze_path"]
+                os.makedirs(output_dir_analyze, exist_ok=True)
 
                 code_snippet_path = config["conversation_directories"]["user_query_retrieval_filtered_split_path"]
-                if os.path.exists(code_snippet_path):
-                    shutil.rmtree(code_snippet_path)
-                os.makedirs(code_snippet_path, exist_ok=True)
-                execute_query(retrieve_question)  # execute query
-                split_and_store_java_code()     # process the retrieve result, seperately save retrieved code snippets
-                output_dir = config["conversation_directories"]["user_query_analyze_path"]
-                os.makedirs(output_dir, exist_ok=True)
-
-                # Initialize file_contents so it's always defined, even when no snippets are found
-                file_contents = []
-
-                # Check if the path exists
                 if not os.path.exists(code_snippet_path):
                     print(f"[Error] The directory '{code_snippet_path}' does not exist.")
-                else:
-                    print(f"[Info] Starting to process .txt files in: {code_snippet_path} using Chunked Batching")
+                    continue
 
-                    # 1. Get all valid text files
-                    all_files = [f for f in sorted(os.listdir(code_snippet_path)) if f.endswith(".txt")]
+                print(f"[Info] Processing .txt files in: {code_snippet_path}")
 
-                    if not all_files:
-                        print(f"[Skip] No valid text snippets found for {question_name}.")
-                    else:
-                        batch_size = 5  # TODO: Find proper batch size based on context limits
-                        # Process files in batches
-                        for i in range(0, len(all_files), batch_size):
-                            batch_files = all_files[i:i + batch_size]
-                            combined_snippets = ""
+                file_contents = []
 
-                            for filename in batch_files:
-                                file_path = os.path.join(code_snippet_path, filename)
-                                try:
-                                    with open(file_path, 'r', encoding='utf-8') as f:
-                                        combined_snippets += f"\n\n--- Start of {filename} ---\n"
-                                        combined_snippets += f.read()
-                                        combined_snippets += f"\n--- End of {filename} ---\n"
-                                except Exception as e:
-                                    print(f"[Warning] Failed to read file: {filename}. Error: {e}")
-                            if combined_snippets.strip():
-                                analyze_question = (
-                                    "Here is a batch of Android app java code snippets about " +
-                                    question_name +
-                                    ". Please analyze them together to identify any potential malicious behavior."
-                                )
-                                chunk_num = (i // batch_size) + 1
-                                total_chunks = (len(all_files) + batch_size - 1) // batch_size
-                                print(f"[Processing] Running batch conversation for {question_name} (Chunk {chunk_num}/{total_chunks})")
+                for file_idx, filename in enumerate(sorted(os.listdir(code_snippet_path)), start=1):
+                    if filename.endswith(".txt"):
+                        file_path = os.path.join(code_snippet_path, filename)
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                code_snippet = f.read()
 
-                                result = model_conversation(analyze_question, combined_snippets)
-                                # Append the chunk result to contents list
-                                file_contents.append(f"Batched conversation history (Chunk {chunk_num})\n{str(result)}")
-                                # Save intermediate chunk results locally
-                                chunk_output_file = os.path.join(output_dir, f'batched_analysis_result_chunk_{chunk_num}.txt')
-                                with open(chunk_output_file, 'w', encoding='utf-8') as out_f:
-                                    out_f.write(str(result))
+                            analyze_question = (
+                                f"Here is an Android app's java code about: {retrieve_question} "
+                                f"Please help me to identify the potential malicious behavior."
+                            )
+                            print(f"[Processing] Running model on: {filename}")
 
-                        # Combine all chunk results
-                        combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
-                        with open(combined_file_path, 'w', encoding='utf-8') as combined_f:
-                            combined_f.write("\n\n".join(file_contents))
+                            # Phase 2: multi-turn LLM analysis of retrieved code
+                            result = model_conversation(analyze_question, code_snippet)
 
-                        print(f"\n[Done] All {total_chunks} batches processed for {question_name}.")
+                            output_file = os.path.join(output_dir_analyze, filename)
+                            with open(output_file, 'w', encoding='utf-8') as out_f:
+                                out_f.write(str(result))
 
-                ###### End of snippet processing — generate the question report from whatever we collected ######
+                            file_contents.append(f"conversation history {file_idx}\n{str(result)}")
 
-                # Save combined report (even if empty)
-                combined_file_path = os.path.join(output_dir, 'code_report_combined.txt')
+                        except Exception as e:
+                            print(f"[Warning] Failed to process file: {filename}. Error: {e}")
+
+                # Write combined analysis for this question
+                combined_file_path = os.path.join(output_dir_analyze, f'{question_name}_combined.txt')
                 with open(combined_file_path, 'w', encoding='utf-8') as combined_f:
                     combined_f.write("\n\n".join(file_contents))
 
-                print("\n\n[Done] All files have been processed and combined report saved.")
+                print(f"[Done] Files processed for {question_name}, combined report saved.")
 
-                # Generate question report only if there was actual content
-                if file_contents:
-                    try:
-                        final_result = quesiton_report_generation(file_contents)
+                # Generate per-question report
+                try:
+                    final_result = quesiton_report_generation(file_contents)
+                    final_report_path = os.path.join(output_dir_analyze, f'{question_name}_report.txt')
+                    with open(final_report_path, 'w', encoding='utf-8') as f:
+                        f.write(final_result)
 
-                        # save result as question_report.txt
-                        final_report_path = os.path.join(output_dir, 'question_report.txt')
-                        with open(final_report_path, 'w', encoding='utf-8') as f:
-                            f.write(final_result)
+                    print(f"[Final Report Saved] {final_report_path}")
+                    convert_txt_to_md_and_html(final_report_path)
 
-                        print(f"[Final Report Saved] {final_report_path}")
-                        convert_txt_to_md_and_html(final_report_path)
-                    except Exception as e:
-                        print(f"[Error] Failed to run quesiton_report_generation. Error: {e}")
+                except Exception as e:
+                    print(f"[Error] Failed to run quesiton_report_generation. Error: {e}")
 
-                ##########################################
-                ##### organise the analyze result ########
-                ##########################################
+                # ── Organize output into per-question directories ────────
+                # This prevents sub-questions from overwriting each other.
                 try:
                     llm_output_base = config["conversation_directories"]["LLM_output"]
-                    question_output_dir = os.path.join(llm_output_base, question_name)
+
+                    # Derive category and question number from name
+                    # e.g. "Information_Theft_3" → category="Information_Theft", id="3"
+                    category = question_name.rsplit("_", 1)[0]
+                    question_id = question_name.rsplit("_", 1)[-1]
+
+                    category_dir = os.path.join(llm_output_base, category)
+                    question_output_dir = os.path.join(category_dir, f"Question_{question_id}")
                     os.makedirs(question_output_dir, exist_ok=True)
 
-                    # 要转移的文件夹
                     folders_to_move = ['analyze', 'retrieve']
-
                     for folder_name in folders_to_move:
                         src_folder = os.path.join(llm_output_base, folder_name)
                         dst_folder = os.path.join(question_output_dir, folder_name)
 
                         if os.path.exists(src_folder):
-                            # 如果目标已存在，则先删除再复制（避免文件冲突）
                             if os.path.exists(dst_folder):
                                 shutil.rmtree(dst_folder)
                             shutil.move(src_folder, dst_folder)
@@ -210,37 +195,42 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(f"[Error] Failed to move folders for {question_name}: {e}")
 
-
             except Exception as e:
                 print(f"Error processing {question_name}: {str(e)}")
 
-
-
-    ####################################################################################
-    ######## Combine all question reports to generate final app report #################
-    ####################################################################################
-    import os
-    from src.config import load_config,set_env_variables
-    config = load_config()
+    # ── Aggregate all question reports into final APK report ────────────
     def collect_question_reports(base_dir):
+        """Collect all per-question reports from the nested directory structure."""
         final_report = ""
-        for category in os.listdir(base_dir):
+        for category in sorted(os.listdir(base_dir)):
             category_path = os.path.join(base_dir, category)
-            question_path = os.path.join(category_path, "analyze", "question_report.txt")
-            if os.path.isfile(question_path):
-                with open(question_path, "r", encoding="utf-8") as f:
-                    content = f.read().strip()
-                    final_report += f"{category} Report:\n{content}\n\n"
+            if not os.path.isdir(category_path):
+                continue
+            for question_dir in sorted(os.listdir(category_path)):
+                question_path = os.path.join(category_path, question_dir)
+                analyze_dir = os.path.join(question_path, "analyze")
+                if not os.path.isdir(analyze_dir):
+                    continue
+                # Find the *_report.txt file for this question
+                for fname in sorted(os.listdir(analyze_dir)):
+                    if fname.endswith("_report.txt"):
+                        report_path = os.path.join(analyze_dir, fname)
+                        with open(report_path, "r", encoding="utf-8") as f:
+                            content = f.read().strip()
+                        qname = fname.replace("_report.txt", "")
+                        final_report += f"{category}/{qname} Report:\n{content}\n\n"
+                        break
         return final_report.strip()
 
-    # 你配置中的路径
     llm_output_base = config["conversation_directories"]["LLM_output"]
-
-    # 生成合并报告
     merged_question_reports = collect_question_reports(llm_output_base)
 
-    apk_analyze_result = apk_report_generation(merged_question_reports)
-    output_path = os.path.join(llm_output_base, "APK_Report.txt")
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(apk_analyze_result)
-    convert_txt_to_md_and_html(output_path)
+    if merged_question_reports:
+        apk_analyze_result = apk_report_generation(merged_question_reports)
+        output_path = os.path.join(llm_output_base, "APK_Report.txt")
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(apk_analyze_result)
+        convert_txt_to_md_and_html(output_path)
+        print(f"\n[Final APK Report] {output_path}")
+    else:
+        print("\n[Final APK Report] No question reports found to aggregate.")

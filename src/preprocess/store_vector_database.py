@@ -8,6 +8,7 @@ from llama_index.core import VectorStoreIndex, StorageContext, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.core.schema import TextNode
 from llama_index.embeddings.openai import OpenAIEmbedding
+from src.config import load_config
 
     
 def process_java_summaries(
@@ -28,17 +29,15 @@ def process_java_summaries(
     os.environ["OPENAI_API_KEY"] = openai_api_key
     openai.api_key = openai_api_key # Deprecated apparently
 
+    # 连接 Weaviate 向量数据库
+    # client = weaviate.connect_to_wcs(
+    #     cluster_url=weaviate_url,
+    #     auth_credentials=weaviate.auth.AuthApiKey(weaviate_api_key),
+    # )
+
     max_retries = 5
     retry_count = 0
     client = QdrantClient(url=weaviate_url)
-
-    # Compute the raw (pre-cleaning) java directory.
-    # Pipeline produces:
-    #   sources_Split/             (raw split code, NOT cleaned)
-    #   sources_Split_Cleaned/     (java_directory — cleaned code)
-    #   sources_Split_Cleaned_Summarized/  (summary_directory — summaries)
-    # We want the original pre-cleaning code for the payload.
-    raw_java_directory = java_directory.replace("_Split_Cleaned", "_Split")
 
     # while retry_count < max_retries:
     #     try:
@@ -63,14 +62,11 @@ def process_java_summaries(
                 method_name = filename.replace(".txt", "")  # 获取方法名
                 summary_file_path = os.path.join(root, filename)
 
-                # 构建 Java 文件的完整路径（使用原始未清洗的代码）
-                full_java_file_path = summary_file_path.replace(summary_directory, raw_java_directory).replace(".txt", ".java")
+                # 构建 Java 文件的完整路径
+                full_java_file_path = summary_file_path.replace(summary_directory, java_directory).replace(".txt", ".java")
 
-                # Also compute the cleaned path (for reading if raw doesn't exist)
-                cleaned_java_path = summary_file_path.replace(summary_directory, java_directory).replace(".txt", ".java")
-
-                # 计算 Java 文件相对于原始代码目录的相对路径（用于 FQCN）
-                java_file_path = os.path.relpath(full_java_file_path, raw_java_directory)
+                # 计算 Java 文件相对于 java_directory 的相对路径
+                java_file_path = os.path.relpath(full_java_file_path, java_directory)
 
                 # 转换为 FQCN 格式
                 if java_file_path.startswith("sources" + os.sep):
@@ -82,36 +78,16 @@ def process_java_summaries(
                 with open(summary_file_path, 'r', encoding='utf-8') as summary_file:
                     summary_content = summary_file.read()
 
-                # 读取 Java 代码（优先使用原始未清洗的代码）
-                code_path = full_java_file_path
-                if not os.path.exists(code_path):
-                    code_path = cleaned_java_path
-                    logger.warning(f"Raw code not found at {full_java_file_path}, falling back to cleaned version")
-                with open(code_path, 'r', encoding='utf-8') as java_file:
+                # 读取 Java 代码
+                with open(full_java_file_path, 'r', encoding='utf-8') as java_file:
                     original_code = java_file.read()
-
-                # Read the CLEANED code for embedding. Cleaned code has bloat
-                # removed but API calls and package names preserved (per the
-                # updated cleaning prompt). This avoids polluting embeddings
-                # with decompiler artifacts from raw code.
-                if os.path.exists(cleaned_java_path):
-                    with open(cleaned_java_path, 'r', encoding='utf-8') as f:
-                        cleaned_code = f.read()
-                else:
-                    cleaned_code = original_code
 
                 # 提取 class 名称（Java 文件所在的文件夹名）
                 class_name = os.path.basename(os.path.dirname(full_java_file_path))
 
                 # 创建 TextNode，并存储 metadata
-                # Embed both the LLM summary AND a truncated copy of the CLEANED code.
-                # Summary gives semantic understanding; cleaned code provides exact
-                # API keywords (TelephonyManager.getDeviceId, etc.) while avoiding
-                # decompiler bloat that pollutes the embeddings.
-                # Full raw code is kept in metadata for Phase 2 analysis display.
-                embedded_text = summary_content + "\n\n" + cleaned_code[:800]
                 node = TextNode(
-                    text=embedded_text,  # 存入摘要 + raw code keywords
+                    text=summary_content,  # 存入摘要内容
                     metadata={
                         "original_code": original_code,  # 存入 Java 代码
                         "methods": method_name,  # 存入方法名
@@ -121,7 +97,8 @@ def process_java_summaries(
                 )
                 nodes.append(node)
     
-    Settings.embed_model = OpenAIEmbedding(api_base="http://localhost:5002/v1", api_key="sk-local", model="text-embedding-ada-002")
+                cfg = load_config()
+                Settings.embed_model = OpenAIEmbedding(api_base=cfg["llm"]["base_url_embedding"], api_key=cfg["openai"]["api_key"], model=cfg["llm"]["embedding_model"])
     test_embed = Settings.embed_model.get_text_embedding("test initialization")
     dim_size = len(test_embed)
     if not client.collection_exists(collection_name=index_name):
