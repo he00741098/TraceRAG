@@ -219,7 +219,7 @@ def execute_query(input_message: str, config_dict=None):
     """执行查询流程，并将结果保存至文件。"""
     _refresh_config(config_dict)  # ensure LangGraph nodes see the latest collection_name
     current_time = "Experiment_" + datetime.now().strftime("%Y%m%d_%H%M%S")
-    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
+    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
     final_result = ""
     
     for step in graph.stream(
