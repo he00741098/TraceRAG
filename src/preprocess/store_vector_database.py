@@ -10,7 +10,9 @@ from llama_index.core.schema import TextNode
 from llama_index.embeddings.openai import OpenAIEmbedding
 from src.config import load_config
 
-    
+RAW_CODE_EMBED_CHARS = 2000
+
+
 def process_java_summaries(
     java_directory,
     summary_directory,
@@ -96,12 +98,18 @@ def process_java_summaries(
             with open(full_java_file_path, 'r', encoding='utf-8') as java_file:
                 original_code = java_file.read()
 
+            embedding_text = (
+                summary_content
+                + "\n\n--- Raw code excerpt ---\n"
+                + original_code[:RAW_CODE_EMBED_CHARS]
+            )
+
             # 提取 class 名称（Java 文件所在的文件夹名）
             class_name = os.path.basename(os.path.dirname(full_java_file_path))
 
             # 创建 TextNode，并存储 metadata
             node = TextNode(
-                text=summary_content,  # 存入摘要内容
+                text=embedding_text,
                 metadata={
                     "original_code": original_code,  # 存入 Java 代码
                     "methods": method_name,  # 存入方法名
