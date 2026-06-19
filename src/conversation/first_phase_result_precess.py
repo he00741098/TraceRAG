@@ -1,7 +1,7 @@
 import os
 from src.config import load_config
-def split_and_store_java_code():
-    config = load_config()
+def split_and_store_java_code(config_dict=None):
+    config = config_dict if config_dict is not None else load_config()
     input_file_path = config["conversation_directories"]["user_query_retrieval_filtered_path"]
     output_folder = config["conversation_directories"]["user_query_retrieval_filtered_split_path"]
     os.makedirs(output_folder, exist_ok=True)
