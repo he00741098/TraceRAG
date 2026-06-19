@@ -15,39 +15,27 @@ import os
 import time
 import tenacity
 from tenacity import retry, stop_after_attempt, wait_fixed
-from typing import Optional
 
 from src.config import load_config,set_env_variables
 config = load_config()
 
+# ── Runtime config refresh ──────────────────────────────────────────
+_RUNTIME_CONFIG = config
+
+def _refresh_config():
+    """Reload config so LangGraph nodes see the latest collection_name."""
+    global _RUNTIME_CONFIG
+    _RUNTIME_CONFIG = load_config()
+
 from langchain_openai import ChatOpenAI
 
 
-llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
-# Smaller token limit for tool-calling nodes (just need to produce a short JSON call)
-llm_tools = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=512)
-# Tool-call nodes only need a short response — ~500 tokens for the JSON tool call.
-# A low max_tokens prevents the model from rambling before generating the call.
-llm_toolcall = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=2048)
-#TODO: potentially use a different model for the o3_mini replacement if necessary. Note: We are currently using a single model to do all work except for embeddings. If we need to use o3 mini again, comment out this line, and uncomment the following one.
-llm_o3_mini = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
+llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
+#TODO: potentially use a different model for the o3_mini replacement if necessary
+llm_o3_mini = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
 #llm_o3_mini = ChatOpenAI(model=config["llm"]["model_o3_mini"])
 
 client = QdrantClient(url=config["qdrant"]["url"])
-
-
-def _check_truncation(response, node_name: str):
-    """Log a warning if the LLM response was truncated due to token limits.
-    
-    LangChain's ChatOpenAI stores the API finish_reason in response_metadata.
-    'length' means the output was cut off at max_tokens — downstream nodes
-    will receive incomplete data.
-    """
-    finish_reason = response.response_metadata.get('finish_reason', '')
-    if finish_reason == 'length':
-        print(f"  [WARN] {node_name}: output TRUNCATED (finish_reason='length'). "
-              f"Response may be incomplete. Consider increasing max_tokens or "
-              f"splitting the input into smaller batches.")
 # max_retries = 5
 # retry_count = 0
 #
@@ -70,21 +58,10 @@ def _check_truncation(response, node_name: str):
 #     raise RuntimeError(f"Failed to connect to Weaviate after {max_retries} attempts. Please check your configuration.")
 
         
-def _dedup_tail_ai(messages: list):
-    """Drop consecutive AI messages at the tail of the list.
-
-    llama.cpp (unlike OpenAI) rejects prompts ending with 2+ consecutive
-    assistant messages.  We keep only the most recent one.
-    """
-    while len(messages) >= 2 and messages[-1].type == "ai" and messages[-2].type == "ai":
-        messages.pop(-2)
-    return messages
-
-
-# Tool.  Retrieve using query from Qdrant Vector Database.
+# Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
 @retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(Exception))
-def retrieve(query: str, method_name: Optional[str]=None, class_name: Optional[str]=None):
+def retrieve(query: str, method_name: str, class_name: str):
     """Retrieve information related to a query.
     The query will be a question about an Android app's Java code.
     `method_metadata` refers to the name of a Java method explicitly present in the seen code and related to the query.
@@ -94,25 +71,20 @@ def retrieve(query: str, method_name: Optional[str]=None, class_name: Optional[s
 
     try:
         # 生成嵌入
-        embeddings_query = OpenAIEmbeddings(model=config["llm"]["embedding_model"], base_url=config["llm"]["base_url_embedding"], api_key=config["openai"]["api_key"], check_embedding_ctx_length=False)
+        embeddings_query = OpenAIEmbeddings(model=_RUNTIME_CONFIG["llm"]["embedding_model"], base_url=_RUNTIME_CONFIG["llm"]["base_url_embedding"], api_key=_RUNTIME_CONFIG["openai"]["api_key"], check_embedding_ctx_length=False)
         embedding_vector = embeddings_query.embed_query(query)
         # Java_Vec_DB = client.collections.get(config["weaviate"]["index_name"])
 
         filter_condition = None
-        must_conditions = []
-        if method_name:
-            must_conditions.append(FieldCondition(key="methods", match=MatchText(text=method_name)))
-        if class_name:
-            must_conditions.append(FieldCondition(key="class", match=MatchText(text=class_name)))
-        if must_conditions:
-            filter_condition = QFilter(must=must_conditions)
+        if method_name and class_name:
+            filter_condition = QFilter(must=[FieldCondition(key="methods", match=MatchText(text=method_name)), FieldCondition(key="class", match=MatchText(text=class_name))])
 
         # 查询向量数据库
         retrieved_docs = client.query_points(
-            collection_name = config["qdrant"]["collection_name"],
+            collection_name = _RUNTIME_CONFIG["qdrant"]["collection_name"],
             query=embedding_vector,
             query_filter = filter_condition,
-            limit = config["qdrant"]["retrieve_num_limit"],
+            limit = _RUNTIME_CONFIG["qdrant"]["retrieve_num_limit"],
             with_payload=True
         ).points
 
@@ -212,7 +184,6 @@ def reorder_for_graph_2(state: MessagesState):
 
     # Run
     response = llm.invoke(prompt)
-    _check_truncation(response, "reorder_for_graph_2")
 
     return {"messages": [response]}
 
@@ -255,12 +226,11 @@ def generate(state: MessagesState):
         if message.type in ("human", "system")
         or (message.type == "ai" and not message.tool_calls)
     ]
-    prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
+    prompt = [SystemMessage(system_message_content)] + conversation_messages
 
     # Run
     # response = llm.invoke(prompt)
     response = llm_o3_mini.invoke(prompt)
-    _check_truncation(response, "generate")
     return {"messages": [response]}
 
 # Step 4: Go back to RAG or output the response
@@ -289,14 +259,13 @@ def back_or_output(state: MessagesState):
         message
         for message in reversed(state["messages"])
         if message.type == "ai"
-    ][0:3]  # Use last 3 AI messages for context, not just the most recent
+    ][0:1]
 
-    prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
+    prompt = [SystemMessage(system_message_content)] + conversation_messages
 
     # Run
-    llm_with_tools = llm_tools.bind_tools([retrieve])
+    llm_with_tools = llm.bind_tools([retrieve])
     response = llm_with_tools.invoke(prompt)
-    _check_truncation(response, "back_or_output")
     return {"messages": [response]}
 
 
@@ -332,12 +301,12 @@ def report_generator(state: MessagesState):
         or (message.type == "ai" and not message.tool_calls)
     ]
 
-    prompt = [SystemMessage(system_message_content)] + _dedup_tail_ai(conversation_messages)
+    prompt = [SystemMessage(system_message_content)] + conversation_messages
 
     #
     # # output_dir = "output/LLM_answer"
     # output/LLM_output/analyze
-    output_dir = config["conversation_directories"]["user_query_analyze_path"]
+    output_dir = _RUNTIME_CONFIG["conversation_directories"]["user_query_analyze_path"]
 
     os.makedirs(output_dir, exist_ok=True)  # 只创建目录
 
@@ -349,7 +318,6 @@ def report_generator(state: MessagesState):
 
     # 运行 LLM
     response = llm.invoke(prompt)
-    _check_truncation(response, "report_generator")
 
     # # 保存分析结论
     # output_file_2 = os.path.join(output_dir, "conclusion.txt")
@@ -375,7 +343,8 @@ graph_builder1.add_node(report_generator)
 
 
 graph_builder1.set_entry_point("generate")
-graph_builder1.add_edge("tools", "generate")
+graph_builder1.add_edge("tools", "reorder_for_graph_2")
+graph_builder1.add_edge("reorder_for_graph_2", "generate")
 graph_builder1.add_edge("generate", "back_or_output")
 # graph_builder.add_edge("back_or_output", "report_generator")
 
@@ -385,19 +354,8 @@ def back_or_output_condition(state: MessagesState):
     Decide whether to return to tools or generate the report.
     If there is sufficient data to generate the report (i.e., identified malicious behavior),
     proceed to the report generation. Otherwise, return to the tools for further analysis.
-    
-    Also caps the number of retrieval rounds to prevent infinite loops
-    when the model keeps generating follow-up queries without concluding.
     """
-    MAX_TOOL_CALLS = 5
-    
-    # Count how many tool calls have been made so far in this conversation
-    tool_call_count = sum(
-        1 for msg in state["messages"]
-        if msg.type == "ai" and hasattr(msg, "additional_kwargs")
-        and "tool_calls" in msg.additional_kwargs
-    )
-    
+
     # 获取最新的 AI 消息
     conversation_messages = [
         message
@@ -405,16 +363,12 @@ def back_or_output_condition(state: MessagesState):
         if message.type == "ai"
     ][0:1]
     
-    # 如果没有函数调用，则返回"generate_report"
+    # 如果没有函数调用，则返回“generate_report”
     if not conversation_messages:  # 确保列表不为空
         return "generate_report"
     
     message = conversation_messages[0]  # 获取最新的消息
 
-    # Force generate_report if we've made too many tool calls
-    if tool_call_count >= MAX_TOOL_CALLS:
-        print(f"  [WARN] Reached max tool calls ({MAX_TOOL_CALLS}), forcing report generation")
-        return "generate_report"
 
     # 检查该消息是否包含 "tool_call"
     if "tool_calls" not in message.additional_kwargs:
@@ -457,24 +411,19 @@ with open(output_path, "wb") as f:
 # 运行流程
 def model_conversation(input_message,code_snippet):
 
-
     input_message += "\n" + code_snippet
 
     """执行查询流程，并将结果保存至文件。"""
+    _refresh_config()  # ensure LangGraph nodes see the latest collection_name
     current_time = "Conversation " + datetime.now().strftime("%Y%m%d_%H%M%S")
-    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
+    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
     
-    all_messages = []
     for step in graph1.stream(
         {"messages": [{"role": "user", "content": input_message}]},
         stream_mode="values",
         config=config,
     ):
         step["messages"][-1].pretty_print()
-        all_messages.append(step["messages"][-1].content)
+        last_message = step["messages"][-1].content
 
-    # Return ALL accumulated messages, not just the last.
-    # The last message alone is just the report_generator output, which
-    # is often truncated. The intermediate generate steps contain the
-    # actual analysis and are essential for downstream report generation.
-    return "\n\n".join(msg for msg in all_messages if msg)
+    return last_message

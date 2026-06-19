@@ -6,19 +6,7 @@ from src.config import load_config,set_env_variables
 config = load_config()
 
 from langchain_openai import ChatOpenAI
-llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=8192)
-# Smaller token limit for tool-calling nodes (just need to produce a short JSON call)
-llm_tools = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=512)
-# Tool-call nodes only need a short response (~500 tokens for JSON tool call)
-llm_toolcall = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"], max_tokens=2048)
-
-
-def _check_truncation(response, node_name: str):
-    """Log a warning if the LLM response was truncated due to token limits."""
-    finish_reason = response.response_metadata.get('finish_reason', '')
-    if finish_reason == 'length':
-        print(f"  [WARN] {node_name}: output TRUNCATED (finish_reason='length'). "
-              f"Response may be incomplete.")
+llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
 
 from langchain_openai import OpenAIEmbeddings
 
@@ -64,14 +52,22 @@ import json
 from langsmith import traceable
 from tenacity import retry, stop_after_attempt, wait_fixed
 import tenacity
-from typing import Optional
-#Step 1 Decide whether or not trigger retrieve tool
+# ── Runtime config refresh ──────────────────────────────────────────
+# The config is loaded at module level for LLM/client initialization,
+# but collection_name can change at runtime via update_config_index_name().
+# execute_query() refreshes _RUNTIME_CONFIG before each run so the LangGraph
+# nodes see the updated collection name.
+_RUNTIME_CONFIG = config
+
+def _refresh_config():
+    """Reload config so LangGraph nodes see the latest collection_name."""
+    global _RUNTIME_CONFIG
+    _RUNTIME_CONFIG = load_config()
 def query_or_respond(state: MessagesState):
     """Generate tool call for retrieval"""
 
-    llm_with_tools = llm_toolcall.bind_tools([retrieve], tool_choice="any")
+    llm_with_tools = llm.bind_tools([retrieve])
     response = llm_with_tools.invoke(state["messages"])
-    _check_truncation(response, "query_or_respond")
     return {"messages": [response]}
 
 from langchain_core.tools import tool
@@ -79,7 +75,7 @@ from langchain_core.tools import tool
 # Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
 @retry(stop=stop_after_attempt(10), wait=wait_fixed(5), retry=tenacity.retry_if_exception_type(Exception))
-def retrieve(query: str, method_name: Optional[str]=None, class_name: Optional[str]=None):
+def retrieve(query: str, method_name: str, class_name: str):
     """Retrieve information related to a query.
     The query will be a question about an Android app's Java code.
     `method_metadata` refers to the name of a Java method explicitly present in the seen code and related to the query.
@@ -88,25 +84,20 @@ def retrieve(query: str, method_name: Optional[str]=None, class_name: Optional[s
     """
     try:
         # 生成嵌入
-        embeddings_query = OpenAIEmbeddings(model=config["llm"]["embedding_model"], base_url=config["llm"]["base_url_embedding"], api_key=config["openai"]["api_key"], check_embedding_ctx_length=False)
+        embeddings_query = OpenAIEmbeddings(model=_RUNTIME_CONFIG["llm"]["embedding_model"], base_url=_RUNTIME_CONFIG["llm"]["base_url_embedding"], api_key=_RUNTIME_CONFIG["openai"]["api_key"], check_embedding_ctx_length=False)
         embedding_vector = embeddings_query.embed_query(query)
         # Java_Vec_DB = client.collections.get(config["weaviate"]["index_name"])
 
         filter_condition = None
-        must_conditions = []
-        if method_name:
-            must_conditions.append(FieldCondition(key="methods", match=MatchText(text=method_name)))
-        if class_name:
-            must_conditions.append(FieldCondition(key="class", match=MatchText(text=class_name)))
-        if must_conditions:
-            filter_condition = QFilter(must=must_conditions)
+        if method_name and class_name:
+            filter_condition = QFilter(must=[FieldCondition(key="methods", match=MatchText(text=method_name)), FieldCondition(key="class", match=MatchText(text=class_name))])
 
         # 查询向量数据库
         retrieved_docs = client.query_points(
-            collection_name = config["qdrant"]["collection_name"],
+            collection_name = _RUNTIME_CONFIG["qdrant"]["collection_name"],
             query=embedding_vector,
             query_filter = filter_condition,
-            limit = config["qdrant"]["retrieve_num_limit"],
+            limit = _RUNTIME_CONFIG["qdrant"]["retrieve_num_limit"],
             with_payload=True
         ).points
 
@@ -148,7 +139,7 @@ def reorder(state: MessagesState):
     docs_content_re = "\n\n".join(doc.content for doc in tool_messages)
 
     # 获取目标文件路径
-    file_path_1 = config["conversation_directories"]["user_query_retrieval_save_path"]
+    file_path_1 = _RUNTIME_CONFIG["conversation_directories"]["user_query_retrieval_save_path"]
 
     # 确保目标目录存在
     os.makedirs(os.path.dirname(file_path_1), exist_ok=True)
@@ -182,11 +173,10 @@ def reorder(state: MessagesState):
 
     # Run
     response = llm.invoke(prompt)
-    _check_truncation(response, "reorder")
     
 
     # 获取目标文件路径
-    file_path = config["conversation_directories"]["user_query_retrieval_filtered_path"]
+    file_path = _RUNTIME_CONFIG["conversation_directories"]["user_query_retrieval_filtered_path"]
 
     # 确保目标目录存在
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -216,6 +206,19 @@ graph_builder.add_edge("query_or_respond", "tools")
 graph_builder.add_edge("tools", "reorder")
 
 
+graph = graph_builder.compile()
+
+img_data = graph.get_graph().draw_mermaid_png()
+
+# 确保output文件夹存在
+output_dir = "output"
+os.makedirs(output_dir, exist_ok=True)
+
+# 保存图像
+output_path = os.path.join(output_dir, "first_phase_graph.png")
+with open(output_path, "wb") as f:
+    f.write(img_data)
+
 
 from langgraph.checkpoint.memory import MemorySaver
 from datetime import datetime  # 导入 datetime 模块
@@ -229,16 +232,15 @@ graph = graph_builder.compile(checkpointer=memory)
 # 运行流程
 def execute_query(input_message: str):
     """执行查询流程，并将结果保存至文件。"""
-    global config
-    config = load_config()  # Re-read config at runtime (collection name may have changed)
+    _refresh_config()  # ensure LangGraph nodes see the latest collection_name
     current_time = "Experiment_" + datetime.now().strftime("%Y%m%d_%H%M%S")
-    thread_config = {"configurable": {"thread_id": current_time}, "recursion_limit": 50}
+    config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
     final_result = ""
     
     for step in graph.stream(
         {"messages": [{"role": "user", "content": input_message}]},
         stream_mode="values",
-        config=thread_config,
+        config=config,
     ):
         step["messages"][-1].pretty_print()
         final_result += str(step["messages"][-1]) + "\n"
