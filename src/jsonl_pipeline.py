@@ -156,8 +156,8 @@ def run_conversation_pipeline(config, jsonl_path=None):
             os.makedirs(code_snippet_path, exist_ok=True)
 
             # Phase 1: Retrieve + split for this sub-question
-            execute_query(retrieve_question, config_dict=config)
-            split_and_store_java_code(config_dict=config)
+            execute_query(retrieve_question)
+            split_and_store_java_code()
 
             # Collect snippets from this sub-question
             if os.path.exists(code_snippet_path):
@@ -198,7 +198,7 @@ def run_conversation_pipeline(config, jsonl_path=None):
                 )
                 chunk_num = chunk_idx + 1
                 print(f"  [Phase 2] Batch {chunk_num}/{total_chunks} (started)")
-                result = model_conversation(analyze_question, combined_snippets, config_dict=config)
+                result = model_conversation(analyze_question, combined_snippets)
                 
                 # Write individual chunk output
                 chunk_output_file = os.path.join(output_dir, f'batched_analysis_result_chunk_{chunk_num}.txt')
@@ -234,7 +234,7 @@ def run_conversation_pipeline(config, jsonl_path=None):
         # Generate question report
         if file_contents:
             try:
-                final_result = quesiton_report_generation(file_contents, config_dict=config)
+                final_result = quesiton_report_generation(file_contents)
                 final_report_path = os.path.join(output_dir, 'question_report.txt')
                 with open(final_report_path, 'w', encoding='utf-8') as f:
                     f.write(final_result)
@@ -273,7 +273,7 @@ def run_conversation_pipeline(config, jsonl_path=None):
     llm_output_base = config["conversation_directories"]["LLM_output"]
     merged = collect_question_reports(llm_output_base)
     if merged:
-        apk_result = apk_report_generation(merged, config_dict=config)
+        apk_result = apk_report_generation(merged)
         output_path = os.path.join(llm_output_base, "APK_Report.txt")
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(apk_result)
