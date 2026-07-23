@@ -16,11 +16,11 @@ env:
   openai_api_key: 
   jadx_bat: jadx-1.5.1\bin\jadx.bat
 llm:
-  cleaning_model: gpt-4o-2024-11-20
+  cleaning_model: o3-mini
   embedding_model: text-embedding-ada-002
-  model_name: gpt-4o
+  model_name: o3-mini
   model_o3_mini: o3-mini
-  summary_model: gpt-4o-2024-11-20
+  summary_model: o3-mini
   temperature: 0
 openai:
   api_key: 
