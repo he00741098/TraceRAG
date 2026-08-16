@@ -4,12 +4,11 @@ from src.config import load_config,set_env_variables
 config = load_config()
 
 from langchain_openai import ChatOpenAI
-llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"])
-llm_o3_mini = ChatOpenAI(model=config["llm"]["model_o3_mini"])
+llm = ChatOpenAI(model=config["llm"]["model_name"], temperature = config["llm"]["temperature"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
+llm_analysis = ChatOpenAI(model=config["llm"]["analysis_model"], base_url=config["llm"]["base_url"], api_key=config["openai"]["api_key"])
 from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
-from weaviate.classes.query import Filter, GeoCoordinate, MetadataQuery, QueryReference
 import re
 from langgraph.graph import MessagesState, StateGraph
 from langchain_core.messages import RemoveMessage
@@ -69,7 +68,7 @@ def single_question_report_generator(state: MessagesState):
     prompt = [SystemMessage(system_message_content)] + conversation_messages
 
     # Run
-    response = llm_o3_mini.invoke(prompt)
+    response = llm_analysis.invoke(prompt)
 
 
     return {"messages": [response]}
@@ -126,7 +125,7 @@ config.update({"recursion_limit": 25})
 
 
 
-def quesiton_report_generation(file_content):
+def question_report_generation(file_content):
     config = load_config()
     if isinstance(file_content, list):
         file_content = "\n".join(file_content)

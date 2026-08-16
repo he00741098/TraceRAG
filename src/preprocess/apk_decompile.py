@@ -4,10 +4,11 @@ import os
 import subprocess
 import yaml
 
-JADX_PATH = config["jadx"]["jadx_bat"]
+JADX_PATH = config["env"]["jadx_path"]
 
 def decompile_apk(apk_path):
-    
+    config = load_config()
+
     output_path = config["directories"]["reversed_apk_dir"]
 
     """调用 `jadx` 反编译 APK 文件"""
