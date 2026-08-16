@@ -53,6 +53,8 @@ def calculate_hash(file_path, hash_type="sha256"):
 #     print(f"结果已保存到 {output_path}")
 
 def apk_info_extract(apk_path):
+    config = load_config()
+
     # 解析 AndroidManifest.xml
     manifest_path = os.path.join(config["directories"]["reversed_apk_dir"], "resources", "AndroidManifest.xml")
     output_path = config["directories"]["apk_info_dir"]
