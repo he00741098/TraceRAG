@@ -106,7 +106,7 @@ format. The OpenAI batch-API dumps ({"custom_id", "body": ...}) are more complic
 - Delete the Qdrant collection (or use a fresh name) when re-running the
   same APK, or you'll get duplicate points.
 - config.yaml gets rewritten on every run (collection name), so don't
-  edits it between runs.
+  edit it between runs.
 - 2x A30 (48GB) fits gemma-4-26B Q8_0 with all layers on GPU.
 - gemma-4 is a thinking model: it fills reasoning_content first, then
   content. You may need to adjust max_tokens.
