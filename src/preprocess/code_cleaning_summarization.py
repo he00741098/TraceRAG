@@ -1,7 +1,6 @@
 import openai
 import os
 import json
-import re
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.config import load_config, set_env_variables
@@ -47,17 +46,21 @@ def _is_trivial(code: str) -> bool:
 
 
 def java_code_cleaning(java_code: str) -> str:
-    """Clean up decompiled code with the LLM."""
+    """
+    using LLM modle to clean java code
+    """
     if _is_trivial(java_code):
         return java_code
 
     try:
+        # 读取 templates.json
         with open("src/Prompt_and_Question/prompts.json", "r", encoding="utf-8") as f:
             prompts = json.load(f)
     except Exception as e:
-        print(f"Failed to read prompts.json: {str(e)}")
+        print(f"Failed to read templates.json: {str(e)}")
         return ""
 
+    # read prompt
     if "java_code_cleaning" not in prompts:
         print("prompts.json can not found  'java_code_cleaning' ")
         return ""
@@ -101,6 +104,9 @@ def java_code_cleaning(java_code: str) -> str:
 
 
 def process_single_file(java_file_path, input_dir, output_dir):
+    """
+    speed up run time by parallel
+    """
     try:
         with open(java_file_path, "r", encoding="utf-8") as f:
             java_code = f.read()
@@ -108,6 +114,7 @@ def process_single_file(java_file_path, input_dir, output_dir):
         optimized_code = java_code_cleaning(java_code)
 
         if optimized_code:
+            # calculate relative path and generate output path
             relative_path = os.path.relpath(java_file_path, input_dir)
             output_file_path = os.path.join(output_dir, relative_path)
 
@@ -123,7 +130,9 @@ def process_single_file(java_file_path, input_dir, output_dir):
 
 
 def clean_java_files(input_dir: str, output_dir: str, max_workers: int = 2):
-    """Clean all .java files under input_dir, in parallel."""
+    """
+    并行处理 Java 文件，优化后保存到指定输出目录。
+    """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -135,18 +144,34 @@ def clean_java_files(input_dir: str, output_dir: str, max_workers: int = 2):
 
     print(f" {len(java_files)}  Java files found , parallelly processing...")
 
+    # 使用 ThreadPoolExecutor 并行处理文件
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
             executor.submit(process_single_file, java_file, input_dir, output_dir)
             for java_file in java_files
         ]
 
+        # 进度条显示
         for _ in tqdm(as_completed(futures), total=len(futures), desc="clean Java code"):
             pass
 
 
+#######  Using LLM to generate Summary for cleaned code chunk ##########
+########################################################################
+
 def generate_code_summary(java_code: str) -> str:
-    """Summarize a code snippet, highlighting suspicious behavior."""
+    """
+    Use OpenAI's GPT-4 model to generate summaries of complex code, analyzing the core functionality and behavior of the code.
+
+    Parameters:
+    - java_code (str): The input complex Java source code.
+
+    Returns:
+    - str: A summary of the code, including a description of its functionality, key variables, external interactions, and exception handling logic.
+
+    """
+
+    #read json to retrieve prompt
     try:
         with open("src/Prompt_and_Question/prompts.json", "r", encoding="utf-8") as f:
             prompts = json.load(f)
@@ -154,10 +179,12 @@ def generate_code_summary(java_code: str) -> str:
         print(f"Failed to read prompts.json : {str(e)}")
         return ""
 
+    # read prompt
     if "generate_code_summary" not in prompts:
         print("prompts.json can not found 'generate_code_summary' ")
         return ""
 
+    # append java code
     prompt = prompts["generate_code_summary"] + "This is the Java code : \n\n" + java_code
 
     client = openai.OpenAI(
@@ -165,19 +192,18 @@ def generate_code_summary(java_code: str) -> str:
         api_key=config["openai"]["api_key"],
     )
     try:
+        # send request to OpenAI
         response = client.chat.completions.create(
             temperature=0,
             model=config["llm"]["summary_model"],
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are a code analysis assistant. Respond ONLY with a detailed summary as instructed.",
-                },
-                {"role": "user", "content": prompt},
-            ],
+                {"role": "system", "content": "You are a code analysis assistant. Respond ONLY with a detailed summary as instructed."},
+                {"role": "user", "content": prompt}
+            ]
         )
 
-        cleaned_code = response.choices[0].message.content.strip("`\n")
+        # Extract the text response from the API
+        cleaned_code = response.choices[0].message.content.strip('`\n')
 
         return cleaned_code
 
@@ -185,7 +211,11 @@ def generate_code_summary(java_code: str) -> str:
         return f"An error occurred: {str(e)}"
 
 
+###### 加速并行生成摘要 #####
 def process_single_file_1(java_file_path, input_dir, output_dir):
+    """
+    Process a single Java file, generate a summary, and save it to the output directory.
+    """
     try:
         with open(java_file_path, "r", encoding="utf-8") as f:
             java_code = f.read()
@@ -195,6 +225,7 @@ def process_single_file_1(java_file_path, input_dir, output_dir):
         else:
             summary = generate_code_summary(java_code)
 
+        # Calculate relative path and output file path
         relative_path = os.path.relpath(java_file_path, input_dir)
 
         output_file_path = os.path.join(
@@ -213,6 +244,9 @@ def process_single_file_1(java_file_path, input_dir, output_dir):
 
 
 def summarize_java_files(input_dir: str, output_dir: str):
+    """
+    Process all .java files in the input directory in parallel and generate summaries for them.
+    """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -222,12 +256,14 @@ def summarize_java_files(input_dir: str, output_dir: str):
             if file.endswith(".java"):
                 java_files.append(os.path.join(root, file))
 
+    # Use ThreadPoolExecutor to parallelize the process
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = [
             executor.submit(process_single_file_1, java_file, input_dir, output_dir)
             for java_file in java_files
         ]
 
+        # Track progress with tqdm
         for _ in tqdm(
             as_completed(futures), total=len(futures), desc="Processing Java Files"
         ):
