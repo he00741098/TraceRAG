@@ -1,6 +1,7 @@
 import openai
 import os
 import json
+import re
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.config import load_config, set_env_variables
