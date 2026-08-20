@@ -32,7 +32,7 @@ import tenacity
 from datetime import datetime
 
 
-# Step 1: decide whether to trigger the retrieval tool
+# Step 1 Decide whether or not trigger retrieve tool
 def query_or_respond(state: MessagesState):
     """Generate tool call for retrieval"""
     llm_with_tools = llm.bind_tools([retrieve])
@@ -40,7 +40,7 @@ def query_or_respond(state: MessagesState):
     return {"messages": [response]}
 
 
-# Retrieve from Qdrant using the query embedding
+# Tool. Retrieve using query from Weaviate Vector DataBase
 @tool(response_format="content_and_artifact")
 @retry(
     stop=stop_after_attempt(10),
@@ -58,6 +58,7 @@ def retrieve(query: str, method_name: str, class_name: str):
     will not be used.
     """
     try:
+        # 生成嵌入
         cfg = load_config()
         embeddings_query = OpenAIEmbeddings(
             model=cfg["llm"]["embedding_model"],
@@ -98,13 +99,13 @@ def retrieve(query: str, method_name: str, class_name: str):
         raise RuntimeError(f"Query failed after multiple retries: {str(e)}")
 
 
-# Step 2: execute the retrieval
+# Step 2: Execute the retrieval.
 tools = ToolNode([retrieve])
 
 
-# Step 3: filter and reorder the retrieved snippets
+# Step 3: Generate a response using the retrieved content.
 def reorder(state: MessagesState):
-    """Filter and rank retrieved snippets by relevance and risk."""
+    """Generate answer."""
     for message in state["messages"]:
         if message.type == "human":
             query = message.content
@@ -117,12 +118,17 @@ def reorder(state: MessagesState):
             break
     tool_messages = recent_tool_messages[::-1]
 
+    # Format into prompt
     docs_content_re = "\n\n".join(doc.content for doc in tool_messages)
 
-    # save raw retrieval results
+    # 获取目标文件路径
     cfg = load_config()
     file_path_1 = cfg["conversation_directories"]["user_query_retrieval_save_path"]
+
+    # 确保目标目录存在
     os.makedirs(os.path.dirname(file_path_1), exist_ok=True)
+
+    # 写入文件
     with open(file_path_1, "w", encoding="utf-8") as file:
         file.write(docs_content_re)
 
@@ -149,9 +155,13 @@ def reorder(state: MessagesState):
 
     response = llm.invoke(prompt)
 
-    # save filtered result
+    # 获取目标文件路径
     file_path = cfg["conversation_directories"]["user_query_retrieval_filtered_path"]
+
+    # 确保目标目录存在
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    # 写入文件
     with open(file_path, "w", encoding="utf-8") as file:
         file.write(str(response.content))
 
@@ -173,6 +183,7 @@ graph = graph_builder.compile()
 output_dir = "output"
 os.makedirs(output_dir, exist_ok=True)
 
+# 保存图像
 img_data = graph.get_graph().draw_mermaid_png()
 with open(os.path.join(output_dir, "first_phase_graph.png"), "wb") as f:
     f.write(img_data)
@@ -182,7 +193,7 @@ graph = graph_builder.compile(checkpointer=memory)
 
 
 def execute_query(input_message: str):
-    """Run the retrieval flow and save results."""
+    """执行查询流程，并将结果保存至文件。"""
     current_time = "Experiment_" + datetime.now().strftime("%Y%m%d_%H%M%S")
     config = {"configurable": {"thread_id": current_time}, "recursion_limit": 25}
     final_result = ""
